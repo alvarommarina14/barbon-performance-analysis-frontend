@@ -1,4 +1,4 @@
-import type { components } from '@court-proof/api-client';
+import type { components } from '@barbon-performance-analysis/api-client';
 import { createContext, use, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { api, onSessionExpired } from '@/api/client';
 import { secureTokenStore } from '@/api/tokenStore';

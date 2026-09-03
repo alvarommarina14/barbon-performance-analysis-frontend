@@ -1,6 +1,6 @@
 import { BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
 import { DMSans_400Regular, DMSans_500Medium, DMSans_700Bold } from '@expo-google-fonts/dm-sans';
-import { colors } from '@court-proof/core';
+import { colors } from '@barbon-performance-analysis/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -18,7 +18,7 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
-  // The token names must match @court-proof/core's `fonts`, which is what every style refers to.
+  // The token names must match @barbon-performance-analysis/core's `fonts`, which is what every style refers to.
   const [fontsLoaded] = useFonts({
     BebasNeue: BebasNeue_400Regular,
     DMSans: DMSans_400Regular,

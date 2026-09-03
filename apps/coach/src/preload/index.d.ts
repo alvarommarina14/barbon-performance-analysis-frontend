@@ -1,8 +1,8 @@
-import type { CourtProofBridge } from './index';
+import type { BarbonAnalysisBridge } from './index';
 
 declare global {
   interface Window {
-    courtProof: CourtProofBridge;
+    barbonAnalysis: BarbonAnalysisBridge;
   }
 }
 

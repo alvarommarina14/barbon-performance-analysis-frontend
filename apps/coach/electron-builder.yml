@@ -1,5 +1,5 @@
-appId: com.barbonperformance.courtproof.coach
-productName: Court Proof Coach
+appId: com.barbonperformance.analysis.coach
+productName: Barbon Performance Analysis Coach
 directories:
   buildResources: resources
   output: release

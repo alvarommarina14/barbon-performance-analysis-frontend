@@ -25,7 +25,7 @@ export default function LoginScreen() {
     <main className="login">
       <form className="login-card" onSubmit={submit}>
         <p className="eyebrow">Barbon Performance</p>
-        <h1>Court Proof</h1>
+        <h1>Analysis</h1>
         <p className="lede">Coach workspace</p>
 
         <label className="field">

@@ -1,4 +1,4 @@
-import { colors, spacing } from '@court-proof/core';
+import { colors, spacing } from '@barbon-performance-analysis/core';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -54,7 +54,7 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Text style={theme.eyebrow}>Barbon Performance</Text>
-        <Text style={[theme.display, { marginTop: spacing.xs }]}>COURT PROOF</Text>
+        <Text style={[theme.display, { marginTop: spacing.xs }]}>ANALYSIS</Text>
         <Text style={[theme.muted, { marginTop: spacing.sm, marginBottom: spacing.xl }]}>
           {isRegister
             ? 'Create your account to start sending videos.'
