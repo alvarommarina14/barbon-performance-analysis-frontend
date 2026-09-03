@@ -6,9 +6,10 @@ with findings marked by timestamp.
 
 This repository holds the two clients. The API lives in `court-proof-backend`.
 
-The architecture, the data model and the phase plan live in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
-The product mockup in [`docs/court-proof-app-mockup-v3.html`](docs/court-proof-app-mockup-v3.html)
-is the specification for both UX and copy — open it alongside the app when building a screen.
+The architecture, the data model and the phase plan live in `docs/ARCHITECTURE.md` in the
+`court-proof-backend` repository. The product mockup in
+[`docs/court-proof-app-mockup-v3.html`](docs/court-proof-app-mockup-v3.html) is the specification
+for both UX and copy — open it alongside the app when building a screen.
 
 ## Layout
 
@@ -18,7 +19,7 @@ is the specification for both UX and copy — open it alongside the app when bui
 | `apps/coach/`          | Electron + React + Vite, the coach desktop app  |
 | `packages/core/`       | Design tokens, shared enums, timestamp formatting |
 | `packages/api-client/` | Generated API types and the fetch wrapper       |
-| `docs/`                | Architecture, ADRs, mockup                      |
+| `docs/`                | The product mockup                              |
 
 ## Running it
 
