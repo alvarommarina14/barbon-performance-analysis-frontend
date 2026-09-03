@@ -1,4 +1,4 @@
-import { colors } from '@court-proof/core';
+import { colors } from '@barbon-performance-analysis/core';
 import { Redirect } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
 import { useAuth } from '@/auth/AuthContext';

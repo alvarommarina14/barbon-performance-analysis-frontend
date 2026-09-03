@@ -1,25 +1,25 @@
-import { createApiClient, type TokenPair, type TokenStore } from '@court-proof/api-client';
+import { createApiClient, type TokenPair, type TokenStore } from '@barbon-performance-analysis/api-client';
 
 const vaultTokenStore: TokenStore = {
   async read() {
-    const raw = await window.courtProof.session.read();
+    const raw = await window.barbonAnalysis.session.read();
     if (!raw) {
       return null;
     }
     try {
       return JSON.parse(raw) as TokenPair;
     } catch {
-      await window.courtProof.session.clear();
+      await window.barbonAnalysis.session.clear();
       return null;
     }
   },
 
   async write(tokens) {
-    await window.courtProof.session.write(JSON.stringify(tokens));
+    await window.barbonAnalysis.session.write(JSON.stringify(tokens));
   },
 
   async clear() {
-    await window.courtProof.session.clear();
+    await window.barbonAnalysis.session.clear();
   },
 };
 

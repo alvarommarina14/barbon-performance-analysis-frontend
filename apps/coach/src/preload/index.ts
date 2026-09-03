@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
-const courtProof = {
+const barbonAnalysis = {
   pickVideoFile: (): Promise<string | null> => ipcRenderer.invoke('dialog:pickVideoFile'),
 
   session: {
@@ -10,6 +10,6 @@ const courtProof = {
   },
 } as const;
 
-contextBridge.exposeInMainWorld('courtProof', courtProof);
+contextBridge.exposeInMainWorld('barbonAnalysis', barbonAnalysis);
 
-export type CourtProofBridge = typeof courtProof;
+export type BarbonAnalysisBridge = typeof barbonAnalysis;

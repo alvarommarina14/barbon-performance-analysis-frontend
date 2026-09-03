@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Court Proof",
-    "slug": "court-proof",
-    "scheme": "courtproof",
+    "name": "Barbon Performance Analysis",
+    "slug": "barbon-performance-analysis",
+    "scheme": "barbonanalysis",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,10 +10,10 @@
     "backgroundColor": "#0a0a0a",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.barbonperformance.courtproof"
+      "bundleIdentifier": "com.barbonperformance.analysis"
     },
     "android": {
-      "package": "com.barbonperformance.courtproof",
+      "package": "com.barbonperformance.analysis",
       "adaptiveIcon": {
         "backgroundColor": "#0a0a0a",
         "foregroundImage": "./assets/android-icon-foreground.png",

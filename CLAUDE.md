@@ -1,10 +1,10 @@
-# Court Proof — working agreement
+# Barbon Performance Analysis — working agreement
 
 Video analysis platform for Barbon Performance. This repository holds the two clients; the API
-lives in `court-proof-backend`, and so do the architecture, the data model and the phase plan, in
-`docs/ARCHITECTURE.md` there. The product mockup in
-[`docs/court-proof-app-mockup-v3.html`](docs/court-proof-app-mockup-v3.html) is the specification
-for both UX and copy. Read them before building a screen.
+lives in `barbon-performance-analysis-backend`, and so do the architecture, the data model and
+the phase plan, in `docs/ARCHITECTURE.md` there. The product mockup in
+[`docs/barbon-performance-analysis-mockup-v3.html`](docs/barbon-performance-analysis-mockup-v3.html)
+is the specification for both UX and copy. Read them before building a screen.
 
 ## Comments and documentation
 
@@ -20,8 +20,8 @@ would look like a mistake to the next reader. A comment that restates the signat
 obvious, or narrates the next three lines is noise — delete it instead of writing it.
 
 Names, small functions and tests carry the explanation. The long-form "why" belongs in
-`docs/ARCHITECTURE.md` or an ADR under `docs/adr/` in `court-proof-backend`, or in the commit
-message.
+`docs/ARCHITECTURE.md` or an ADR under `docs/adr/` in `barbon-performance-analysis-backend`, or
+in the commit message.
 
 ## Language
 
@@ -42,8 +42,9 @@ The single exception is **end-user product copy**, which follows the product's l
 
 ## The API contract
 
-The OpenAPI spec of the `court-proof-backend` repository is the source of truth for both
-clients. After a DTO changes there, run `pnpm gen:api` with that backend running. If a client
+The OpenAPI spec of the `barbon-performance-analysis-backend` repository is the source of truth
+for both clients. After a DTO changes there, run `pnpm gen:api` with that backend running. If a
+client
 stops compiling afterwards, the contract changed and the client has to catch up — that is the
 point, not a problem to route around.
 

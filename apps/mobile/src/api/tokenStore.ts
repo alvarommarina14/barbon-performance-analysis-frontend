@@ -1,7 +1,7 @@
-import type { TokenPair, TokenStore } from '@court-proof/api-client';
+import type { TokenPair, TokenStore } from '@barbon-performance-analysis/api-client';
 import * as SecureStore from 'expo-secure-store';
 
-const KEY = 'court-proof.session';
+const KEY = 'barbon-analysis.session';
 
 export const secureTokenStore: TokenStore = {
   async read() {

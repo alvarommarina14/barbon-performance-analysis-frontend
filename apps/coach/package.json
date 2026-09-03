@@ -1,8 +1,8 @@
 {
-  "name": "@court-proof/coach",
+  "name": "@barbon-performance-analysis/coach",
   "version": "0.1.0",
   "private": true,
-  "description": "Court Proof coach desktop app",
+  "description": "Barbon Performance Analysis coach desktop app",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
@@ -13,8 +13,8 @@
     "dist": "electron-vite build && electron-builder"
   },
   "dependencies": {
-    "@court-proof/api-client": "workspace:*",
-    "@court-proof/core": "workspace:*",
+    "@barbon-performance-analysis/api-client": "workspace:*",
+    "@barbon-performance-analysis/core": "workspace:*",
     "@tanstack/react-query": "^5.102.7",
     "tus-js-client": "^4.3.1"
   },

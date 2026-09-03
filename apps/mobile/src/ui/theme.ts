@@ -1,4 +1,4 @@
-import { colors, fonts, radii, spacing } from '@court-proof/core';
+import { colors, fonts, radii, spacing } from '@barbon-performance-analysis/core';
 import { StyleSheet } from 'react-native';
 
 export const theme = StyleSheet.create({

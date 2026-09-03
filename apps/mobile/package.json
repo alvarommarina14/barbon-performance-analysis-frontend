@@ -1,5 +1,5 @@
 {
-  "name": "@court-proof/mobile",
+  "name": "@barbon-performance-analysis/mobile",
   "version": "0.1.0",
   "private": true,
   "main": "expo-router/entry",
@@ -10,8 +10,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@court-proof/api-client": "workspace:*",
-    "@court-proof/core": "workspace:*",
+    "@barbon-performance-analysis/api-client": "workspace:*",
+    "@barbon-performance-analysis/core": "workspace:*",
     "@expo-google-fonts/bebas-neue": "^0.4.1",
     "@expo-google-fonts/dm-sans": "^0.4.2",
     "@tanstack/react-query": "^5.102.7",

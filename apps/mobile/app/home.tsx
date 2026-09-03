@@ -1,4 +1,4 @@
-import { colors, fonts, radii, spacing } from '@court-proof/core';
+import { colors, fonts, radii, spacing } from '@barbon-performance-analysis/core';
 import { useQuery } from '@tanstack/react-query';
 import { Redirect } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';

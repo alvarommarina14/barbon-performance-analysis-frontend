@@ -1,5 +1,5 @@
 {
-  "name": "court-proof-frontend",
+  "name": "barbon-performance-analysis-frontend",
   "private": true,
   "version": "0.1.0",
   "packageManager": "pnpm@11.24.0",
@@ -7,9 +7,9 @@
     "node": ">=22"
   },
   "scripts": {
-    "gen:api": "pnpm --filter @court-proof/api-client run generate",
-    "mobile": "pnpm --filter @court-proof/mobile run start",
-    "coach": "pnpm --filter @court-proof/coach run dev",
+    "gen:api": "pnpm --filter @barbon-performance-analysis/api-client run generate",
+    "mobile": "pnpm --filter @barbon-performance-analysis/mobile run start",
+    "coach": "pnpm --filter @barbon-performance-analysis/coach run dev",
     "typecheck": "pnpm -r run typecheck",
     "lint": "pnpm -r run lint"
   },

@@ -1,4 +1,4 @@
-import { createApiClient } from '@court-proof/api-client';
+import { createApiClient } from '@barbon-performance-analysis/api-client';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { secureTokenStore } from './tokenStore';

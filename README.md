@@ -1,15 +1,15 @@
-# Court Proof — frontend
+# Barbon Performance Analysis — frontend
 
 Video analysis platform for Barbon Performance. A player records themselves on court and
 uploads the video, the coach analyses it, and the player gets back an edited feedback video
 with findings marked by timestamp.
 
-This repository holds the two clients. The API lives in `court-proof-backend`.
+This repository holds the two clients. The API lives in `barbon-performance-analysis-backend`.
 
 The architecture, the data model and the phase plan live in `docs/ARCHITECTURE.md` in the
-`court-proof-backend` repository. The product mockup in
-[`docs/court-proof-app-mockup-v3.html`](docs/court-proof-app-mockup-v3.html) is the specification
-for both UX and copy — open it alongside the app when building a screen.
+`barbon-performance-analysis-backend` repository. The product mockup in
+[`docs/barbon-performance-analysis-mockup-v3.html`](docs/barbon-performance-analysis-mockup-v3.html)
+is the specification for both UX and copy — open it alongside the app when building a screen.
 
 ## Layout
 

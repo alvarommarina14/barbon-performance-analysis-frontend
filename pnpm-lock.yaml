@@ -14,10 +14,10 @@ importers:
 
   apps/coach:
     dependencies:
-      '@court-proof/api-client':
+      '@barbon-performance-analysis/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
-      '@court-proof/core':
+      '@barbon-performance-analysis/core':
         specifier: workspace:*
         version: link:../../packages/core
       '@tanstack/react-query':
@@ -60,10 +60,10 @@ importers:
 
   apps/mobile:
     dependencies:
-      '@court-proof/api-client':
+      '@barbon-performance-analysis/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
-      '@court-proof/core':
+      '@barbon-performance-analysis/core':
         specifier: workspace:*
         version: link:../../packages/core
       '@expo-google-fonts/bebas-neue':
