@@ -6,6 +6,40 @@
  */
 
 export interface paths {
+    "/api/v1/webhooks/cloudflare-stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cloudflare Stream status callback */
+        post: operations["streamStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/submissions/upload-intent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reserve a submission and get a one-time Cloudflare upload URL */
+        post: operations["uploadIntent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/register": {
         parameters: {
             query?: never;
@@ -74,6 +108,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/videos/{videoAssetId}/playback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A short-lived signed playback token for a video the caller may watch */
+        get: operations["playback"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/submissions/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed-in player's own submissions */
+        get: operations["mySubmissions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/players/me/home": {
         parameters: {
             query?: never;
@@ -129,6 +197,22 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        UploadIntentRequest: {
+            /** @enum {string} */
+            strokeType: "FOREHAND" | "BACKHAND" | "SERVE" | "MOVEMENT" | "OTHER";
+            playerNote?: string;
+            /** Format: date-time */
+            recordedAt?: string;
+        };
+        UploadIntentResponse: {
+            /** Format: uuid */
+            submissionId: string;
+            /** Format: uuid */
+            videoAssetId: string;
+            uploadUrl: string;
+            /** Format: int32 */
+            maxDurationSeconds?: number;
+        };
         RegisterRequest: {
             /** Format: email */
             email: string;
@@ -183,6 +267,38 @@ export interface components {
             email: string;
             password: string;
         };
+        PlaybackResponse: {
+            /** Format: uuid */
+            videoAssetId: string;
+            hlsUrl: string;
+            dashUrl: string;
+            token: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        SubmissionSummary: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            playerProfileId: string;
+            playerName: string;
+            /** @enum {string} */
+            strokeType: "FOREHAND" | "BACKHAND" | "SERVE" | "MOVEMENT" | "OTHER";
+            playerNote?: string;
+            /** Format: date-time */
+            recordedAt?: string;
+            /** @enum {string} */
+            status: "SUBMITTED" | "IN_REVIEW" | "ANALYZED";
+            /** @enum {string} */
+            assetStatus: "PENDING_UPLOAD" | "UPLOADING" | "PROCESSING" | "READY" | "ERRORED";
+            /** Format: uuid */
+            videoAssetId: string;
+            /** Format: int32 */
+            durationSeconds?: number;
+            thumbnailUrl?: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
         CoachCard: {
             /** Format: uuid */
             profileId: string;
@@ -231,6 +347,54 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    streamStatus: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Webhook-Signature"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": string;
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    uploadIntent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UploadIntentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UploadIntentResponse"];
+                };
+            };
+        };
+    };
     register: {
         parameters: {
             query?: never;
@@ -321,6 +485,48 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["LoginResponse"];
+                };
+            };
+        };
+    };
+    playback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                videoAssetId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PlaybackResponse"];
+                };
+            };
+        };
+    };
+    mySubmissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SubmissionSummary"][];
                 };
             };
         };
