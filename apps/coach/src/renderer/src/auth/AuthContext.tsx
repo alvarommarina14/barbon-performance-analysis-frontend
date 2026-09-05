@@ -7,6 +7,7 @@ type CurrentUser = components['schemas']['CurrentUserResponse'];
 interface AuthState {
   user: CurrentUser | null | undefined;
   login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -49,6 +50,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user);
   }, []);
 
+  const register = useCallback(async (email: string, password: string, name: string) => {
+    const { data, error } = await api.POST('/api/v1/auth/register-coach', {
+      body: { email, password, name },
+    });
+    if (error || !data) {
+      throw new Error(problemDetail(error) ?? 'Could not create the account');
+    }
+    if (data.user.role !== 'COACH' && data.user.role !== 'ADMIN') {
+      throw new Error('This app is for coaches. Players sign in on the mobile app.');
+    }
+    await tokenStore.write({ accessToken: data.accessToken, refreshToken: data.refreshToken });
+    setUser(data.user);
+  }, []);
+
   const logout = useCallback(async () => {
     const tokens = await tokenStore.read();
     if (tokens) {
@@ -58,7 +73,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
-  const value = useMemo(() => ({ user, login, logout }), [user, login, logout]);
+  const value = useMemo(
+    () => ({ user, login, register, logout }),
+    [user, login, register, logout],
+  );
 
   return <AuthContext value={value}>{children}</AuthContext>;
 }
