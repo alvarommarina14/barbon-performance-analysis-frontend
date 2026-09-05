@@ -43,7 +43,17 @@ export default function RootLayout() {
             headerShown: false,
             contentStyle: { backgroundColor: colors.black },
           }}
-        />
+        >
+          <Stack.Screen
+            name="analysis/[id]"
+            options={{
+              headerShown: true,
+              title: 'Analysis',
+              headerStyle: { backgroundColor: colors.black },
+              headerTintColor: colors.white,
+            }}
+          />
+        </Stack>
       </AuthProvider>
     </QueryClientProvider>
   );
