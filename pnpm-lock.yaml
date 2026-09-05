@@ -23,6 +23,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.102.7
         version: 5.102.7(react@19.2.3)
+      hls.js:
+        specifier: ^1.6.15
+        version: 1.7.2
       tus-js-client:
         specifier: ^4.3.1
         version: 4.3.1
@@ -2515,6 +2518,9 @@ packages:
 
   hermes-parser@0.36.1:
     resolution: {integrity: sha512-GApNk4zLHi2UWoWZZkx7LNCOSzLSc5lB55pZ/PhK7ycFeg7u5LcF88p/WbpIi1XUDtE0MpHE3uRR3u3KB7TjSQ==}
+
+  hls.js@1.7.2:
+    resolution: {integrity: sha512-CW/pPvSOFIRsosbwxrYaE9ERmpTo5fbTqL7wCvuCFlqW1Bmb1K5fXsY7yiH95rmlr4rVuA7UXHbM/cIXQ6AXwg==}
 
   hosted-git-info@4.1.0:
     resolution: {integrity: sha512-kyCuEOWjJqZuDbRHzL8V93NzQhwIB71oFWSyzVo+KPZI+pnQPPxucdkrOZvkLRnrf5URsQM+IJ09Dw29cRALIA==}
@@ -6837,6 +6843,8 @@ snapshots:
   hermes-parser@0.36.1:
     dependencies:
       hermes-estree: 0.36.1
+
+  hls.js@1.7.2: {}
 
   hosted-git-info@4.1.0:
     dependencies:
