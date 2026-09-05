@@ -137,6 +137,19 @@ button {
   color: var(--accent);
 }
 
+.switch {
+  align-self: center;
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: var(--gray);
+  font-size: 13px;
+}
+
+.switch:hover {
+  color: var(--accent);
+}
+
 /* --- Workspace --- */
 
 .workspace {

@@ -8,7 +8,12 @@ export interface ApiClientOptions {
   onSessionExpired?: () => void;
 }
 
-const ANONYMOUS_PATHS = ['/api/v1/auth/login', '/api/v1/auth/register', '/api/v1/auth/refresh'];
+const ANONYMOUS_PATHS = [
+  '/api/v1/auth/login',
+  '/api/v1/auth/register',
+  '/api/v1/auth/register-coach',
+  '/api/v1/auth/refresh',
+];
 
 function isAnonymous(url: string): boolean {
   return ANONYMOUS_PATHS.some((path) => new URL(url, 'http://placeholder').pathname === path);
