@@ -6,6 +6,42 @@
  */
 
 export interface paths {
+    "/api/v1/analyses/{analysisId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One analysis with its findings */
+        get: operations["detail"];
+        /** Edit a draft analysis' title and summary */
+        put: operations["update"];
+        post?: never;
+        /** Discard a draft analysis */
+        delete: operations["delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyses/{analysisId}/findings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace the whole finding list of a draft analysis */
+        put: operations["replaceFindings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/webhooks/cloudflare-stream": {
         parameters: {
             query?: never;
@@ -125,6 +161,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analyses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Analyses visible to the caller: a player's own published ones, or a coach's */
+        get: operations["list"];
+        put?: never;
+        /** Start a draft analysis for a submission or a player */
+        post: operations["create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyses/{analysisId}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish a draft analysis so the player can watch it */
+        post: operations["publish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyses/{analysisId}/feedback-upload-intent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reserve a Cloudflare upload URL for the edited feedback video */
+        post: operations["feedbackUploadIntent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/videos/{videoAssetId}/playback": {
         parameters: {
             query?: never;
@@ -134,6 +222,40 @@ export interface paths {
         };
         /** A short-lived signed playback token for a video the caller may watch */
         get: operations["playback"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/videos/{videoAssetId}/download-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A download URL for the original video the caller may access */
+        get: operations["downloadUrl"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/submissions/queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Submissions from the coach's clients that still need an analysis */
+        get: operations["coachQueue"];
         put?: never;
         post?: never;
         delete?: never;
@@ -210,16 +332,89 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analyses/{analysisId}/playback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A short-lived signed playback token for the feedback video */
+        get: operations["playback_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        UpdateAnalysisRequest: {
+            title: string;
+            summary?: string;
+        };
+        AnalysisDetail: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            status: "DRAFT" | "PUBLISHED";
+            title: string;
+            summary?: string;
+            /** Format: uuid */
+            playerProfileId: string;
+            playerName: string;
+            /** Format: uuid */
+            coachProfileId: string;
+            coachName: string;
+            /** Format: uuid */
+            submissionId?: string;
+            /** @enum {string} */
+            strokeType?: "FOREHAND" | "BACKHAND" | "SERVE" | "MOVEMENT" | "OTHER";
+            playerNote?: string;
+            /** Format: uuid */
+            feedbackVideoAssetId?: string;
+            /** @enum {string} */
+            feedbackVideoStatus?: "PENDING_UPLOAD" | "UPLOADING" | "PROCESSING" | "READY" | "ERRORED";
+            feedbackReady?: boolean;
+            /** Format: date-time */
+            publishedAt?: string;
+            findings: components["schemas"]["FindingView"][];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        FindingView: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            timestampSeconds?: number;
+            title: string;
+            detail?: string;
+            /** Format: int32 */
+            sortOrder?: number;
+        };
+        FindingInput: {
+            /** Format: int32 */
+            timestampSeconds?: number;
+            title: string;
+            detail?: string;
+        };
+        ReplaceFindingsRequest: {
+            findings: components["schemas"]["FindingInput"][];
+        };
         UploadIntentRequest: {
             /** @enum {string} */
             strokeType: "FOREHAND" | "BACKHAND" | "SERVE" | "MOVEMENT" | "OTHER";
             playerNote?: string;
             /** Format: date-time */
             recordedAt?: string;
+            /** Format: int64 */
+            sizeBytes?: number;
         };
         UploadIntentResponse: {
             /** Format: uuid */
@@ -291,6 +486,28 @@ export interface components {
             email: string;
             password: string;
         };
+        CreateAnalysisRequest: {
+            /** Format: uuid */
+            submissionId?: string;
+            /** Format: uuid */
+            playerProfileId?: string;
+            title: string;
+            summary?: string;
+            exactlyOneTarget?: boolean;
+        };
+        FeedbackUploadIntentRequest: {
+            /** Format: int64 */
+            sizeBytes?: number;
+        };
+        FeedbackUploadIntentResponse: {
+            /** Format: uuid */
+            analysisId: string;
+            /** Format: uuid */
+            videoAssetId: string;
+            uploadUrl: string;
+            /** Format: int32 */
+            maxDurationSeconds?: number;
+        };
         PlaybackResponse: {
             /** Format: uuid */
             videoAssetId: string;
@@ -299,6 +516,10 @@ export interface components {
             token: string;
             /** Format: date-time */
             expiresAt: string;
+        };
+        DownloadUrlResponse: {
+            url: string;
+            ready?: boolean;
         };
         SubmissionSummary: {
             /** Format: uuid */
@@ -362,6 +583,33 @@ export interface components {
             /** Format: date-time */
             nextCallAt?: string;
         };
+        AnalysisSummary: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            /** @enum {string} */
+            status: "DRAFT" | "PUBLISHED";
+            /** @enum {string} */
+            strokeType?: "FOREHAND" | "BACKHAND" | "SERVE" | "MOVEMENT" | "OTHER";
+            coachName: string;
+            playerName: string;
+            feedbackReady?: boolean;
+            /** Format: date-time */
+            publishedAt?: string;
+            /** Format: int32 */
+            findingCount?: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        PlaybackView: {
+            /** Format: uuid */
+            videoAssetId: string;
+            hlsUrl: string;
+            dashUrl: string;
+            token: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -371,6 +619,100 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                analysisId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AnalysisDetail"];
+                };
+            };
+        };
+    };
+    update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                analysisId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAnalysisRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AnalysisDetail"];
+                };
+            };
+        };
+    };
+    delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                analysisId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    replaceFindings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                analysisId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplaceFindingsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AnalysisDetail"];
+                };
+            };
+        };
+    };
     streamStatus: {
         parameters: {
             query?: never;
@@ -537,6 +879,100 @@ export interface operations {
             };
         };
     };
+    list: {
+        parameters: {
+            query?: {
+                playerProfileId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AnalysisSummary"][];
+                };
+            };
+        };
+    };
+    create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAnalysisRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AnalysisDetail"];
+                };
+            };
+        };
+    };
+    publish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                analysisId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AnalysisDetail"];
+                };
+            };
+        };
+    };
+    feedbackUploadIntent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                analysisId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeedbackUploadIntentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FeedbackUploadIntentResponse"];
+                };
+            };
+        };
+    };
     playback: {
         parameters: {
             query?: never;
@@ -555,6 +991,48 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PlaybackResponse"];
+                };
+            };
+        };
+    };
+    downloadUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                videoAssetId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DownloadUrlResponse"];
+                };
+            };
+        };
+    };
+    coachQueue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SubmissionSummary"][];
                 };
             };
         };
@@ -635,6 +1113,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CurrentUserResponse"];
+                };
+            };
+        };
+    };
+    playback_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                analysisId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PlaybackView"];
                 };
             };
         };
