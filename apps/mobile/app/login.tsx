@@ -1,4 +1,5 @@
 import { colors, spacing } from '@barbon-performance-analysis/core';
+import { Redirect } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -16,7 +17,7 @@ import { theme } from '@/ui/theme';
 type Mode = 'login' | 'register';
 
 export default function LoginScreen() {
-  const { login, register } = useAuth();
+  const { user, login, register } = useAuth();
 
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
@@ -36,12 +37,16 @@ export default function LoginScreen() {
       } else {
         await login(email.trim(), password);
       }
-      // Navigation is driven by the session: app/index redirects once `user` is set.
+      // A successful call sets `user`; the redirect below takes over on the next render.
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');
     } finally {
       setBusy(false);
     }
+  }
+
+  if (user) {
+    return <Redirect href="/home" />;
   }
 
   return (
