@@ -11,7 +11,10 @@ export interface ApiClientOptions {
 const ANONYMOUS_PATHS = ['/api/v1/auth/login', '/api/v1/auth/register', '/api/v1/auth/refresh'];
 
 function isAnonymous(url: string): boolean {
-  return ANONYMOUS_PATHS.some((path) => new URL(url, 'http://placeholder').pathname === path);
+  // No `new URL()`: React Native ships no complete URL implementation. Every anonymous path is
+  // a full path suffix and the base URL never contains one, so a suffix match is enough.
+  const path = url.split(/[?#]/, 1)[0] ?? url;
+  return ANONYMOUS_PATHS.some((anon) => path.endsWith(anon));
 }
 
 export function createApiClient(options: ApiClientOptions) {
@@ -28,7 +31,7 @@ export function createApiClient(options: ApiClientOptions) {
       return null;
     }
 
-    const response = await fetch(new URL('/api/v1/auth/refresh', baseUrl), {
+    const response = await fetch(`${baseUrl.replace(/\/$/, '')}/api/v1/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken: current.refreshToken }),
@@ -53,25 +56,28 @@ export function createApiClient(options: ApiClientOptions) {
   }
 
   const authMiddleware: Middleware = {
+    // openapi-fetch rejects any hook return value that is not a Request/Response instance, and
+    // React Native's Hermes runtime does not recognise its own fetch primitives as instances of
+    // the globals. So return nothing unless a value is genuinely being swapped in: the header
+    // mutation below sticks on the request openapi-fetch keeps.
     async onRequest({ request }) {
       if (isAnonymous(request.url)) {
-        return request;
+        return;
       }
       const tokens = await tokenStore.read();
       if (tokens) {
         request.headers.set('Authorization', `Bearer ${tokens.accessToken}`);
       }
-      return request;
     },
 
     async onResponse({ request, response }) {
       if (response.status !== 401 || isAnonymous(request.url)) {
-        return response;
+        return;
       }
 
       const tokens = await refreshOnce();
       if (!tokens) {
-        return response;
+        return;
       }
 
       // Retry once with the new access token. A second 401 is a real authorisation
