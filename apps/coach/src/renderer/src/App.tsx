@@ -1,13 +1,26 @@
 import { useAuth } from './auth/AuthContext';
-import ClientListScreen from './screens/ClientListScreen';
+import { NavProvider } from './nav';
+import Shell from './Shell';
 import LoginScreen from './screens/LoginScreen';
 
 export default function App() {
   const { user } = useAuth();
 
   if (user === undefined) {
-    return <main className="login"><p className="lede">Loading…</p></main>;
+    return (
+      <main className="login">
+        <p className="lede">Loading…</p>
+      </main>
+    );
   }
 
-  return user ? <ClientListScreen /> : <LoginScreen />;
+  if (!user) {
+    return <LoginScreen />;
+  }
+
+  return (
+    <NavProvider>
+      <Shell />
+    </NavProvider>
+  );
 }
