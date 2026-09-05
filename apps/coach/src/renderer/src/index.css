@@ -235,4 +235,256 @@ button {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+/* --- Shell --- */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.shell-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 16px 40px;
+  border-bottom: 1px solid var(--line);
+  background: var(--dark);
+}
+
+.shell-brand strong {
+  color: var(--white);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.04em;
+}
+
+.shell-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.shell-tab {
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-radius: 100px;
+  background: transparent;
+  color: var(--gray);
+  font-size: 13px;
+}
+
+.shell-tab:hover {
+  color: var(--white);
+}
+
+.shell-tab.is-active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.shell-bar .workspace-user {
+  margin-left: auto;
+}
+
+.shell-body {
+  flex: 1;
+}
+
+/* --- Editor --- */
+
+.editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1180px) {
+  .editor {
+    grid-template-columns: 1fr;
+  }
+}
+
+.editor-main,
+.editor-side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.video-frame {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.textarea {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--dark);
+  color: var(--white);
+  font-family: inherit;
+  font-size: 15px;
+  min-height: 90px;
+  resize: vertical;
+}
+
+.textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.panel input {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--dark);
+  color: var(--white);
+  font-family: inherit;
+  font-size: 15px;
+}
+
+.panel input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.progress-track {
+  height: 6px;
+  margin-top: 12px;
+  border-radius: 100px;
+  background: var(--dark);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s;
+}
+
+.mark-btn {
+  padding: 10px 18px;
+  border: 1px solid var(--accent);
+  border-radius: 100px;
+  background: transparent;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mark-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.finding-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: start;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+}
+
+.stamp {
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--dark);
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.finding-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.finding-card {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  background: var(--card);
+  cursor: pointer;
+}
+
+.finding-card p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.finding-card strong {
+  color: var(--white);
+}
+
+.section-title {
+  margin: 0;
+  color: var(--white);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.back-link {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--gray);
+  font-size: 13px;
+}
+
+.back-link:hover {
+  color: var(--accent);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 50;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--white);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
