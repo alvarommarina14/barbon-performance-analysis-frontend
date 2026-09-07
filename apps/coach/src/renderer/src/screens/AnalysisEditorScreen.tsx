@@ -1,7 +1,7 @@
 import type { components } from '@barbon-performance-analysis/api-client';
 import { formatTimestamp } from '@barbon-performance-analysis/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../api/client';
 import { HlsVideo } from '../components/HlsVideo';
 import { useToast } from '../components/Toast';
@@ -65,6 +65,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
   const [findingsDirty, setFindingsDirty] = useState(false);
 
   const [uploadFraction, setUploadFraction] = useState<number | null>(null);
+  const [step, setStep] = useState<'marks' | 'details'>('marks');
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const titleInputs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -100,13 +101,26 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
   const status = data?.status;
   const editable = status === 'DRAFT';
 
+  // "Changed" compares against what the server holds, not just whether a field was touched, so
+  // adding a mark and removing it again leaves nothing to save.
+  const findingsChanged = useMemo(() => {
+    const shape = (rows: { timestampSeconds: number; title: string; detail: string }[]) =>
+      JSON.stringify(rows.map((row) => [row.timestampSeconds, row.title.trim(), row.detail.trim()]));
+    const fromServer = (data?.findings ?? []).map((finding) => ({
+      timestampSeconds: finding.timestampSeconds ?? 0,
+      title: finding.title,
+      detail: finding.detail ?? '',
+    }));
+    return shape(fromServer) !== shape(findings);
+  }, [data?.findings, findings]);
+
   const feedbackState = feedbackStateOf(data);
   const canEditFindings = editable && feedbackState === 'ready';
   const canPublish =
     editable &&
     feedbackState === 'ready' &&
     findings.length > 0 &&
-    !findingsDirty &&
+    !findingsChanged &&
     !headerDirty;
 
   const cache = (fresh: AnalysisDetail) => queryClient.setQueryData(['analysis', analysisId], fresh);
@@ -272,11 +286,16 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
   }
 
   const anyFindingBlank = findings.some((finding) => !finding.title.trim());
+  const showFindings = feedbackState === 'ready' || feedbackState === 'published';
 
   return (
-    <main className="workspace">
-      <button type="button" className="back-link" onClick={back}>
-        ← Queue
+    <main className="workspace editor-screen">
+      <button
+        type="button"
+        className="back-link"
+        onClick={() => (step === 'details' ? setStep('marks') : back())}
+      >
+        ← {step === 'details' ? 'Marks' : 'Queue'}
       </button>
       <div className="workspace-header">
         <h1>{data.title}</h1>
@@ -287,56 +306,58 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
         </span>
       </div>
 
-      <div className="editor">
-        <div className="editor-main">
-          <div className="panel">
-            <p className="section-title">Feedback video</p>
-            {feedbackState === 'loading' ? (
-              <p className="lede">Loading…</p>
-            ) : feedbackState === 'none' ? (
-              <>
-                <p className="lede">Upload the edited feedback video (MP4).</p>
-                <button
-                  type="button"
-                  className="primary"
-                  disabled={upload.isPending}
-                  onClick={() => upload.mutate()}
-                >
-                  {upload.isPending ? 'Uploading…' : 'Choose a video…'}
-                </button>
-                {uploadFraction !== null ? (
-                  <div className="progress-track">
-                    <div
-                      className="progress-fill"
-                      style={{ width: `${Math.round(uploadFraction * 100)}%` }}
-                    />
-                  </div>
-                ) : null}
-                {upload.isError ? <p className="error">{upload.error.message}</p> : null}
-              </>
-            ) : feedbackState === 'processing' ? (
-              <div className="lede" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <span className="spinner" />
-                Cloudflare is processing the video…
-              </div>
-            ) : feedbackState === 'errored' ? (
-              <>
-                <p className="error">The feedback video failed to process.</p>
-                <button type="button" className="primary" onClick={() => upload.mutate()}>
-                  Upload again
-                </button>
-              </>
-            ) : playback.isPending ? (
-              <p className="lede">Loading video…</p>
-            ) : playback.isError ? (
-              <p className="error">We could not load the feedback video.</p>
-            ) : playback.data ? (
-              <HlsVideo ref={videoRef} src={playback.data.hlsUrl} />
-            ) : null}
+      {step === 'marks' ? (
+        <div className="editor">
+          <div className="editor-main">
+            <div className="panel">
+              <p className="section-title">Feedback video</p>
+              {feedbackState === 'loading' ? (
+                <p className="lede">Loading…</p>
+              ) : feedbackState === 'none' ? (
+                <>
+                  <p className="lede">Upload the edited feedback video (MP4).</p>
+                  <button
+                    type="button"
+                    className="primary"
+                    disabled={upload.isPending}
+                    onClick={() => upload.mutate()}
+                  >
+                    {upload.isPending ? 'Uploading…' : 'Choose a video…'}
+                  </button>
+                  {uploadFraction !== null ? (
+                    <div className="progress-track">
+                      <div
+                        className="progress-fill"
+                        style={{ width: `${Math.round(uploadFraction * 100)}%` }}
+                      />
+                    </div>
+                  ) : null}
+                  {upload.isError ? <p className="error">{upload.error.message}</p> : null}
+                </>
+              ) : feedbackState === 'processing' ? (
+                <div className="lede" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <span className="spinner" />
+                  Cloudflare is processing the video…
+                </div>
+              ) : feedbackState === 'errored' ? (
+                <>
+                  <p className="error">The feedback video failed to process.</p>
+                  <button type="button" className="primary" onClick={() => upload.mutate()}>
+                    Upload again
+                  </button>
+                </>
+              ) : playback.isPending ? (
+                <p className="lede">Loading video…</p>
+              ) : playback.isError ? (
+                <p className="error">We could not load the feedback video.</p>
+              ) : playback.data ? (
+                <HlsVideo ref={videoRef} src={playback.data.hlsUrl} />
+              ) : null}
+            </div>
           </div>
 
-          {feedbackState === 'ready' || feedbackState === 'published' ? (
-            <div className="panel">
+          <div className="editor-side">
+            <div className="panel findings-panel">
               <div className="workspace-header">
                 <p className="section-title">Findings</p>
                 {canEditFindings ? (
@@ -344,84 +365,100 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                     type="button"
                     className="mark-btn"
                     onClick={markHere}
-                    disabled={!videoRef.current}
+                    disabled={!playback.data}
                   >
                     Mark here
                   </button>
                 ) : null}
               </div>
 
-              {findings.length === 0 ? (
+              {!showFindings ? (
+                <p className="lede">Available once the feedback video is ready.</p>
+              ) : findings.length === 0 ? (
                 <p className="lede">
                   {canEditFindings
                     ? 'Scrub the video and press “Mark here” to add a finding.'
                     : 'No findings.'}
                 </p>
-              ) : canEditFindings ? (
-                findings.map((row) => (
-                  <div className="finding-row" key={row.key}>
-                    <button
-                      type="button"
-                      className="stamp"
-                      onClick={() => seek(row.timestampSeconds)}
-                    >
-                      {formatTimestamp(row.timestampSeconds)}
-                    </button>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <input
-                        ref={(element) => {
-                          titleInputs.current[row.key] = element;
-                        }}
-                        placeholder="What to fix"
-                        value={row.title}
-                        onChange={(event) => updateRow(row.key, { title: event.target.value })}
-                      />
-                      <textarea
-                        className="textarea"
-                        placeholder="Detail (optional)"
-                        value={row.detail}
-                        onChange={(event) => updateRow(row.key, { detail: event.target.value })}
-                      />
-                    </div>
-                    <div className="finding-actions">
-                      <button
-                        type="button"
-                        className="ghost"
-                        onClick={() => moveRow(row.key, -1)}
-                      >
-                        ↑
-                      </button>
-                      <button type="button" className="ghost" onClick={() => moveRow(row.key, 1)}>
-                        ↓
-                      </button>
-                      <button type="button" className="ghost" onClick={() => removeRow(row.key)}>
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                ))
               ) : (
-                findings.map((row) => (
-                  <div
-                    className="finding-card"
-                    key={row.key}
-                    onClick={() => seek(row.timestampSeconds)}
-                  >
-                    <span className="stamp">{formatTimestamp(row.timestampSeconds)}</span>
-                    <p>
-                      <strong>{row.title}</strong>
-                      {row.detail ? ` — ${row.detail}` : ''}
-                    </p>
-                  </div>
-                ))
+                <div className="findings-list">
+                  {canEditFindings
+                    ? findings.map((row) => (
+                        <div className="finding-row" key={row.key}>
+                          <button
+                            type="button"
+                            className="stamp"
+                            onClick={() => seek(row.timestampSeconds)}
+                          >
+                            {formatTimestamp(row.timestampSeconds)}
+                          </button>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            <input
+                              ref={(element) => {
+                                titleInputs.current[row.key] = element;
+                              }}
+                              placeholder="What to fix"
+                              value={row.title}
+                              onChange={(event) =>
+                                updateRow(row.key, { title: event.target.value })
+                              }
+                            />
+                            <textarea
+                              className="textarea"
+                              placeholder="Detail (optional)"
+                              value={row.detail}
+                              onChange={(event) =>
+                                updateRow(row.key, { detail: event.target.value })
+                              }
+                            />
+                          </div>
+                          <div className="finding-actions">
+                            <button
+                              type="button"
+                              className="ghost"
+                              onClick={() => moveRow(row.key, -1)}
+                            >
+                              ↑
+                            </button>
+                            <button
+                              type="button"
+                              className="ghost"
+                              onClick={() => moveRow(row.key, 1)}
+                            >
+                              ↓
+                            </button>
+                            <button
+                              type="button"
+                              className="ghost"
+                              onClick={() => removeRow(row.key)}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    : findings.map((row) => (
+                        <div
+                          className="finding-card"
+                          key={row.key}
+                          onClick={() => seek(row.timestampSeconds)}
+                        >
+                          <span className="stamp">{formatTimestamp(row.timestampSeconds)}</span>
+                          <p>
+                            <strong>{row.title}</strong>
+                            {row.detail ? ` — ${row.detail}` : ''}
+                          </p>
+                        </div>
+                      ))}
+                </div>
               )}
 
               {canEditFindings ? (
-                <>
+                <div className="findings-foot">
                   <button
                     type="button"
                     className="ghost"
-                    disabled={saveFindings.isPending || !findingsDirty || anyFindingBlank}
+                    disabled={saveFindings.isPending || !findingsChanged || anyFindingBlank}
                     onClick={() => saveFindings.mutate()}
                   >
                     {saveFindings.isPending ? 'Saving…' : 'Save findings'}
@@ -432,13 +469,25 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                   {saveFindings.isError ? (
                     <p className="error">{saveFindings.error.message}</p>
                   ) : null}
-                </>
+                </div>
               ) : null}
             </div>
-          ) : null}
-        </div>
 
-        <div className="editor-side">
+            <button
+              type="button"
+              className="primary"
+              disabled={editable && findingsChanged}
+              onClick={() => setStep('details')}
+            >
+              Next: title &amp; publish →
+            </button>
+            {editable && findingsChanged ? (
+              <p className="lede">Save your marks before moving on.</p>
+            ) : null}
+          </div>
+        </div>
+      ) : (
+        <div className="editor-details-step">
           <div className="panel">
             <p className="section-title">Details</p>
             <label className="field">
@@ -493,8 +542,10 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                   {feedbackState !== 'ready'
                     ? 'Waiting for the feedback video.'
                     : findings.length === 0
-                      ? 'Add at least one finding.'
-                      : 'Save your changes first.'}
+                      ? 'Add at least one finding on the marks step.'
+                      : findingsChanged
+                        ? 'Save your marks first.'
+                        : 'Save your changes first.'}
                 </p>
               ) : null}
               {publish.isError ? <p className="error">{publish.error.message}</p> : null}
@@ -517,7 +568,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
             </div>
           ) : null}
         </div>
-      </div>
+      )}
     </main>
   );
 }

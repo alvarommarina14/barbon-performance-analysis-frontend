@@ -132,9 +132,14 @@ button {
   font-size: 12px;
 }
 
-.ghost:hover {
+.ghost:hover:not(:disabled) {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.ghost:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .switch {
@@ -305,7 +310,7 @@ button {
   align-items: start;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1080px) {
   .editor {
     grid-template-columns: 1fr;
   }
@@ -318,6 +323,97 @@ button {
   gap: 20px;
 }
 
+/* --- Analysis editor: marks step fits the viewport, details/publish is its own step --- */
+
+.editor-screen {
+  min-height: 0;
+  padding-top: 28px;
+  padding-bottom: 28px;
+}
+
+.findings-panel {
+  align-self: stretch;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.findings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.findings-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.editor-details-step {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 620px;
+}
+
+.editor-details-step .panel {
+  align-items: stretch;
+}
+
+.editor-details-step .panel .primary,
+.editor-details-step .panel .ghost {
+  align-self: flex-start;
+}
+
+.editor-details-step .textarea {
+  min-height: 110px;
+}
+
+@media (min-width: 1081px) {
+  /* Anchor the marks column to the viewport so the findings list scrolls inside itself rather
+     than stretching the page. Offset ≈ sticky bar + back link + header + workspace padding. */
+  .editor-screen .editor-side {
+    max-height: calc(100vh - 236px);
+  }
+  .editor-screen .editor-main,
+  .editor-screen .editor-side {
+    min-height: 0;
+  }
+  .editor-screen .video-frame {
+    max-height: calc(100vh - 320px);
+    object-fit: contain;
+  }
+  .findings-panel {
+    flex: 1;
+    min-height: 0;
+  }
+  .findings-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    margin-right: -6px;
+    padding-right: 6px;
+  }
+}
+
+/* The review step is meant to be taken in at a glance: video on the left, the two actions on
+   the right, no page scroll. min-height:0 drops the base .workspace 100vh (the sticky bar
+   already accounts for the rest), and the video is capped so a tall panel never pushes past
+   the viewport. */
+.review-screen {
+  min-height: 0;
+  padding-top: 28px;
+  padding-bottom: 28px;
+}
+
+@media (min-width: 1081px) {
+  .review-screen .video-frame {
+    max-height: calc(100vh - 360px);
+    object-fit: contain;
+  }
+}
+
 .video-frame {
   display: block;
   width: 100%;
@@ -325,6 +421,54 @@ button {
   background: #000;
   border: 1px solid var(--line);
   border-radius: 12px;
+}
+
+.video-frame-wrap {
+  position: relative;
+}
+
+.video-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.video-loader-pct {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: 0.03em;
+  color: var(--white);
+  font-variant-numeric: tabular-nums;
+}
+
+.video-loader-track {
+  width: 55%;
+  max-width: 220px;
+  height: 6px;
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+}
+
+.video-loader-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s;
+}
+
+.video-loader-label {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gray);
 }
 
 .textarea {

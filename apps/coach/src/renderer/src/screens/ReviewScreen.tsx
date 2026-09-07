@@ -72,86 +72,97 @@ export default function ReviewScreen({ submission }: { submission: SubmissionSum
   });
 
   return (
-    <main className="workspace">
+    <main className="workspace review-screen">
       <button type="button" className="back-link" onClick={back}>
         ← Queue
       </button>
-      <div>
-        <h1>{strokeLabel(submission.strokeType)}</h1>
-        <p className="lede">
-          {submission.playerName} · {relativeDate(submission.recordedAt ?? submission.createdAt)}
-        </p>
-      </div>
-
-      <div className="panel">
-        {playback.isPending ? (
-          <p className="lede">Loading video…</p>
-        ) : playback.isError ? (
-          <>
-            <p className="error">We could not load the video.</p>
-            <button type="button" className="ghost" onClick={() => playback.refetch()}>
-              Try again
-            </button>
-          </>
-        ) : (
-          <HlsVideo src={playback.data.hlsUrl} />
-        )}
-        {submission.playerNote ? <p className="lede">“{submission.playerNote}”</p> : null}
-      </div>
-
-      <div className="panel">
-        <p className="section-title">Edit the video</p>
-        {!wantsDownload ? (
-          <button type="button" className="ghost" onClick={() => setWantsDownload(true)}>
-            Download the original for editing
-          </button>
-        ) : download.isError ? (
-          <>
-            <p className="error">We could not prepare the download.</p>
-            <button type="button" className="ghost" onClick={() => download.refetch()}>
-              Try again
-            </button>
-          </>
-        ) : download.data?.ready ? (
-          <a className="primary" href={download.data.url} target="_blank" rel="noreferrer">
-            Download
-          </a>
-        ) : (
-          <p className="lede">Preparing the download…</p>
-        )}
-      </div>
-
-      <div className="panel">
-        <p className="section-title">Start the analysis</p>
-        <label className="field">
-          <span>Title</span>
-          <input value={title} onChange={(event) => setTitle(event.target.value)} />
-        </label>
-        <label className="field">
-          <span>Summary (optional)</span>
-          <textarea
-            className="textarea"
-            value={summary}
-            onChange={(event) => setSummary(event.target.value)}
-          />
-        </label>
-
-        {alreadyAnalysed ? (
-          <p className="error">
-            This video already has an analysis — find it under “Drafts in progress”.
+      <div className="workspace-header">
+        <div>
+          <h1>{strokeLabel(submission.strokeType)}</h1>
+          <p className="lede">
+            {submission.playerName} · {relativeDate(submission.recordedAt ?? submission.createdAt)}
           </p>
-        ) : start.isError ? (
-          <p className="error">{start.error.message}</p>
-        ) : null}
+        </div>
+      </div>
 
-        <button
-          type="button"
-          className="primary"
-          disabled={start.isPending || !title.trim()}
-          onClick={() => start.mutate()}
-        >
-          {start.isPending ? 'Starting…' : 'Start the analysis'}
-        </button>
+      <div className="editor">
+        <div className="editor-main">
+          <div className="panel">
+            {playback.isPending ? (
+              <p className="lede">Loading video…</p>
+            ) : playback.isError ? (
+              <>
+                <p className="error">We could not load the video.</p>
+                <button type="button" className="ghost" onClick={() => playback.refetch()}>
+                  Try again
+                </button>
+              </>
+            ) : (
+              <HlsVideo src={playback.data.hlsUrl} />
+            )}
+            {submission.playerNote ? (
+              <p className="lede">“{submission.playerNote}”</p>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="editor-side">
+          <div className="panel">
+            <p className="section-title">Edit the video</p>
+            <p className="lede">Pull the original into your editor, then upload the cut on the next step.</p>
+            {!wantsDownload ? (
+              <button type="button" className="ghost" onClick={() => setWantsDownload(true)}>
+                Download the original
+              </button>
+            ) : download.isError ? (
+              <>
+                <p className="error">We could not prepare the download.</p>
+                <button type="button" className="ghost" onClick={() => download.refetch()}>
+                  Try again
+                </button>
+              </>
+            ) : download.data?.ready ? (
+              <a className="primary" href={download.data.url} target="_blank" rel="noreferrer">
+                Download
+              </a>
+            ) : (
+              <p className="lede">Preparing the download…</p>
+            )}
+          </div>
+
+          <div className="panel">
+            <p className="section-title">Start the analysis</p>
+            <label className="field">
+              <span>Title</span>
+              <input value={title} onChange={(event) => setTitle(event.target.value)} />
+            </label>
+            <label className="field">
+              <span>Summary (optional)</span>
+              <textarea
+                className="textarea"
+                value={summary}
+                onChange={(event) => setSummary(event.target.value)}
+              />
+            </label>
+
+            {alreadyAnalysed ? (
+              <p className="error">
+                This video already has an analysis — find it under “Drafts in progress”.
+              </p>
+            ) : start.isError ? (
+              <p className="error">{start.error.message}</p>
+            ) : null}
+
+            <button
+              type="button"
+              className="primary"
+              disabled={start.isPending || !title.trim()}
+              onClick={() => start.mutate()}
+            >
+              {start.isPending ? 'Starting…' : 'Start the analysis'}
+            </button>
+          </div>
+        </div>
       </div>
     </main>
   );

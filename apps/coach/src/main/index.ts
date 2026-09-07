@@ -66,7 +66,8 @@ ipcMain.handle(
       const upload = new tus.Upload(createReadStream(filePath), {
         uploadUrl,
         uploadSize: size,
-        chunkSize: 50 * 1024 * 1024,
+        // Keep the progress bar moving on smaller exports without flooding the server on large ones.
+        chunkSize: 8 * 1024 * 1024,
         retryDelays: [0, 3000, 5000, 10000, 20000],
         metadata: { filetype: 'video/mp4' },
         onError: (error) => reject(error instanceof Error ? error : new Error(String(error))),
