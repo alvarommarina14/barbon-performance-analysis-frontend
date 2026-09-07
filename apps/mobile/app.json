@@ -25,7 +25,13 @@
       "expo-router",
       "expo-video",
       "expo-secure-store",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Barbon Performance needs access to your videos so you can send them to your coach."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

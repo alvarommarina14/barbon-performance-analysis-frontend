@@ -1,6 +1,7 @@
 import type { components } from '@barbon-performance-analysis/api-client';
 import { createContext, use, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { api, onSessionExpired } from '@/api/client';
+import { problemDetail } from '@/api/problem';
 import { secureTokenStore } from '@/api/tokenStore';
 
 type CurrentUser = components['schemas']['CurrentUserResponse'];
@@ -93,10 +94,3 @@ export function useAuth(): AuthState {
   return context;
 }
 
-function problemDetail(error: unknown): string | undefined {
-  if (error && typeof error === 'object' && 'detail' in error) {
-    const detail = (error as { detail?: unknown }).detail;
-    return typeof detail === 'string' ? detail : undefined;
-  }
-  return undefined;
-}

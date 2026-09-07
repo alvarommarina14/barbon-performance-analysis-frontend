@@ -1,10 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
-import { useAuth } from '../auth/AuthContext';
 
 export default function ClientListScreen() {
-  const { user, logout } = useAuth();
-
   const clients = useQuery({
     queryKey: ['coach', 'clients'],
     queryFn: async () => {
@@ -18,18 +15,7 @@ export default function ClientListScreen() {
 
   return (
     <main className="workspace">
-      <header className="workspace-header">
-        <div>
-          <p className="eyebrow">Barbon Performance</p>
-          <h1>Clients</h1>
-        </div>
-        <div className="workspace-user">
-          <span>{user?.name}</span>
-          <button type="button" className="ghost" onClick={logout}>
-            Sign out
-          </button>
-        </div>
-      </header>
+      <h1>Clients</h1>
 
       {clients.isPending ? (
         <p className="lede">Loading…</p>

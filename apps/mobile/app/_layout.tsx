@@ -1,6 +1,6 @@
 import { BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
 import { DMSans_400Regular, DMSans_500Medium, DMSans_700Bold } from '@expo-google-fonts/dm-sans';
-import { colors } from '@barbon-performance-analysis/core';
+import { colors, fonts } from '@barbon-performance-analysis/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -43,7 +43,27 @@ export default function RootLayout() {
             headerShown: false,
             contentStyle: { backgroundColor: colors.black },
           }}
-        />
+        >
+          <Stack.Screen
+            name="analysis/[id]"
+            options={{
+              headerShown: true,
+              title: 'Analysis',
+              headerTitleAlign: 'center',
+              headerStyle: { backgroundColor: colors.black },
+              headerShadowVisible: false,
+              headerTintColor: colors.accent,
+              headerTitleStyle: {
+                color: colors.white,
+                fontFamily: fonts.display,
+                fontSize: 20,
+              },
+              // iOS: drop the "(tabs)" label next to the chevron — just the arrow.
+              headerBackButtonDisplayMode: 'minimal',
+              headerBackTitle: '',
+            }}
+          />
+        </Stack>
       </AuthProvider>
     </QueryClientProvider>
   );
