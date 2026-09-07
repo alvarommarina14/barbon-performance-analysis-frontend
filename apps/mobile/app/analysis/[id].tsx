@@ -1,11 +1,13 @@
 import { colors, formatTimestamp, spacing } from '@barbon-performance-analysis/core';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
-import { useVideoPlayer, VideoView } from 'expo-video';
+import { useVideoPlayer, VideoView, type VideoPlayerStatus } from 'expo-video';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { api } from '@/api/client';
 import { theme } from '@/ui/theme';
+import { VideoLoader } from '@/ui/VideoLoader';
 
 export default function AnalysisScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -36,7 +38,30 @@ export default function AnalysisScreen() {
     },
   });
 
-  const player = useVideoPlayer(playback.data?.hlsUrl ?? null);
+  const player = useVideoPlayer(playback.data?.hlsUrl ?? null, (p) => {
+    p.timeUpdateEventInterval = 0.5;
+  });
+
+  const [status, setStatus] = useState<VideoPlayerStatus>('loading');
+  const [bufferedSeconds, setBufferedSeconds] = useState(0);
+
+  useEffect(() => {
+    const statusSub = player.addListener('statusChange', (payload) => setStatus(payload.status));
+    const timeSub = player.addListener('timeUpdate', (payload) =>
+      setBufferedSeconds(payload.bufferedPosition),
+    );
+    // timeUpdate only fires during playback; poll so the percentage also moves while paused.
+    const poll = setInterval(() => setBufferedSeconds(player.bufferedPosition), 400);
+    return () => {
+      statusSub.remove();
+      timeSub.remove();
+      clearInterval(poll);
+    };
+  }, [player]);
+
+  const downloadFraction =
+    player.duration > 0 ? Math.min(1, bufferedSeconds / player.duration) : null;
+  const showVideoLoader = status === 'loading' || status === 'error';
 
   function seekTo(seconds: number) {
     player.currentTime = seconds;
@@ -88,7 +113,15 @@ export default function AnalysisScreen() {
               <Text style={theme.muted}>The video is not ready yet.</Text>
             </View>
           ) : (
-            <VideoView player={player} style={{ flex: 1 }} nativeControls />
+            <>
+              <VideoView player={player} style={{ flex: 1 }} nativeControls />
+              {showVideoLoader ? (
+                <VideoLoader
+                  fraction={status === 'error' ? null : downloadFraction}
+                  label={status === 'error' ? 'Video unavailable' : 'Loading video'}
+                />
+              ) : null}
+            </>
           )}
         </View>
 

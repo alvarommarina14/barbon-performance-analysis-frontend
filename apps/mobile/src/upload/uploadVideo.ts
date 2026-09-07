@@ -15,7 +15,9 @@ export function uploadVideo(
     const upload = new tus.Upload(source as unknown as Blob, {
       uploadUrl,
       uploadSize: size,
-      chunkSize: 50 * 1024 * 1024,
+      // Small enough that onProgress ticks a few times on a short clip (React Native does not
+      // report progress within a single chunk), large enough not to flood tusd with PATCHes.
+      chunkSize: 4 * 1024 * 1024,
       retryDelays: [0, 3000, 5000, 10000, 20000],
       metadata: { filetype: mimeType ?? 'video/mp4' },
       onError: (error) => reject(error),
