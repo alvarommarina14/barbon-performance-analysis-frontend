@@ -31,6 +31,16 @@ pnpm mobile   # Expo dev server
 pnpm coach    # Electron dev window
 ```
 
+### The video loop end to end (phone + desktop)
+
+There is no Cloudflare Stream in development — the backend runs a local video provider
+(`tusd` + MinIO). To try the whole loop with Expo Go on a real phone, run the backend with
+`ANALYSIS_VIDEO_PROVIDER=local` and its `*_PUBLIC_*` URLs set to the machine's LAN address
+(see "Running the video loop locally" in the backend README). The mobile app already
+discovers that LAN address from the Metro bundler host, and the desktop app reaches the same
+URLs — neither client needs extra configuration. Locally uploaded videos are progressive MP4
+(no HLS); `HlsVideo` in the coach app plays them natively.
+
 ## The API contract
 
 The backend's OpenAPI spec is the source of truth for both clients. After a DTO changes there:
