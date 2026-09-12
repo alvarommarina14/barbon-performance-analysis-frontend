@@ -5,7 +5,6 @@ import { api } from '../api/client';
 import { HlsVideo } from '../components/HlsVideo';
 import { problemDetail, problemSlug } from '../lib/problem';
 import { relativeDate } from '../lib/relativeTime';
-import { strokeLabel } from '../lib/strokes';
 import { useNav } from '../nav';
 
 type SubmissionSummary = components['schemas']['SubmissionSummary'];
@@ -14,7 +13,7 @@ export default function ReviewScreen({ submission }: { submission: SubmissionSum
   const { navigate, back } = useNav();
   const queryClient = useQueryClient();
 
-  const [title, setTitle] = useState(`${strokeLabel(submission.strokeType)} breakdown`);
+  const [title, setTitle] = useState(`${submission.playerName} breakdown`);
   const [summary, setSummary] = useState('');
   const [wantsDownload, setWantsDownload] = useState(false);
   const [alreadyAnalysed, setAlreadyAnalysed] = useState(false);
@@ -78,9 +77,9 @@ export default function ReviewScreen({ submission }: { submission: SubmissionSum
       </button>
       <div className="workspace-header">
         <div>
-          <h1>{strokeLabel(submission.strokeType)}</h1>
+          <h1>{submission.playerName}</h1>
           <p className="lede">
-            {submission.playerName} · {relativeDate(submission.recordedAt ?? submission.createdAt)}
+            {relativeDate(submission.recordedAt ?? submission.createdAt)}
           </p>
         </div>
       </div>

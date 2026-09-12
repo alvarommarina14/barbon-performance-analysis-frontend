@@ -5,7 +5,6 @@ import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { api } from '@/api/client';
 import { useAuth } from '@/auth/AuthContext';
-import { strokeLabel } from '@/ui/strokes';
 import { theme } from '@/ui/theme';
 
 export default function AnalysesScreen() {
@@ -64,9 +63,7 @@ export default function AnalysesScreen() {
               style={theme.card}
               onPress={() => router.push({ pathname: '/analysis/[id]', params: { id: analysis.id } })}
             >
-              <Text style={theme.eyebrow}>
-                {analysis.strokeType ? strokeLabel(analysis.strokeType) : 'Analysis'}
-              </Text>
+              <Text style={theme.eyebrow}>Analysis</Text>
               <Text
                 style={[theme.body, { color: colors.white, fontWeight: '700', marginTop: spacing.xs }]}
               >

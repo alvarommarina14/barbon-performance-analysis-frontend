@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
 import { relativeDate } from '../lib/relativeTime';
-import { strokeLabel } from '../lib/strokes';
 import { useNav } from '../nav';
 
 export default function QueueScreen() {
@@ -72,7 +71,6 @@ export default function QueueScreen() {
             <thead>
               <tr>
                 <th>Player</th>
-                <th>Stroke</th>
                 <th>Received</th>
                 <th>Note</th>
                 <th />
@@ -82,7 +80,6 @@ export default function QueueScreen() {
               {queue.data.map((submission) => (
                 <tr key={submission.id}>
                   <td className="strong">{submission.playerName}</td>
-                  <td>{strokeLabel(submission.strokeType)}</td>
                   <td>{relativeDate(submission.recordedAt ?? submission.createdAt)}</td>
                   <td>{truncate(submission.playerNote)}</td>
                   <td>
@@ -115,7 +112,6 @@ export default function QueueScreen() {
               <tr>
                 <th>Title</th>
                 <th>Player</th>
-                <th>Stroke</th>
                 <th>Feedback</th>
                 <th>Marks</th>
                 <th />
@@ -126,7 +122,6 @@ export default function QueueScreen() {
                 <tr key={analysis.id}>
                   <td className="strong">{analysis.title}</td>
                   <td>{analysis.playerName}</td>
-                  <td>{analysis.strokeType ? strokeLabel(analysis.strokeType) : '—'}</td>
                   <td>
                     <span className="tier">{analysis.feedbackReady ? 'Ready' : 'Processing'}</span>
                   </td>

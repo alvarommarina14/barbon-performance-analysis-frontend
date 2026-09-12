@@ -25,9 +25,6 @@ export type VideoAssetStatus = (typeof VIDEO_ASSET_STATUSES)[number];
 export const SUBMISSION_STATUSES = ['SUBMITTED', 'IN_REVIEW', 'ANALYZED'] as const;
 export type SubmissionStatus = (typeof SUBMISSION_STATUSES)[number];
 
-export const STROKE_TYPES = ['FOREHAND', 'BACKHAND', 'SERVE', 'MOVEMENT', 'OTHER'] as const;
-export type StrokeType = (typeof STROKE_TYPES)[number];
-
 export const ANALYSIS_STATUSES = ['DRAFT', 'PUBLISHED'] as const;
 export type AnalysisStatus = (typeof ANALYSIS_STATUSES)[number];
 
