@@ -14,6 +14,7 @@ export type Screen =
   | { name: 'queue' }
   | { name: 'clients' }
   | { name: 'library' }
+  | { name: 'recording-tips' }
   | { name: 'review'; submission: SubmissionSummary }
   | { name: 'editor'; analysisId: string };
 

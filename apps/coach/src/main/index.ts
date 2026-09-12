@@ -1,4 +1,6 @@
 import { createReadStream, statSync } from 'node:fs';
+import * as http from 'node:http';
+import * as https from 'node:https';
 import { basename, join } from 'node:path';
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import * as tus from 'tus-js-client';
@@ -79,6 +81,57 @@ ipcMain.handle(
         onSuccess: () => resolve(),
       });
       upload.start();
+    }),
+);
+
+ipcMain.handle('dialog:pickPdfFile', async () => {
+  const result = await dialog.showOpenDialog({
+    title: 'Select the recording guide PDF',
+    properties: ['openFile'],
+    filters: [{ name: 'PDF', extensions: ['pdf'] }],
+  });
+
+  const filePath = result.canceled ? undefined : result.filePaths[0];
+  if (!filePath) {
+    return null;
+  }
+  return { path: filePath, name: basename(filePath), size: statSync(filePath).size };
+});
+
+// A plain PUT straight from disk — small, infrequently replaced files have no need for tus'
+// resumability.
+ipcMain.handle(
+  'content:upload',
+  (
+    event,
+    { filePath, uploadUrl, contentType }: { filePath: string; uploadUrl: string; contentType: string },
+  ) =>
+    new Promise<void>((resolve, reject) => {
+      const size = statSync(filePath).size;
+      const url = new URL(uploadUrl);
+      const client = url.protocol === 'https:' ? https : http;
+      const request = client.request(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': contentType, 'Content-Length': size },
+      });
+      request.on('error', (error) => reject(error instanceof Error ? error : new Error(String(error))));
+      request.on('response', (response) => {
+        if ((response.statusCode ?? 500) >= 400) {
+          reject(new Error(`Upload failed with status ${response.statusCode}`));
+          return;
+        }
+        resolve();
+      });
+
+      let sent = 0;
+      const stream = createReadStream(filePath);
+      stream.on('data', (chunk: Buffer) => {
+        sent += chunk.length;
+        if (!event.sender.isDestroyed()) {
+          event.sender.send('content:progress', size > 0 ? sent / size : 0);
+        }
+      });
+      stream.pipe(request);
     }),
 );
 

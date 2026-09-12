@@ -6,8 +6,16 @@ export interface PickedVideo {
   size: number;
 }
 
+export interface PickedFile {
+  path: string;
+  name: string;
+  size: number;
+}
+
 const barbonAnalysis = {
   pickVideoFile: (): Promise<PickedVideo | null> => ipcRenderer.invoke('dialog:pickVideoFile'),
+
+  pickPdfFile: (): Promise<PickedFile | null> => ipcRenderer.invoke('dialog:pickPdfFile'),
 
   uploadFeedback: (
     args: { filePath: string; uploadUrl: string },
@@ -18,6 +26,19 @@ const barbonAnalysis = {
     return ipcRenderer
       .invoke('feedback:upload', args)
       .finally(() => ipcRenderer.removeListener('feedback:progress', listener));
+  },
+
+  // Small, infrequently replaced files (a PDF guide) — a plain PUT, not the tus-based upload
+  // above, which exists for resumable multi-hundred-megabyte video exports.
+  uploadContent: (
+    args: { filePath: string; uploadUrl: string; contentType: string },
+    onProgress: (fraction: number) => void,
+  ): Promise<void> => {
+    const listener = (_event: IpcRendererEvent, fraction: number) => onProgress(fraction);
+    ipcRenderer.on('content:progress', listener);
+    return ipcRenderer
+      .invoke('content:upload', args)
+      .finally(() => ipcRenderer.removeListener('content:progress', listener));
   },
 
   session: {
