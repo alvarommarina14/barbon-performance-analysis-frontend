@@ -2,7 +2,7 @@ import { colors, spacing } from '@barbon-performance-analysis/core';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -12,7 +12,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { api } from '@/api/client';
 import { useAuth } from '@/auth/AuthContext';
 import { theme } from '@/ui/theme';
@@ -148,39 +148,55 @@ function DrillPlayer({ drill, onClose }: { drill: DrillAssignment; onClose: () =
     },
   });
 
-  const player = useVideoPlayer(playback.data?.hlsUrl ?? null, (p) => p.play());
+  const player = useVideoPlayer(playback.data?.hlsUrl ?? null);
+
+  // The player is created before the signed URL resolves, so play() in the setup callback fires
+  // too early to do anything — wait for the source to actually be ready instead.
+  useEffect(() => {
+    const sub = player.addListener('statusChange', (payload) => {
+      if (payload.status === 'readyToPlay') {
+        player.play();
+      }
+    });
+    return () => sub.remove();
+  }, [player]);
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView style={[theme.screen, { padding: spacing.xl, gap: spacing.lg }]}>
-        <Pressable onPress={onClose} style={{ alignSelf: 'flex-start' }}>
-          <Text style={[theme.muted, { color: colors.accent }]}>← Back</Text>
-        </Pressable>
-        <View
-          style={{
-            aspectRatio: 16 / 9,
-            backgroundColor: '#000',
-            borderColor: colors.line,
-            borderRadius: 8,
-            borderWidth: 1,
-            overflow: 'hidden',
-          }}
-        >
-          {playback.isPending ? (
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-              <ActivityIndicator color={colors.accent} />
-            </View>
-          ) : playback.isError ? (
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={theme.muted}>The video is not ready yet.</Text>
-            </View>
-          ) : (
-            <VideoView player={player} style={{ flex: 1 }} nativeControls />
-          )}
-        </View>
-        <Text style={[theme.body, { color: colors.white, fontWeight: '700' }]}>{drill.title}</Text>
-        {drill.cue ? <Text style={theme.muted}>{drill.cue}</Text> : null}
-      </SafeAreaView>
+      {/* react-native's Modal renders on its own native surface, so the app-wide
+          SafeAreaProvider (set up by expo-router at the root) never measures insets for it —
+          nesting a provider here is the documented fix. */}
+      <SafeAreaProvider>
+        <SafeAreaView style={[theme.screen, { padding: spacing.xl, gap: spacing.lg }]}>
+          <Pressable onPress={onClose} style={{ alignSelf: 'flex-start' }}>
+            <Text style={[theme.muted, { color: colors.accent }]}>← Back</Text>
+          </Pressable>
+          <View
+            style={{
+              aspectRatio: 16 / 9,
+              backgroundColor: '#000',
+              borderColor: colors.line,
+              borderRadius: 8,
+              borderWidth: 1,
+              overflow: 'hidden',
+            }}
+          >
+            {playback.isPending ? (
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                <ActivityIndicator color={colors.accent} />
+              </View>
+            ) : playback.isError ? (
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={theme.muted}>The video is not ready yet.</Text>
+              </View>
+            ) : (
+              <VideoView player={player} style={{ flex: 1 }} nativeControls />
+            )}
+          </View>
+          <Text style={[theme.body, { color: colors.white, fontWeight: '700' }]}>{drill.title}</Text>
+          {drill.cue ? <Text style={theme.muted}>{drill.cue}</Text> : null}
+        </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }
