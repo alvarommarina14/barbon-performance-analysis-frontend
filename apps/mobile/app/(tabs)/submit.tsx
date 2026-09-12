@@ -202,9 +202,20 @@ export default function SubmitScreen() {
                 <Text style={theme.primaryButtonLabel}>Choose a video</Text>
               </Pressable>
               {pickError ? <Text style={theme.error}>{pickError}</Text> : null}
+              <Pressable onPress={() => router.push('/recording-tips')}>
+                <Text style={[theme.muted, { color: colors.accent }]}>
+                  Not sure how to film it? See our recording tips →
+                </Text>
+              </Pressable>
             </>
           ) : (
             <>
+              {!busy ? (
+                <Pressable onPress={() => setPicked(null)} style={{ alignSelf: 'flex-start' }}>
+                  <Text style={[theme.muted, { color: colors.accent }]}>← Back</Text>
+                </Pressable>
+              ) : null}
+
               <Text style={theme.muted}>{formatBytes(picked.sizeBytes)} selected</Text>
 
               <TextInput
@@ -246,12 +257,6 @@ export default function SubmitScreen() {
                   <Text style={theme.primaryButtonLabel}>Send to your coach</Text>
                 )}
               </Pressable>
-
-              {!busy ? (
-                <Pressable onPress={() => setPicked(null)} style={{ alignSelf: 'center' }}>
-                  <Text style={theme.muted}>Pick a different video</Text>
-                </Pressable>
-              ) : null}
             </>
           )}
         </View>
