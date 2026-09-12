@@ -23,12 +23,10 @@ export default function RecordingTipsScreen() {
   const videoAssetId = tips.data?.videoAssetId;
 
   const playback = useQuery({
-    queryKey: ['video', videoAssetId, 'playback'],
+    queryKey: ['recording-tips', 'playback'],
     enabled: Boolean(videoAssetId),
     queryFn: async () => {
-      const { data, error } = await api.GET('/api/v1/videos/{videoAssetId}/playback', {
-        params: { path: { videoAssetId: videoAssetId as string } },
-      });
+      const { data, error } = await api.GET('/api/v1/content/recording-tips/playback');
       if (error || !data) {
         throw new Error('Could not load the video');
       }

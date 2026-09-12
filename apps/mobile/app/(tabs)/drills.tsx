@@ -1,5 +1,6 @@
 import { colors, spacing } from '@barbon-performance-analysis/core';
 import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useState } from 'react';
 import {
@@ -28,6 +29,7 @@ function categoryLabel(category: DrillCategory): string {
 
 export default function DrillsScreen() {
   const { user } = useAuth();
+  const router = useRouter();
   const [filter, setFilter] = useState<DrillCategory | 'ALL'>('ALL');
   const [playing, setPlaying] = useState<DrillAssignment | null>(null);
 
@@ -108,6 +110,19 @@ export default function DrillsScreen() {
               {drill.cue ? <Text style={[theme.muted, { marginTop: spacing.xs }]}>{drill.cue}</Text> : null}
               {drill.coachNote ? (
                 <Text style={[theme.body, { marginTop: spacing.sm }]}>{drill.coachNote}</Text>
+              ) : null}
+              {drill.analysisId ? (
+                <Pressable
+                  onPress={(event) => {
+                    event.stopPropagation();
+                    router.push({ pathname: '/analysis/[id]', params: { id: drill.analysisId as string } });
+                  }}
+                  style={{ marginTop: spacing.sm, alignSelf: 'flex-start' }}
+                >
+                  <Text style={[theme.muted, { color: colors.accent }]}>
+                    From {drill.analysisTitle ?? 'your analysis'} →
+                  </Text>
+                </Pressable>
               ) : null}
             </Pressable>
           ))
