@@ -63,6 +63,24 @@ export default function RootLayout() {
               headerBackTitle: '',
             }}
           />
+          <Stack.Screen
+            name="recording-tips"
+            options={{
+              headerShown: true,
+              title: 'Recording tips',
+              headerTitleAlign: 'center',
+              headerStyle: { backgroundColor: colors.black },
+              headerShadowVisible: false,
+              headerTintColor: colors.accent,
+              headerTitleStyle: {
+                color: colors.white,
+                fontFamily: fonts.display,
+                fontSize: 20,
+              },
+              headerBackButtonDisplayMode: 'minimal',
+              headerBackTitle: '',
+            }}
+          />
         </Stack>
       </AuthProvider>
     </QueryClientProvider>

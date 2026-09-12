@@ -8,6 +8,7 @@ import { useToast } from '../components/Toast';
 import { problemDetail, problemSlug } from '../lib/problem';
 import { uid } from '../lib/uid';
 import { useNav } from '../nav';
+import DrillAssignmentStep from './DrillAssignmentStep';
 
 type AnalysisDetail = components['schemas']['AnalysisDetail'];
 type FeedbackState = 'loading' | 'none' | 'processing' | 'errored' | 'ready' | 'published';
@@ -65,7 +66,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
   const [findingsDirty, setFindingsDirty] = useState(false);
 
   const [uploadFraction, setUploadFraction] = useState<number | null>(null);
-  const [step, setStep] = useState<'marks' | 'details'>('marks');
+  const [step, setStep] = useState<'marks' | 'drills' | 'details'>('marks');
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const titleInputs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -293,9 +294,15 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
       <button
         type="button"
         className="back-link"
-        onClick={() => (step === 'details' ? setStep('marks') : back())}
+        onClick={() =>
+          step === 'details'
+            ? setStep('drills')
+            : step === 'drills'
+              ? setStep('marks')
+              : back()
+        }
       >
-        ← {step === 'details' ? 'Marks' : 'Queue'}
+        ← {step === 'details' ? 'Drills' : step === 'drills' ? 'Marks' : 'Queue'}
       </button>
       <div className="workspace-header">
         <h1>{data.title}</h1>
@@ -477,15 +484,27 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
               type="button"
               className="primary"
               disabled={editable && findingsChanged}
-              onClick={() => setStep('details')}
+              onClick={() => setStep('drills')}
             >
-              Next: title &amp; publish →
+              Next: drills →
             </button>
             {editable && findingsChanged ? (
               <p className="lede">Save your marks before moving on.</p>
             ) : null}
           </div>
         </div>
+      ) : step === 'drills' ? (
+        <>
+          <DrillAssignmentStep analysisId={analysisId} editable={editable} />
+          <button
+            type="button"
+            className="primary"
+            style={{ alignSelf: 'flex-start' }}
+            onClick={() => setStep('details')}
+          >
+            Next: title &amp; publish →
+          </button>
+        </>
       ) : (
         <div className="editor-details-step">
           <div className="panel">

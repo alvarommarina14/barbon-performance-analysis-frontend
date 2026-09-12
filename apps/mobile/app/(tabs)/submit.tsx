@@ -1,4 +1,4 @@
-import { colors, spacing, STROKE_TYPES, type StrokeType } from '@barbon-performance-analysis/core';
+import { colors, spacing } from '@barbon-performance-analysis/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
@@ -16,7 +16,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { api } from '@/api/client';
 import { problemDetail, problemType } from '@/api/problem';
 import { useAuth } from '@/auth/AuthContext';
-import { strokeLabel } from '@/ui/strokes';
 import { theme } from '@/ui/theme';
 import { uploadVideo } from '@/upload/uploadVideo';
 import type { components } from '@barbon-performance-analysis/api-client';
@@ -30,7 +29,6 @@ export default function SubmitScreen() {
   const queryClient = useQueryClient();
 
   const [picked, setPicked] = useState<PickedVideo | null>(null);
-  const [strokeType, setStrokeType] = useState<StrokeType>('FOREHAND');
   const [note, setNote] = useState('');
   const [progress, setProgress] = useState<number | null>(null);
   const [finishing, setFinishing] = useState(false);
@@ -112,7 +110,6 @@ export default function SubmitScreen() {
         const { data, error, response } = await api.POST('/api/v1/submissions', {
           body: {
             videoAssetId,
-            strokeType,
             ...(trimmedNote ? { playerNote: trimmedNote } : {}),
           },
         });
@@ -205,29 +202,21 @@ export default function SubmitScreen() {
                 <Text style={theme.primaryButtonLabel}>Choose a video</Text>
               </Pressable>
               {pickError ? <Text style={theme.error}>{pickError}</Text> : null}
+              <Pressable onPress={() => router.push('/recording-tips')}>
+                <Text style={[theme.muted, { color: colors.accent }]}>
+                  Not sure how to film it? See our recording tips →
+                </Text>
+              </Pressable>
             </>
           ) : (
             <>
-              <Text style={theme.muted}>{formatBytes(picked.sizeBytes)} selected</Text>
+              {!busy ? (
+                <Pressable onPress={() => setPicked(null)} style={{ alignSelf: 'flex-start' }}>
+                  <Text style={[theme.muted, { color: colors.accent }]}>← Back</Text>
+                </Pressable>
+              ) : null}
 
-              <Text style={theme.eyebrow}>Stroke</Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-                {STROKE_TYPES.map((stroke) => {
-                  const active = stroke === strokeType;
-                  return (
-                    <Pressable
-                      key={stroke}
-                      style={[theme.pill, active && theme.pillActive]}
-                      onPress={() => setStrokeType(stroke)}
-                      disabled={busy}
-                    >
-                      <Text style={[theme.pillLabel, active && theme.pillLabelActive]}>
-                        {strokeLabel(stroke)}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
+              <Text style={theme.muted}>{formatBytes(picked.sizeBytes)} selected</Text>
 
               <TextInput
                 style={[theme.input, { minHeight: 88, textAlignVertical: 'top' }]}
@@ -268,12 +257,6 @@ export default function SubmitScreen() {
                   <Text style={theme.primaryButtonLabel}>Send to your coach</Text>
                 )}
               </Pressable>
-
-              {!busy ? (
-                <Pressable onPress={() => setPicked(null)} style={{ alignSelf: 'center' }}>
-                  <Text style={theme.muted}>Pick a different video</Text>
-                </Pressable>
-              ) : null}
             </>
           )}
         </View>
@@ -303,7 +286,7 @@ export default function SubmitScreen() {
               >
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                   <Text style={[theme.body, { color: colors.white, fontWeight: '700' }]}>
-                    {strokeLabel(submission.strokeType)}
+                    Your video
                   </Text>
                   <View style={theme.chip}>
                     <Text style={theme.chipLabel}>{statusLabel(submission)}</Text>
