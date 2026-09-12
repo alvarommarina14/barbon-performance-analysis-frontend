@@ -77,8 +77,11 @@ export default function HomeScreen() {
           </>
         )}
 
-        <Pressable onPress={logout} style={{ alignSelf: 'flex-start', marginTop: spacing.lg }}>
-          <Text style={theme.muted}>Sign out</Text>
+        <Pressable
+          onPress={logout}
+          style={[theme.chip, { alignSelf: 'flex-start', marginTop: spacing.lg, paddingVertical: spacing.sm }]}
+        >
+          <Text style={[theme.chipLabel, { color: colors.danger, fontSize: 13 }]}>Sign out</Text>
         </Pressable>
       </ScrollView>
     </SafeAreaView>
