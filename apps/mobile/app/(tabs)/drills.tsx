@@ -168,8 +168,11 @@ function DrillPlayer({ drill, onClose }: { drill: DrillAssignment; onClose: () =
           nesting a provider here is the documented fix. */}
       <SafeAreaProvider>
         <SafeAreaView style={[theme.screen, { padding: spacing.xl, gap: spacing.lg }]}>
-          <Pressable onPress={onClose} style={{ alignSelf: 'flex-start' }}>
-            <Text style={[theme.muted, { color: colors.accent }]}>← Back</Text>
+          <Pressable
+            onPress={onClose}
+            style={[theme.chip, { alignSelf: 'flex-start', paddingVertical: spacing.sm }]}
+          >
+            <Text style={[theme.chipLabel, { color: colors.accent, fontSize: 13 }]}>← Back</Text>
           </Pressable>
           <View
             style={{
