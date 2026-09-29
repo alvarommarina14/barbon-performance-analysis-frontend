@@ -107,13 +107,14 @@ export default function LoginScreen() {
         <Pressable
           style={({ pressed }) => [
             theme.primaryButton,
-            { marginTop: spacing.xl, opacity: pressed || busy ? 0.7 : 1 },
+            busy && theme.primaryButtonDisabled,
+            { marginTop: spacing.xl, opacity: pressed && !busy ? 0.7 : 1 },
           ]}
           disabled={busy}
           onPress={submit}
         >
           {busy ? (
-            <ActivityIndicator color={colors.black} />
+            <ActivityIndicator color={colors.gray} />
           ) : (
             <Text style={theme.primaryButtonLabel}>{isRegister ? 'Create account' : 'Sign in'}</Text>
           )}

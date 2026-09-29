@@ -247,12 +247,12 @@ export default function SubmitScreen() {
               ) : null}
 
               <Pressable
-                style={[theme.primaryButton, { opacity: busy ? 0.7 : 1 }]}
+                style={[theme.primaryButton, busy && theme.primaryButtonDisabled]}
                 onPress={() => send.mutate()}
                 disabled={busy}
               >
                 {busy ? (
-                  <ActivityIndicator color={colors.black} />
+                  <ActivityIndicator color={colors.gray} />
                 ) : (
                   <Text style={theme.primaryButtonLabel}>Send to your coach</Text>
                 )}

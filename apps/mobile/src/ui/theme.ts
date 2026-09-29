@@ -62,6 +62,12 @@ export const theme = StyleSheet.create({
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
+  primaryButtonDisabled: {
+    backgroundColor: '#2a2a2a',
+  },
+  primaryButtonLabelDisabled: {
+    color: colors.gray,
+  },
   error: {
     color: colors.danger,
     fontFamily: fonts.body,
