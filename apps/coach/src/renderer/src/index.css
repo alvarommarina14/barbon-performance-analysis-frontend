@@ -867,6 +867,15 @@ button {
   color: var(--accent);
 }
 
+.tab.has-note::after {
+  content: ' •';
+  color: var(--accent);
+}
+
+.panel > .textarea {
+  align-self: stretch;
+}
+
 .drill-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));

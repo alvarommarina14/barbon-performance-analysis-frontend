@@ -24,6 +24,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/strength/players/{playerProfileId}/weekly-notes/{planWeek}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Write one week's note for a player; an empty body deletes it */
+        put: operations["writeWeeklyNote"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/strength/players/{playerProfileId}/training-days": {
         parameters: {
             query?: never;
@@ -625,6 +642,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/strength/weekly-notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Weekly notes: a player's own reached weeks, or all of a coach's client's */
+        get: operations["weeklyNotes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/strength/training-days": {
         parameters: {
             query?: never;
@@ -902,6 +936,18 @@ export interface components {
             setsRepsWk4?: string;
             /** Format: int32 */
             sortOrder?: number;
+        };
+        WriteWeeklyNoteRequest: {
+            body?: string;
+        };
+        WeeklyNoteView: {
+            /** Format: int32 */
+            planWeek?: number;
+            body: string;
+            /** Format: date */
+            weekStartsOn?: string;
+            /** Format: date-time */
+            updatedAt: string;
         };
         ReplaceTrainingDaysRequest: {
             days: components["schemas"]["TrainingDayInput"][];
@@ -1464,6 +1510,33 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["DayExerciseView"][];
+                };
+            };
+        };
+    };
+    writeWeeklyNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                playerProfileId: string;
+                planWeek: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WriteWeeklyNoteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["WeeklyNoteView"][];
                 };
             };
         };
@@ -2436,6 +2509,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SubmissionSummary"][];
+                };
+            };
+        };
+    };
+    weeklyNotes: {
+        parameters: {
+            query?: {
+                playerProfileId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["WeeklyNoteView"][];
                 };
             };
         };

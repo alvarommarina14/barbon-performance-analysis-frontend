@@ -26,6 +26,13 @@ function formatDay(isoDate: string): string {
   });
 }
 
+function formatLongDay(isoDate: string): string {
+  return new Date(`${isoDate}T00:00:00`).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'long',
+  });
+}
+
 export default function HomeScreen() {
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -41,6 +48,20 @@ export default function HomeScreen() {
     },
     enabled: Boolean(user),
   });
+
+  const weeklyNotes = useQuery({
+    queryKey: ['strength', 'weekly-notes'],
+    queryFn: async () => {
+      const { data, error } = await api.GET('/api/v1/strength/weekly-notes');
+      if (error || !data) {
+        throw new Error('Could not load your coach notes');
+      }
+      return [...data].sort((a, b) => (b.planWeek ?? 0) - (a.planWeek ?? 0));
+    },
+    enabled: Boolean(user),
+  });
+
+  const coachFirstName = home.data?.coach?.name.split(' ')[0] ?? 'your coach';
 
   if (user === null) {
     return <Redirect href="/login" />;
@@ -115,6 +136,20 @@ export default function HomeScreen() {
                 </Text>
               ) : null}
             </View>
+
+            {weeklyNotes.data && weeklyNotes.data.length > 0 ? (
+              <View style={{ gap: spacing.md }}>
+                <Text style={theme.sectionTitle}>LATEST FROM {coachFirstName.toUpperCase()}</Text>
+                {weeklyNotes.data.map((note, index) => (
+                  <View key={note.planWeek} style={[styles.note, index > 0 && styles.noteOld]}>
+                    <Text style={[styles.noteDate, index > 0 && { color: colors.gray }]}>
+                      {note.weekStartsOn ? formatLongDay(note.weekStartsOn) : `Week ${note.planWeek}`}
+                    </Text>
+                    <Text style={[theme.body, { marginTop: spacing.sm }]}>{note.body}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
           </>
         )}
 
@@ -130,6 +165,25 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  note: {
+    backgroundColor: colors.card,
+    borderLeftColor: colors.accent,
+    borderLeftWidth: 3,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+  },
+  noteOld: {
+    borderLeftColor: '#444',
+    opacity: 0.85,
+  },
+  noteDate: {
+    color: colors.accent,
+    fontFamily: fonts.body,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+  },
   weekRow: {
     alignItems: 'baseline',
     flexDirection: 'row',

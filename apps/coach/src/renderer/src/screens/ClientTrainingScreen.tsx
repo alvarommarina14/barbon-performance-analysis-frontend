@@ -3,9 +3,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
 import { useNav } from '../nav';
+import { cx } from '../lib/cx';
 import { problemDetail } from '../lib/problem';
 import DayExerciseStep from './DayExerciseStep';
 import PlanStartPanel from './PlanStartPanel';
+import WeeklyNotesTab from './WeeklyNotesTab';
 import { UploadProgress } from '../components/UploadProgress';
 
 type TrainingDayView = components['schemas']['TrainingDayView'];
@@ -60,6 +62,13 @@ const blankRow = (): Row => ({
 
 const PDF_CONTENT_TYPE = 'application/pdf';
 
+type ClientTab = 'program' | 'weekly-notes';
+
+const CLIENT_TABS: { key: ClientTab; label: string }[] = [
+  { key: 'program', label: 'Program' },
+  { key: 'weekly-notes', label: 'Weekly notes' },
+];
+
 export default function ClientTrainingScreen({
   playerProfileId,
   playerName,
@@ -69,6 +78,7 @@ export default function ClientTrainingScreen({
 }) {
   const { back } = useNav();
   const queryClient = useQueryClient();
+  const [tab, setTab] = useState<ClientTab>('program');
 
   const days = useQuery({
     queryKey: ['strength', 'training-days', playerProfileId],
@@ -302,14 +312,41 @@ export default function ClientTrainingScreen({
     );
   }
 
-  return (
-    <main className="workspace">
+  const heading = (
+    <>
       <button type="button" className="back-link" onClick={back}>
         ← Clients
       </button>
       <div className="workspace-header">
         <h1>{playerName}'s training</h1>
       </div>
+      <div className="tabs">
+        {CLIENT_TABS.map(({ key, label }) => (
+          <button
+            key={key}
+            type="button"
+            className={cx('tab', tab === key && 'on')}
+            onClick={() => setTab(key)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+
+  if (tab !== 'program') {
+    return (
+      <main className="workspace">
+        {heading}
+        {tab === 'weekly-notes' ? <WeeklyNotesTab playerProfileId={playerProfileId} /> : null}
+      </main>
+    );
+  }
+
+  return (
+    <main className="workspace">
+      {heading}
 
       <div className="panel-row">
         <PlanStartPanel playerProfileId={playerProfileId} />
