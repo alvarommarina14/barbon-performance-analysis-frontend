@@ -1,7 +1,7 @@
 import type { components } from '@barbon-performance-analysis/api-client';
 import { formatTimestamp } from '@barbon-performance-analysis/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../api/client';
 import { HlsVideo } from '../components/HlsVideo';
 import { useToast } from '../components/Toast';
@@ -67,6 +67,17 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
 
   const [uploadFraction, setUploadFraction] = useState<number | null>(null);
   const [step, setStep] = useState<'marks' | 'drills' | 'details'>('marks');
+
+  const [drillsChanged, setDrillsChanged] = useState(false);
+  const [drillCount, setDrillCount] = useState(0);
+  const [drillsNextAttempted, setDrillsNextAttempted] = useState(false);
+  const handleDrillsStateChange = useCallback(
+    (state: { changed: boolean; count: number }) => {
+      setDrillsChanged(state.changed);
+      setDrillCount(state.count);
+    },
+    [],
+  );
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const titleInputs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -495,15 +506,29 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
         </div>
       ) : step === 'drills' ? (
         <>
-          <DrillAssignmentStep analysisId={analysisId} editable={editable} />
+          <DrillAssignmentStep
+            analysisId={analysisId}
+            editable={editable}
+            onStateChange={handleDrillsStateChange}
+            attemptedNext={drillsNextAttempted}
+          />
           <button
             type="button"
             className="primary"
             style={{ alignSelf: 'flex-start' }}
-            onClick={() => setStep('details')}
+            onClick={() => {
+              if (editable && drillsChanged) {
+                setDrillsNextAttempted(true);
+                return;
+              }
+              setStep('details');
+            }}
           >
             Next: title &amp; publish →
           </button>
+          {editable && !drillsChanged && drillCount === 0 ? (
+            <p className="lede">No drills added yet — you can still publish without any.</p>
+          ) : null}
         </>
       ) : (
         <div className="editor-details-step">
@@ -566,6 +591,8 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                         ? 'Save your marks first.'
                         : 'Save your changes first.'}
                 </p>
+              ) : drillCount === 0 ? (
+                <p className="lede">No drills added — the player won’t get any exercises.</p>
               ) : null}
               {publish.isError ? <p className="error">{publish.error.message}</p> : null}
 

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '../api/client';
 import { useToast } from '../components/Toast';
+import { VideoLoader } from '../components/VideoLoader';
 import { problemDetail, problemSlug } from '../lib/problem';
 
 type LibraryItem = components['schemas']['LibraryItemView'];
@@ -15,7 +16,7 @@ const label = (c: DrillCategory) => c.charAt(0) + c.slice(1).toLowerCase();
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 interface Draft {
-  videoAssetId: string;
+  videoAssetId: string | null;
   title: string;
   cue: string;
   category: DrillCategory;
@@ -52,19 +53,19 @@ export default function DrillLibraryScreen() {
       if (!data) {
         throw new Error(problemDetail(error) ?? 'Could not start the upload');
       }
+      setDraft((prev) => (prev ? { ...prev, videoAssetId: data.videoAssetId } : prev));
       setUploadFraction(0);
       // The IPC bridge is generic (filePath + uploadUrl); it streams from disk in the main process.
       await window.barbonAnalysis.uploadFeedback(
         { filePath: picked.path, uploadUrl: data.uploadUrl },
         setUploadFraction,
       );
-      setDraft({ videoAssetId: data.videoAssetId, title: '', cue: '', category: 'FOREHAND' });
     },
     onSettled: () => setUploadFraction(null),
   });
 
   const createItem = useMutation({
-    mutationFn: async (d: Draft) => {
+    mutationFn: async (d: { videoAssetId: string; title: string; cue: string; category: DrillCategory }) => {
       for (let attempt = 0; attempt < 30; attempt += 1) {
         const { data, error } = await api.POST('/api/v1/drills/library', {
           body: {
@@ -124,8 +125,6 @@ export default function DrillLibraryScreen() {
     onError: (err) => toast.show(err instanceof Error ? err.message : 'Could not delete the drill'),
   });
 
-  const busy = pickAndUpload.isPending || createItem.isPending;
-
   return (
     <main className="workspace">
       <div className="workspace-header">
@@ -133,76 +132,12 @@ export default function DrillLibraryScreen() {
         <button
           type="button"
           className="primary"
-          disabled={busy || draft !== null}
-          onClick={() => pickAndUpload.mutate()}
+          disabled={draft !== null}
+          onClick={() => setDraft({ videoAssetId: null, title: '', cue: '', category: 'FOREHAND' })}
         >
-          {pickAndUpload.isPending ? 'Uploading…' : 'Add a drill'}
+          Add a drill
         </button>
       </div>
-
-      {uploadFraction !== null ? (
-        <div className="panel">
-          <p className="lede">Uploading the drill video…</p>
-          <div className="progress-track">
-            <div
-              className="progress-fill"
-              style={{ width: `${Math.round(uploadFraction * 100)}%` }}
-            />
-          </div>
-        </div>
-      ) : null}
-      {pickAndUpload.isError ? (
-        <p className="error">{pickAndUpload.error.message}</p>
-      ) : null}
-
-      {draft ? (
-        <div className="panel">
-          <p className="section-title">New drill</p>
-          <label className="field">
-            <span>Title</span>
-            <input
-              value={draft.title}
-              onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-            />
-          </label>
-          <label className="field">
-            <span>Cue</span>
-            <input value={draft.cue} onChange={(e) => setDraft({ ...draft, cue: e.target.value })} />
-          </label>
-          <label className="field">
-            <span>Category</span>
-            <select
-              value={draft.category}
-              onChange={(e) => setDraft({ ...draft, category: e.target.value as DrillCategory })}
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {label(c)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button
-              type="button"
-              className="primary"
-              disabled={createItem.isPending || !draft.title.trim()}
-              onClick={() => createItem.mutate(draft)}
-            >
-              {createItem.isPending ? 'Saving…' : 'Add to library'}
-            </button>
-            <button
-              type="button"
-              className="ghost"
-              disabled={createItem.isPending}
-              onClick={() => setDraft(null)}
-            >
-              Cancel
-            </button>
-          </div>
-          {createItem.isError ? <p className="error">{createItem.error.message}</p> : null}
-        </div>
-      ) : null}
 
       {library.isPending ? (
         <p className="lede">Loading…</p>
@@ -249,7 +184,7 @@ export default function DrillLibraryScreen() {
                     ))}
                   </select>
                 </label>
-                <div style={{ display: 'flex', gap: 10 }}>
+                <div className="button-row">
                   <button
                     type="button"
                     className="primary"
@@ -299,6 +234,82 @@ export default function DrillLibraryScreen() {
           )}
         </div>
       )}
+
+      {draft ? (
+        <div className="modal-overlay">
+          <div className="panel modal">
+            <p className="section-title">New drill</p>
+            <label className="field">
+              <span>Title</span>
+              <input
+                value={draft.title}
+                onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+              />
+            </label>
+            <label className="field">
+              <span>Cue</span>
+              <input value={draft.cue} onChange={(e) => setDraft({ ...draft, cue: e.target.value })} />
+            </label>
+            <label className="field">
+              <span>Category</span>
+              <select
+                value={draft.category}
+                onChange={(e) => setDraft({ ...draft, category: e.target.value as DrillCategory })}
+              >
+                {CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {label(c)}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            {uploadFraction !== null ? (
+              <div className="video-frame-wrap modal-video">
+                <div className="video-frame" />
+                <VideoLoader fraction={uploadFraction} label="Uploading the drill video…" />
+              </div>
+            ) : (
+              <button type="button" className="ghost" onClick={() => pickAndUpload.mutate()}>
+                {draft.videoAssetId ? 'Replace video' : 'Select video'}
+              </button>
+            )}
+            {pickAndUpload.isError ? (
+              <p className="error">{pickAndUpload.error.message}</p>
+            ) : null}
+
+            <div className="button-row">
+              <button
+                type="button"
+                className="primary"
+                disabled={
+                  createItem.isPending ||
+                  uploadFraction !== null ||
+                  !draft.videoAssetId ||
+                  !draft.title.trim()
+                }
+                onClick={() => {
+                  if (!draft.videoAssetId) {
+                    return;
+                  }
+                  createItem.mutate({ ...draft, videoAssetId: draft.videoAssetId });
+                }}
+              >
+                {createItem.isPending ? 'Saving…' : 'Add to library'}
+              </button>
+              <button
+                type="button"
+                className="ghost"
+                disabled={createItem.isPending}
+                onClick={() => setDraft(null)}
+              >
+                Cancel
+              </button>
+            </div>
+            {createItem.isError ? <p className="error">{createItem.error.message}</p> : null}
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }

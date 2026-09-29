@@ -18,12 +18,21 @@ interface Row {
   coachNote: string;
 }
 
+interface DrillsState {
+  changed: boolean;
+  count: number;
+}
+
 export default function DrillAssignmentStep({
   analysisId,
   editable,
+  onStateChange,
+  attemptedNext,
 }: {
   analysisId: string;
   editable: boolean;
+  onStateChange?: (state: DrillsState) => void;
+  attemptedNext?: boolean;
 }) {
   const queryClient = useQueryClient();
 
@@ -79,6 +88,10 @@ export default function DrillAssignmentStep({
     const current = rows.map((r) => [r.libraryItemId, r.coachNote.trim()]);
     return JSON.stringify(server) !== JSON.stringify(current);
   }, [assigned.data, rows]);
+
+  useEffect(() => {
+    onStateChange?.({ changed, count: rows.length });
+  }, [changed, rows.length, onStateChange]);
 
   const save = useMutation({
     mutationFn: async () => {
@@ -143,12 +156,16 @@ export default function DrillAssignmentStep({
         <div className="panel findings-panel">
           <p className="section-title">Assigned drills</p>
           {rows.length === 0 ? (
-            <p className="lede">
-              {editable
-                ? 'Pick drills from the library on the right. They show up on the player’s analysis.'
-                : 'No drills on this analysis.'}
-            </p>
-          ) : (
+            <>
+              <p className="lede">
+                {editable
+                  ? 'Pick drills from the library on the right. They show up on the player’s analysis.'
+                  : 'No drills on this analysis.'}
+              </p>
+              {editable ? <p className="error">No drills added yet for this breakdown.</p> : null}
+            </>
+          ) : null}
+          {rows.length > 0 ? (
             <div className="findings-list">
               {rows.map((row) => (
                 <div className="finding-row" key={row.libraryItemId}>
@@ -182,7 +199,7 @@ export default function DrillAssignmentStep({
                 </div>
               ))}
             </div>
-          )}
+          ) : null}
           {editable ? (
             <div className="findings-foot">
               <button
@@ -193,6 +210,9 @@ export default function DrillAssignmentStep({
               >
                 {save.isPending ? 'Saving…' : 'Save drills'}
               </button>
+              {changed && !save.isPending && attemptedNext ? (
+                <p className="error">You have unsaved drill changes.</p>
+              ) : null}
               {save.isError ? <p className="error">{save.error.message}</p> : null}
             </div>
           ) : null}

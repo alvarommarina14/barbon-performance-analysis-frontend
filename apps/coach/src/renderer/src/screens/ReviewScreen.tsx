@@ -13,7 +13,8 @@ export default function ReviewScreen({ submission }: { submission: SubmissionSum
   const { navigate, back } = useNav();
   const queryClient = useQueryClient();
 
-  const [title, setTitle] = useState(`${submission.playerName} breakdown`);
+  const recordedDate = new Date(submission.recordedAt ?? submission.createdAt).toLocaleDateString();
+  const [title, setTitle] = useState(`${submission.playerName} - ${recordedDate}`);
   const [summary, setSummary] = useState('');
   const [wantsDownload, setWantsDownload] = useState(false);
   const [alreadyAnalysed, setAlreadyAnalysed] = useState(false);
