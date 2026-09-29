@@ -12,6 +12,13 @@ import type { components } from '@barbon-performance-analysis/api-client';
 type TrainingDayView = components['schemas']['TrainingDayView'];
 type TrainingDayKind = TrainingDayView['kind'];
 
+const PLAN_WEEKS = 12;
+const CYCLE_WEEKS = 4;
+
+function cycleWeekOf(planWeek: number): number {
+  return ((planWeek - 1) % CYCLE_WEEKS) + 1;
+}
+
 function kindLabel(kind: TrainingDayKind): string {
   return kind.charAt(0) + kind.slice(1).toLowerCase();
 }
@@ -69,8 +76,12 @@ export default function StrengthScreen() {
     enabled: Boolean(user),
   });
 
-  const effectiveWeek = selectedWeek ?? home.data?.currentWeek ?? 1;
-  const selectedPhase = cyclePhases.data?.find((phase) => phase.weekNumber === effectiveWeek);
+  const planWeeks = home.data?.planWeeks ?? PLAN_WEEKS;
+  const currentWeek = home.data?.planWeek;
+  const effectiveWeek = selectedWeek ?? currentWeek ?? 1;
+  const selectedPhase = cyclePhases.data?.find(
+    (phase) => phase.weekNumber === cycleWeekOf(effectiveWeek),
+  );
 
   const isPending = home.isPending || cyclePhases.isPending || trainingDays.isPending;
   const isError = cyclePhases.isError || trainingDays.isError;
@@ -100,13 +111,22 @@ export default function StrengthScreen() {
           </View>
         ) : (
           <>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-              {[1, 2, 3, 4].map((week) => {
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: spacing.sm }}
+            >
+              {Array.from({ length: planWeeks }, (_, index) => index + 1).map((week) => {
                 const active = week === effectiveWeek;
+                const current = week === currentWeek;
                 return (
                   <Pressable
                     key={week}
-                    style={[theme.pill, active && theme.pillActive]}
+                    style={[
+                      theme.pill,
+                      current && !active && { borderColor: colors.accent },
+                      active && theme.pillActive,
+                    ]}
                     onPress={() => setSelectedWeek(week)}
                   >
                     <Text style={[theme.pillLabel, active && theme.pillLabelActive]}>
@@ -115,12 +135,12 @@ export default function StrengthScreen() {
                   </Pressable>
                 );
               })}
-            </View>
+            </ScrollView>
 
             {selectedPhase ? (
               <View style={theme.card}>
                 <Text style={theme.eyebrow}>
-                  {effectiveWeek === home.data?.currentWeek ? 'Current phase' : `Week ${effectiveWeek}`}
+                  {effectiveWeek === currentWeek ? 'This week · ' : ''}Week {effectiveWeek} of {planWeeks}
                 </Text>
                 <Text
                   style={[theme.body, { color: colors.white, fontWeight: '700', marginTop: spacing.xs }]}
@@ -135,7 +155,9 @@ export default function StrengthScreen() {
                 ) : null}
               </View>
             ) : (
-              <Text style={theme.muted}>Your coach has not set up week {effectiveWeek} yet.</Text>
+              <Text style={theme.muted}>
+                Your coach has not set up this part of the cycle yet.
+              </Text>
             )}
 
             <View>
@@ -149,7 +171,10 @@ export default function StrengthScreen() {
                       key={day.id}
                       style={theme.card}
                       onPress={() =>
-                        router.push({ pathname: '/strength/[dayId]', params: { dayId: day.id } })
+                        router.push({
+                          pathname: '/strength/[dayId]',
+                          params: { dayId: day.id, week: String(effectiveWeek) },
+                        })
                       }
                     >
                       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>

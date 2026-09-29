@@ -675,6 +675,12 @@ button {
   transition: width 0.2s;
 }
 
+.panel-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
 .upload-progress {
   display: flex;
   flex-direction: column;

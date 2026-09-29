@@ -7,6 +7,25 @@ import { api } from '@/api/client';
 import { useAuth } from '@/auth/AuthContext';
 import { theme } from '@/ui/theme';
 
+function planStatus(home: { planWeek?: number; planWeeks?: number; planStartedAt?: string }): string {
+  if (home.planWeek) {
+    return `Week ${home.planWeek} of ${home.planWeeks ?? 12}`;
+  }
+  if (!home.planStartedAt) {
+    return 'Your coach has not started your plan yet';
+  }
+  return new Date(`${home.planStartedAt}T00:00:00`) > new Date()
+    ? `Your plan starts ${formatDay(home.planStartedAt)}`
+    : 'Plan complete';
+}
+
+function formatDay(isoDate: string): string {
+  return new Date(`${isoDate}T00:00:00`).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
 export default function HomeScreen() {
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -49,16 +68,12 @@ export default function HomeScreen() {
         ) : (
           <>
             <View style={theme.card}>
-              <Text style={theme.eyebrow}>Strength cycle</Text>
+              <Text style={theme.eyebrow}>Your plan</Text>
               <View style={styles.weekRow}>
-                <Text style={styles.weekNumber}>{home.data.currentWeek}</Text>
-                <Text style={styles.weekTotal}>/ {home.data.cycleWeeks}</Text>
+                <Text style={styles.weekNumber}>{home.data.planWeek ?? '—'}</Text>
+                <Text style={styles.weekTotal}>/ {home.data.planWeeks ?? 12}</Text>
               </View>
-              <Text style={theme.muted}>
-                {home.data.cycleStartedAt
-                  ? `Cycle started ${home.data.cycleStartedAt}`
-                  : 'Your coach has not started a cycle yet'}
-              </Text>
+              <Text style={theme.muted}>{planStatus(home.data)}</Text>
               <View style={styles.tierPill}>
                 <Text style={styles.tierLabel}>{home.data.membershipTier}</Text>
               </View>

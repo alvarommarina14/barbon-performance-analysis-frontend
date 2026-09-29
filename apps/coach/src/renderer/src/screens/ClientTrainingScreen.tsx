@@ -5,6 +5,7 @@ import { api } from '../api/client';
 import { useNav } from '../nav';
 import { problemDetail } from '../lib/problem';
 import DayExerciseStep from './DayExerciseStep';
+import PlanStartPanel from './PlanStartPanel';
 import { UploadProgress } from '../components/UploadProgress';
 
 type TrainingDayView = components['schemas']['TrainingDayView'];
@@ -310,28 +311,31 @@ export default function ClientTrainingScreen({
         <h1>{playerName}'s training</h1>
       </div>
 
-      <div className="panel">
-        <p className="section-title">Program PDF</p>
-        {pdfProgress !== null ? (
-          <UploadProgress fraction={pdfProgress} label="Uploading the program PDF" />
-        ) : (
-          <p className="lede">Uploads replace whatever the player currently sees.</p>
-        )}
-        <button
-          type="button"
-          className="primary"
-          disabled={uploadProgramPdf.isPending}
-          onClick={() => uploadProgramPdf.mutate()}
-        >
-          {uploadProgramPdf.isPending ? 'Uploading…' : 'Upload program PDF'}
-        </button>
-        {uploadProgramPdf.isError ? (
-          <p className="error">
-            {uploadProgramPdf.error instanceof Error
-              ? uploadProgramPdf.error.message
-              : 'Could not upload the PDF'}
-          </p>
-        ) : null}
+      <div className="panel-row">
+        <PlanStartPanel playerProfileId={playerProfileId} />
+        <div className="panel">
+          <p className="section-title">Program PDF</p>
+          {pdfProgress !== null ? (
+            <UploadProgress fraction={pdfProgress} label="Uploading the program PDF" />
+          ) : (
+            <p className="lede">Uploads replace whatever the player currently sees.</p>
+          )}
+          <button
+            type="button"
+            className="primary"
+            disabled={uploadProgramPdf.isPending}
+            onClick={() => uploadProgramPdf.mutate()}
+          >
+            {uploadProgramPdf.isPending ? 'Uploading…' : 'Upload program PDF'}
+          </button>
+          {uploadProgramPdf.isError ? (
+            <p className="error">
+              {uploadProgramPdf.error instanceof Error
+                ? uploadProgramPdf.error.message
+                : 'Could not upload the PDF'}
+            </p>
+          ) : null}
+        </div>
       </div>
 
       <div className="panel">

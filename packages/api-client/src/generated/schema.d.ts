@@ -41,6 +41,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/strength/players/{playerProfileId}/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set or clear the start date of a player's twelve-week plan */
+        put: operations["setPlanStart"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/strength/players/{playerProfileId}/cycle-phases": {
         parameters: {
             query?: never;
@@ -625,6 +642,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/strength/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The twelve-week plan: a player's own, or a coach's client's */
+        get: operations["plan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/strength/cycle-phases": {
         parameters: {
             query?: never;
@@ -895,6 +929,22 @@ export interface components {
             sortOrder?: number;
             /** Format: int32 */
             exerciseCount?: number;
+        };
+        SetPlanStartRequest: {
+            /** Format: date */
+            startDate?: string;
+        };
+        PlanView: {
+            /** Format: date */
+            startDate?: string;
+            /** Format: int32 */
+            planWeek?: number;
+            /** Format: int32 */
+            planWeeks?: number;
+            /** Format: int32 */
+            cycleWeek?: number;
+            /** Format: int32 */
+            unlockedWeeks?: number;
         };
         CyclePhaseInput: {
             /** Format: int32 */
@@ -1202,7 +1252,7 @@ export interface components {
             /** @enum {string} */
             membershipTier: "BASE" | "PRO";
             /** Format: int32 */
-            currentWeek?: number;
+            planWeek?: number;
             hasCoach?: boolean;
         };
         RegisterCoachRequest: {
@@ -1284,11 +1334,13 @@ export interface components {
             /** @enum {string} */
             membershipTier: "BASE" | "PRO";
             /** Format: int32 */
-            currentWeek?: number;
+            planWeek?: number;
             /** Format: int32 */
-            cycleWeeks?: number;
+            planWeeks?: number;
+            /** Format: int32 */
+            cycleWeek?: number;
             /** Format: date */
-            cycleStartedAt?: string;
+            planStartedAt?: string;
             /** Format: date-time */
             nextCallAt?: string;
             coach?: components["schemas"]["CoachCard"];
@@ -1324,7 +1376,11 @@ export interface components {
             /** @enum {string} */
             membershipTier: "BASE" | "PRO";
             /** Format: int32 */
-            currentWeek?: number;
+            planWeek?: number;
+            /** Format: int32 */
+            planWeeks?: number;
+            /** Format: date */
+            planStartedAt?: string;
             /** Format: date-time */
             nextCallAt?: string;
         };
@@ -1434,6 +1490,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["TrainingDayView"][];
+                };
+            };
+        };
+    };
+    setPlanStart: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                playerProfileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetPlanStartRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PlanView"];
                 };
             };
         };
@@ -2376,6 +2458,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["TrainingDayView"][];
+                };
+            };
+        };
+    };
+    plan: {
+        parameters: {
+            query?: {
+                playerProfileId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PlanView"];
                 };
             };
         };

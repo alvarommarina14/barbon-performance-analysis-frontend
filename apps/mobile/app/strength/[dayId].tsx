@@ -29,7 +29,7 @@ function repsForWeek(exercise: DayExerciseView, week: number): string | undefine
 
 export default function TrainingDayScreen() {
   const { user } = useAuth();
-  const { dayId } = useLocalSearchParams<{ dayId: string }>();
+  const { dayId, week } = useLocalSearchParams<{ dayId: string; week?: string }>();
   const [playing, setPlaying] = useState<DayExerciseView | null>(null);
 
   const home = useQuery({
@@ -71,7 +71,8 @@ export default function TrainingDayScreen() {
   });
 
   const day = trainingDays.data?.find((d) => d.id === dayId);
-  const currentWeek = home.data?.currentWeek ?? 1;
+  const planWeek = Number(week) || home.data?.planWeek || 1;
+  const cycleWeek = ((planWeek - 1) % 4) + 1;
 
   if (exercises.isPending) {
     return (
@@ -102,6 +103,7 @@ export default function TrainingDayScreen() {
           <Text style={[theme.display, { marginTop: spacing.xs }]}>
             {(day?.title ?? 'Training day').toUpperCase()}
           </Text>
+          <Text style={[theme.muted, { marginTop: spacing.sm }]}>Week {planWeek}</Text>
           {day?.focus ? <Text style={[theme.body, { marginTop: spacing.sm }]}>{day.focus}</Text> : null}
         </View>
 
@@ -109,7 +111,7 @@ export default function TrainingDayScreen() {
           <Text style={theme.muted}>No exercises here yet.</Text>
         ) : (
           exercises.data.map((exercise) => {
-            const reps = repsForWeek(exercise, currentWeek);
+            const reps = repsForWeek(exercise, cycleWeek);
             const cue = exercise.cueOverride ?? exercise.cue;
             return (
               <Pressable key={exercise.id} style={theme.card} onPress={() => setPlaying(exercise)}>
@@ -120,7 +122,7 @@ export default function TrainingDayScreen() {
                 </Text>
                 {cue ? <Text style={[theme.muted, { marginTop: spacing.xs }]}>{cue}</Text> : null}
                 <Text style={[theme.body, { marginTop: spacing.sm }]}>
-                  {reps ?? `No reps set for week ${currentWeek}`}
+                  {reps ?? `No reps set for week ${planWeek}`}
                 </Text>
               </Pressable>
             );

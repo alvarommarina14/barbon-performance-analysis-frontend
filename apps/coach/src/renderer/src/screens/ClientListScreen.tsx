@@ -64,7 +64,7 @@ export default function ClientListScreen() {
                   <td>
                     <span className="tier">{client.membershipTier}</span>
                   </td>
-                  <td>{client.currentWeek} / 4</td>
+                  <td>{client.planWeek ? `${client.planWeek} / ${client.planWeeks ?? 12}` : '—'}</td>
                   <td>
                     {client.nextCallAt ? new Date(client.nextCallAt).toLocaleString() : '—'}
                   </td>
