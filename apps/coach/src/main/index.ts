@@ -18,6 +18,8 @@ function createWindow(): BrowserWindow {
     // Matches the mockup's background so the window does not flash white while loading.
     backgroundColor: '#0a0a0a',
     autoHideMenuBar: true,
+    // No native title bar: the renderer draws its own to match the app's dark theme.
+    frame: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -27,6 +29,8 @@ function createWindow(): BrowserWindow {
   });
 
   window.on('ready-to-show', () => window.show());
+  window.on('maximize', () => window.webContents.send('window:maximize-changed', true));
+  window.on('unmaximize', () => window.webContents.send('window:maximize-changed', false));
 
   // External links open in the user's browser, never inside the app window.
   window.webContents.setWindowOpenHandler(({ url }) => {
@@ -139,6 +143,24 @@ ipcMain.handle(
 ipcMain.handle('session:read', () => tokenVault.read());
 ipcMain.handle('session:write', (_event, payload: string) => tokenVault.write(payload));
 ipcMain.handle('session:clear', () => tokenVault.clear());
+
+ipcMain.handle('window:minimize', (event) => BrowserWindow.fromWebContents(event.sender)?.minimize());
+ipcMain.handle('window:toggleMaximize', (event) => {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) {
+    return;
+  }
+  if (window.isMaximized()) {
+    window.unmaximize();
+  } else {
+    window.maximize();
+  }
+});
+ipcMain.handle('window:close', (event) => BrowserWindow.fromWebContents(event.sender)?.close());
+ipcMain.handle(
+  'window:isMaximized',
+  (event) => BrowserWindow.fromWebContents(event.sender)?.isMaximized() ?? false,
+);
 
 app.whenReady().then(() => {
   createWindow();

@@ -9,12 +9,70 @@
   --text: #e0e0e0;
   --gray: #8d8d8d;
   --danger: #ff5a5a;
+  --titlebar-h: 32px;
 
   color-scheme: dark;
 }
 
+.titlebar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  height: var(--titlebar-h);
+  background: var(--black);
+  border-bottom: 1px solid var(--line);
+  -webkit-app-region: drag;
+}
+
+.titlebar-drag {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding-left: 12px;
+}
+
+.titlebar-title {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+
+.titlebar-controls {
+  display: flex;
+  height: 100%;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar-btn {
+  width: 46px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: var(--gray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.titlebar-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--white);
+}
+
+.titlebar-close:hover {
+  background: var(--danger);
+  color: var(--black);
+}
+
 * {
   box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
 }
 
 body {
@@ -22,6 +80,24 @@ body {
   background: var(--black);
   color: var(--text);
   font-family: 'DM Sans', system-ui, sans-serif;
+  overflow: hidden;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* The one scrolling region in the whole app: the title bar above it never moves, and every
+   screen below fills exactly the remaining height instead of guessing at 100vh minus its own
+   height (which drifted by a few px once the window went frameless). */
+.app-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 h1 {
@@ -55,9 +131,9 @@ h1 {
 /* --- Login --- */
 
 .login {
+  flex: 1;
   display: grid;
   place-items: center;
-  min-height: 100vh;
   padding: 24px;
 }
 
@@ -139,6 +215,30 @@ button {
   color: var(--accent);
 }
 
+/* A primary action paired with a ghost one (Save/Cancel, Add/Cancel) reads as mismatched at the
+   .primary size meant for standalone CTAs — drop it to the .ghost scale so the pair aligns. */
+.button-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.button-row .primary {
+  margin-top: 0;
+  padding: 8px 14px;
+  font-size: 12px;
+}
+
+.primary:focus-visible,
+.ghost:focus-visible,
+.tab:focus-visible,
+.shell-tab:focus-visible,
+.shell-switch-seg:focus-visible,
+.titlebar-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .ghost:disabled {
   opacity: 0.4;
   cursor: default;
@@ -162,8 +262,8 @@ button {
 .workspace {
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: 24px;
-  min-height: 100vh;
   padding: 40px;
 }
 
@@ -228,6 +328,14 @@ button {
   border-bottom: none;
 }
 
+.clients tbody tr {
+  cursor: pointer;
+}
+
+.clients tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.04);
+}
+
 .clients .strong {
   color: var(--white);
   font-weight: 500;
@@ -248,15 +356,19 @@ button {
 /* --- Shell --- */
 
 .shell {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
 }
 
-.shell-bar {
+.shell-header {
   position: sticky;
   top: 0;
   z-index: 10;
+}
+
+.shell-bar {
   display: flex;
   align-items: center;
   gap: 32px;
@@ -272,9 +384,36 @@ button {
   letter-spacing: 0.04em;
 }
 
-.shell-nav {
+.shell-switch {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  background: var(--card);
+}
+
+.shell-switch-seg {
+  padding: 7px 16px;
+  border: none;
+  border-radius: 100px;
+  background: transparent;
+  color: var(--gray);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.shell-switch-seg.is-active {
+  background: var(--accent);
+  color: var(--black);
+}
+
+.shell-subnav {
   display: flex;
   gap: 8px;
+  padding: 10px 40px;
+  border-bottom: 1px solid var(--line);
+  background: var(--dark);
 }
 
 .shell-tab {
@@ -345,6 +484,16 @@ button {
   gap: 12px;
 }
 
+/* 4 week panels side by side instead of stacked — reorganizing horizontally avoids needing any
+   scroll at all in the common case, rather than capping the list and scrolling it internally. */
+.cycle-weeks {
+  align-self: stretch;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
 .findings-foot {
   display: flex;
   flex-direction: column;
@@ -372,18 +521,23 @@ button {
   min-height: 110px;
 }
 
+/* The editor grid fills whatever room is left in .editor-screen instead of guessing a viewport
+   offset — it shrinks on its own when a step adds something below it (e.g. the drills step's
+   "Next" button), so nothing downstream can push the page into an outer scrollbar. */
+.editor-screen .editor {
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+
+.editor-screen .editor-main,
+.editor-screen .editor-side {
+  min-height: 0;
+}
+
 @media (min-width: 1081px) {
-  /* Anchor the marks column to the viewport so the findings list scrolls inside itself rather
-     than stretching the page. Offset ≈ sticky bar + back link + header + workspace padding. */
-  .editor-screen .editor-side {
-    max-height: calc(100vh - 236px);
-  }
-  .editor-screen .editor-main,
-  .editor-screen .editor-side {
-    min-height: 0;
-  }
   .editor-screen .video-frame {
-    max-height: calc(100vh - 320px);
+    max-height: calc(100vh - var(--titlebar-h) - 320px);
     object-fit: contain;
   }
   .findings-panel {
@@ -411,7 +565,7 @@ button {
 
 @media (min-width: 1081px) {
   .review-screen .video-frame {
-    max-height: calc(100vh - 360px);
+    max-height: calc(100vh - var(--titlebar-h) - 360px);
     object-fit: contain;
   }
 }
@@ -618,6 +772,29 @@ button {
   background: var(--card);
   color: var(--white);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+}
+
+.modal {
+  width: 100%;
+  max-width: 420px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+
+.modal-video {
+  width: 100%;
 }
 
 .spinner {

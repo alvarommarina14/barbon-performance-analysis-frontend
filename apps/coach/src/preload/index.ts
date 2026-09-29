@@ -46,6 +46,18 @@ const barbonAnalysis = {
     write: (payload: string): Promise<void> => ipcRenderer.invoke('session:write', payload),
     clear: (): Promise<void> => ipcRenderer.invoke('session:clear'),
   },
+
+  windowControls: {
+    minimize: (): Promise<void> => ipcRenderer.invoke('window:minimize'),
+    toggleMaximize: (): Promise<void> => ipcRenderer.invoke('window:toggleMaximize'),
+    close: (): Promise<void> => ipcRenderer.invoke('window:close'),
+    isMaximized: (): Promise<boolean> => ipcRenderer.invoke('window:isMaximized'),
+    onMaximizeChange: (callback: (isMaximized: boolean) => void): (() => void) => {
+      const listener = (_event: IpcRendererEvent, isMaximized: boolean) => callback(isMaximized);
+      ipcRenderer.on('window:maximize-changed', listener);
+      return () => ipcRenderer.removeListener('window:maximize-changed', listener);
+    },
+  },
 } as const;
 
 contextBridge.exposeInMainWorld('barbonAnalysis', barbonAnalysis);
