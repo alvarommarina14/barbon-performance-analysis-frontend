@@ -1,43 +1,85 @@
 import { colors, spacing } from '@barbon-performance-analysis/core';
-import { useQuery } from '@tanstack/react-query';
+import type { components } from '@barbon-performance-analysis/api-client';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { api } from '@/api/client';
+import { problemDetail } from '@/api/problem';
 import { useAuth } from '@/auth/AuthContext';
+import { readWeightUnit, writeWeightUnit, type WeightUnit } from '@/prefs/weightUnit';
 import { theme } from '@/ui/theme';
-import type { components } from '@barbon-performance-analysis/api-client';
 
 type DayExerciseView = components['schemas']['DayExerciseView'];
+type ExerciseLogView = components['schemas']['ExerciseLogView'];
 
-function repsForWeek(exercise: DayExerciseView, week: number): string | undefined {
-  switch (week) {
-    case 1:
-      return exercise.setsRepsWk1;
-    case 2:
-      return exercise.setsRepsWk2;
-    case 3:
-      return exercise.setsRepsWk3;
-    case 4:
-      return exercise.setsRepsWk4;
-    default:
-      return undefined;
+interface SetRow {
+  reps: string;
+  weight: string;
+}
+
+function repsForWeek(exercise: DayExerciseView, cycleWeek: number): string | undefined {
+  return [exercise.setsRepsWk1, exercise.setsRepsWk2, exercise.setsRepsWk3, exercise.setsRepsWk4][
+    cycleWeek - 1
+  ];
+}
+
+// "3×8", "3x8" or "3 x 8-10" → three rows pre-filled with 8 reps; anything else → one empty row.
+function rowsFromPrescription(prescription: string | undefined): SetRow[] {
+  const match = prescription?.match(/(\d+)\s*[x×]\s*(\d+)/i);
+  if (!match) {
+    return [{ reps: '', weight: '' }];
   }
+  const sets = Math.min(Number(match[1]), 10);
+  return Array.from({ length: sets }, () => ({ reps: match[2] as string, weight: '' }));
+}
+
+function rowsFromLog(log: ExerciseLogView): SetRow[] {
+  return log.sets.map((set) => ({
+    reps: String(set.reps ?? ''),
+    weight: set.weight != null ? String(set.weight) : '',
+  }));
+}
+
+function describeLog(log: ExerciseLogView): string {
+  const unit = log.unit.toLowerCase();
+  return log.sets
+    .map((set) => (set.weight != null ? `${set.reps}×${set.weight}${unit}` : `${set.reps}×BW`))
+    .join(', ');
 }
 
 export default function TrainingDayScreen() {
   const { user } = useAuth();
   const { dayId, week } = useLocalSearchParams<{ dayId: string; week?: string }>();
   const [playing, setPlaying] = useState<DayExerciseView | null>(null);
+  const [unit, setUnit] = useState<WeightUnit>('LB');
 
-  const home = useQuery({
-    queryKey: ['player', 'home'],
+  useEffect(() => {
+    void readWeightUnit().then(setUnit);
+  }, []);
+
+  function chooseUnit(next: WeightUnit) {
+    setUnit(next);
+    void writeWeightUnit(next);
+  }
+
+  const plan = useQuery({
+    queryKey: ['strength', 'plan'],
     queryFn: async () => {
-      const { data, error } = await api.GET('/api/v1/players/me/home');
+      const { data, error } = await api.GET('/api/v1/strength/plan');
       if (error || !data) {
-        throw new Error('Could not load your home');
+        throw new Error('Could not load your plan');
       }
       return data;
     },
@@ -70,11 +112,31 @@ export default function TrainingDayScreen() {
     enabled: Boolean(user) && Boolean(dayId),
   });
 
-  const day = trainingDays.data?.find((d) => d.id === dayId);
-  const planWeek = Number(week) || home.data?.planWeek || 1;
+  const planWeek = Number(week) || plan.data?.planWeek || 1;
   const cycleWeek = ((planWeek - 1) % 4) + 1;
+  const canLog = planWeek <= (plan.data?.unlockedWeeks ?? 0);
 
-  if (exercises.isPending) {
+  const logsQuery = (planWeekToLoad: number) => ({
+    queryKey: ['strength', 'training-days', dayId, 'logs', planWeekToLoad],
+    queryFn: async () => {
+      const { data, error } = await api.GET('/api/v1/strength/training-days/{trainingDayId}/logs', {
+        params: { path: { trainingDayId: dayId }, query: { planWeek: planWeekToLoad } },
+      });
+      if (error || !data) {
+        throw new Error('Could not load your logs');
+      }
+      return data;
+    },
+  });
+  const logs = useQuery({ ...logsQuery(planWeek), enabled: Boolean(user) && Boolean(dayId) });
+  const previousLogs = useQuery({
+    ...logsQuery(planWeek - 1),
+    enabled: Boolean(user) && Boolean(dayId) && planWeek > 1,
+  });
+
+  const day = trainingDays.data?.find((d) => d.id === dayId);
+
+  if (exercises.isPending || logs.isPending) {
     return (
       <View style={[theme.screen, { alignItems: 'center', justifyContent: 'center' }]}>
         <ActivityIndicator color={colors.accent} />
@@ -97,7 +159,10 @@ export default function TrainingDayScreen() {
 
   return (
     <SafeAreaView style={theme.screen} edges={['bottom']}>
-      <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
+      <ScrollView
+        contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}
+        keyboardShouldPersistTaps="handled"
+      >
         <View>
           <Text style={theme.eyebrow}>Barbon Performance</Text>
           <Text style={[theme.display, { marginTop: spacing.xs }]}>
@@ -107,31 +172,194 @@ export default function TrainingDayScreen() {
           {day?.focus ? <Text style={[theme.body, { marginTop: spacing.sm }]}>{day.focus}</Text> : null}
         </View>
 
+        <View style={{ flexDirection: 'row', gap: spacing.sm, alignItems: 'center' }}>
+          <Text style={theme.muted}>Weights in</Text>
+          {(['LB', 'KG'] as const).map((option) => (
+            <Pressable
+              key={option}
+              style={[theme.pill, unit === option && theme.pillActive]}
+              onPress={() => chooseUnit(option)}
+            >
+              <Text style={[theme.pillLabel, unit === option && theme.pillLabelActive]}>
+                {option.toLowerCase()}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        {!canLog ? <Text style={theme.muted}>You can log this week once it starts.</Text> : null}
+
         {exercises.data.length === 0 ? (
           <Text style={theme.muted}>No exercises here yet.</Text>
         ) : (
-          exercises.data.map((exercise) => {
-            const reps = repsForWeek(exercise, cycleWeek);
-            const cue = exercise.cueOverride ?? exercise.cue;
-            return (
-              <Pressable key={exercise.id} style={theme.card} onPress={() => setPlaying(exercise)}>
-                <Text
-                  style={[theme.body, { color: colors.white, fontWeight: '700' }]}
-                >
-                  {exercise.title}
-                </Text>
-                {cue ? <Text style={[theme.muted, { marginTop: spacing.xs }]}>{cue}</Text> : null}
-                <Text style={[theme.body, { marginTop: spacing.sm }]}>
-                  {reps ?? `No reps set for week ${planWeek}`}
-                </Text>
-              </Pressable>
-            );
-          })
+          exercises.data.map((exercise) => (
+            <ExerciseCard
+              key={`${exercise.id}-${planWeek}`}
+              exercise={exercise}
+              dayId={dayId}
+              planWeek={planWeek}
+              prescription={repsForWeek(exercise, cycleWeek)}
+              log={logs.data?.find((l) => l.dayExerciseId === exercise.id)}
+              previous={previousLogs.data?.find((l) => l.dayExerciseId === exercise.id)}
+              unit={unit}
+              canLog={canLog}
+              onWatch={() => setPlaying(exercise)}
+            />
+          ))
         )}
       </ScrollView>
 
       {playing ? <ExercisePlayer exercise={playing} onClose={() => setPlaying(null)} /> : null}
     </SafeAreaView>
+  );
+}
+
+function ExerciseCard({
+  exercise,
+  dayId,
+  planWeek,
+  prescription,
+  log,
+  previous,
+  unit,
+  canLog,
+  onWatch,
+}: {
+  exercise: DayExerciseView;
+  dayId: string;
+  planWeek: number;
+  prescription: string | undefined;
+  log: ExerciseLogView | undefined;
+  previous: ExerciseLogView | undefined;
+  unit: WeightUnit;
+  canLog: boolean;
+  onWatch: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const initialRows = useMemo(
+    () => (log ? rowsFromLog(log) : rowsFromPrescription(prescription)),
+    [log, prescription],
+  );
+  const [rows, setRows] = useState<SetRow[]>(initialRows);
+
+  useEffect(() => {
+    setRows(initialRows);
+  }, [initialRows]);
+
+  const saved = log ? JSON.stringify([log.unit, rowsFromLog(log)]) : null;
+  const dirty = JSON.stringify([unit, rows]) !== saved;
+  const valid = rows.every(
+    (row) => /^\d+$/.test(row.reps) && (row.weight === '' || !Number.isNaN(Number(row.weight))),
+  );
+  const saveable = dirty && valid;
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const { error, response } = await api.PUT(
+        '/api/v1/strength/day-exercises/{dayExerciseId}/logs/{planWeek}',
+        {
+          params: { path: { dayExerciseId: exercise.id, planWeek } },
+          body: {
+            unit,
+            sets: rows.map((row) => ({
+              reps: Number(row.reps),
+              weight: row.weight === '' ? undefined : Number(row.weight),
+            })),
+          },
+        },
+      );
+      if (!response.ok) {
+        throw new Error(problemDetail(error) ?? 'Could not save this exercise');
+      }
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: ['strength', 'training-days', dayId, 'logs', planWeek],
+      }),
+  });
+
+  const cue = exercise.cueOverride ?? exercise.cue;
+
+  function update(index: number, patch: Partial<SetRow>) {
+    setRows((prev) => prev.map((row, i) => (i === index ? { ...row, ...patch } : row)));
+  }
+
+  function addSet() {
+    setRows((prev) => {
+      const last = prev.at(-1);
+      return [...prev, { reps: last?.reps ?? '', weight: last?.weight ?? '' }];
+    });
+  }
+
+  return (
+    <View style={theme.card}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md }}>
+        <Text style={[theme.body, { color: colors.white, fontWeight: '700', flex: 1 }]}>
+          {exercise.title}
+        </Text>
+        <Pressable onPress={onWatch} hitSlop={8}>
+          <Text style={[theme.muted, { color: colors.accent }]}>Watch ▶</Text>
+        </Pressable>
+      </View>
+      {cue ? <Text style={[theme.muted, { marginTop: spacing.xs }]}>{cue}</Text> : null}
+      <Text style={[theme.body, { marginTop: spacing.sm }]}>
+        {prescription ?? `No reps set for week ${planWeek}`}
+      </Text>
+      {previous ? (
+        <Text style={[theme.muted, { marginTop: spacing.xs }]}>Last week: {describeLog(previous)}</Text>
+      ) : null}
+
+      {canLog ? (
+        <View style={{ marginTop: spacing.md, gap: spacing.sm }}>
+          {rows.map((row, index) => (
+            <View key={index} style={styles.setRow}>
+              <Text style={[theme.muted, styles.setLabel]}>Set {index + 1}</Text>
+              <TextInput
+                style={[theme.input, styles.setInput]}
+                keyboardType="number-pad"
+                placeholder="reps"
+                placeholderTextColor={colors.gray}
+                value={row.reps}
+                onChangeText={(reps) => update(index, { reps })}
+              />
+              <TextInput
+                style={[theme.input, styles.setInput]}
+                keyboardType="decimal-pad"
+                placeholder={unit.toLowerCase()}
+                placeholderTextColor={colors.gray}
+                value={row.weight}
+                onChangeText={(weight) => update(index, { weight: weight.replace(',', '.') })}
+              />
+              <Pressable
+                hitSlop={8}
+                onPress={() => setRows((prev) => prev.filter((_, i) => i !== index))}
+              >
+                <Text style={theme.muted}>✕</Text>
+              </Pressable>
+            </View>
+          ))}
+          <Pressable onPress={addSet}>
+            <Text style={[theme.muted, { color: colors.accent }]}>+ set</Text>
+          </Pressable>
+          <Pressable
+            style={[theme.primaryButton, (!saveable || save.isPending) && theme.primaryButtonDisabled]}
+            disabled={!saveable || save.isPending}
+            onPress={() => save.mutate()}
+          >
+            {save.isPending ? (
+              <ActivityIndicator color={colors.gray} />
+            ) : (
+              <Text style={[theme.primaryButtonLabel, !saveable && theme.primaryButtonLabelDisabled]}>
+                {log ? 'Update' : 'Save'}
+              </Text>
+            )}
+          </Pressable>
+          {save.isError ? <Text style={theme.error}>{save.error.message}</Text> : null}
+        </View>
+      ) : log ? (
+        <Text style={[theme.muted, { marginTop: spacing.sm }]}>Logged: {describeLog(log)}</Text>
+      ) : null}
+    </View>
   );
 }
 
@@ -207,3 +435,18 @@ function ExercisePlayer({
     </Modal>
   );
 }
+
+const styles = StyleSheet.create({
+  setRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  setLabel: {
+    width: 44,
+  },
+  setInput: {
+    flex: 1,
+    paddingVertical: spacing.sm,
+  },
+});

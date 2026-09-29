@@ -8,6 +8,7 @@ import { problemDetail } from '../lib/problem';
 type LibraryItem = components['schemas']['LibraryItemView'];
 
 interface Row {
+  id: string | null;
   libraryItemId: string;
   title: string;
   cueOverride: string;
@@ -54,6 +55,7 @@ export default function DayExerciseStep({ trainingDayId }: { trainingDayId: stri
     }
     setRows(
       assigned.data.map((a) => ({
+        id: a.id,
         libraryItemId: a.libraryItemId,
         title: a.title,
         cueOverride: a.cueOverride ?? '',
@@ -85,6 +87,7 @@ export default function DayExerciseStep({ trainingDayId }: { trainingDayId: stri
         params: { path: { trainingDayId } },
         body: {
           exercises: rows.map((r) => ({
+            id: r.id ?? undefined,
             libraryItemId: r.libraryItemId,
             cueOverride: r.cueOverride.trim() || undefined,
             setsRepsWk1: r.setsRepsWk1.trim() || undefined,
@@ -113,6 +116,7 @@ export default function DayExerciseStep({ trainingDayId }: { trainingDayId: stri
     setRows((prev) => [
       ...prev,
       {
+        id: null,
         libraryItemId: item.id,
         title: item.title,
         cueOverride: '',

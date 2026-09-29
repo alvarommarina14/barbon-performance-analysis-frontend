@@ -5,6 +5,7 @@ import { api } from '../api/client';
 import { useNav } from '../nav';
 import { cx } from '../lib/cx';
 import { problemDetail } from '../lib/problem';
+import ClientLogsTab from './ClientLogsTab';
 import ClientRedFlagsTab from './ClientRedFlagsTab';
 import DayExerciseStep from './DayExerciseStep';
 import PlanStartPanel from './PlanStartPanel';
@@ -63,12 +64,13 @@ const blankRow = (): Row => ({
 
 const PDF_CONTENT_TYPE = 'application/pdf';
 
-type ClientTab = 'program' | 'weekly-notes' | 'red-flags';
+type ClientTab = 'program' | 'weekly-notes' | 'red-flags' | 'logs';
 
 const CLIENT_TABS: { key: ClientTab; label: string }[] = [
   { key: 'program', label: 'Program' },
   { key: 'weekly-notes', label: 'Weekly notes' },
   { key: 'red-flags', label: 'Red flags' },
+  { key: 'logs', label: 'Logs' },
 ];
 
 export default function ClientTrainingScreen({
@@ -113,6 +115,7 @@ export default function ClientTrainingScreen({
         params: { path: { playerProfileId } },
         body: {
           days: rows.map((r) => ({
+            id: r.id ?? undefined,
             dayLabel: r.dayLabel.trim(),
             title: r.title.trim(),
             focus: r.focus.trim() || undefined,
@@ -343,6 +346,7 @@ export default function ClientTrainingScreen({
         {heading}
         {tab === 'weekly-notes' ? <WeeklyNotesTab playerProfileId={playerProfileId} /> : null}
         {tab === 'red-flags' ? <ClientRedFlagsTab playerProfileId={playerProfileId} /> : null}
+        {tab === 'logs' ? <ClientLogsTab playerProfileId={playerProfileId} /> : null}
       </main>
     );
   }

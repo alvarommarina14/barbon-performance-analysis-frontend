@@ -127,6 +127,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/strength/day-exercises/{dayExerciseId}/logs/{planWeek}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Log the sets of one exercise for one plan week; no sets removes the log */
+        put: operations["logExercise"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/strength/cycle-phase-templates/{name}": {
         parameters: {
             query?: never;
@@ -779,6 +796,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/strength/training-days/{trainingDayId}/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What was logged on one training day in one plan week */
+        get: operations["dayLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/strength/plan": {
         parameters: {
             query?: never;
@@ -1040,6 +1074,8 @@ export interface components {
     schemas: {
         DayExerciseInput: {
             /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
             libraryItemId: string;
             setsRepsWk1?: string;
             setsRepsWk2?: string;
@@ -1103,6 +1139,8 @@ export interface components {
             days: components["schemas"]["TrainingDayInput"][];
         };
         TrainingDayInput: {
+            /** Format: uuid */
+            id?: string;
             dayLabel: string;
             title: string;
             focus?: string;
@@ -1162,6 +1200,34 @@ export interface components {
             goal: string;
             setsReps?: string;
             rpeRange?: string;
+        };
+        LogExerciseRequest: {
+            /** @enum {string} */
+            unit: "LB" | "KG";
+            sets: components["schemas"]["LoggedSetInput"][];
+        };
+        LoggedSetInput: {
+            /** Format: int32 */
+            reps?: number;
+            weight?: number;
+        };
+        ExerciseLogView: {
+            /** Format: uuid */
+            dayExerciseId: string;
+            /** Format: int32 */
+            planWeek?: number;
+            /** @enum {string} */
+            unit: "LB" | "KG";
+            /** Format: date-time */
+            loggedAt: string;
+            sets: components["schemas"]["LoggedSetView"][];
+        };
+        LoggedSetView: {
+            /** Format: int32 */
+            setNumber?: number;
+            /** Format: int32 */
+            reps?: number;
+            weight?: number;
         };
         ReplaceCyclePhaseTemplateRequest: {
             weeks: components["schemas"]["CyclePhaseInput"][];
@@ -1888,6 +1954,33 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CyclePhaseView"][];
+                };
+            };
+        };
+    };
+    logExercise: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dayExerciseId: string;
+                planWeek: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LogExerciseRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExerciseLogView"];
                 };
             };
         };
@@ -2922,6 +3015,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["TrainingDayView"][];
+                };
+            };
+        };
+    };
+    dayLogs: {
+        parameters: {
+            query: {
+                planWeek: number;
+            };
+            header?: never;
+            path: {
+                trainingDayId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExerciseLogView"][];
                 };
             };
         };
