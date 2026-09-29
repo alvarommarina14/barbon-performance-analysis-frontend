@@ -100,6 +100,24 @@ export default function RootLayout() {
             }}
           />
           <Stack.Screen
+            name="warmup-recovery"
+            options={{
+              headerShown: true,
+              title: 'Warm-up & recovery',
+              headerTitleAlign: 'center',
+              headerStyle: { backgroundColor: colors.black },
+              headerShadowVisible: false,
+              headerTintColor: colors.accent,
+              headerTitleStyle: {
+                color: colors.white,
+                fontFamily: fonts.display,
+                fontSize: 20,
+              },
+              headerBackButtonDisplayMode: 'minimal',
+              headerBackTitle: '',
+            }}
+          />
+          <Stack.Screen
             name="strength/[dayId]"
             options={{
               headerShown: true,

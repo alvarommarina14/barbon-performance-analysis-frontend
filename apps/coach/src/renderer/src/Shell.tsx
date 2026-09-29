@@ -9,9 +9,10 @@ import CyclePhasesScreen from './screens/CyclePhasesScreen';
 import DrillLibraryScreen from './screens/DrillLibraryScreen';
 import QueueScreen from './screens/QueueScreen';
 import RecordingTipsScreen from './screens/RecordingTipsScreen';
-import ReviewScreen from './screens/ReviewScreen';
 import RedFlagsScreen from './screens/RedFlagsScreen';
+import ReviewScreen from './screens/ReviewScreen';
 import RpeGuideScreen from './screens/RpeGuideScreen';
+import WarmupRecoveryScreen from './screens/WarmupRecoveryScreen';
 
 type Mode = 'coaching' | 'setup';
 
@@ -23,6 +24,7 @@ const SETUP_SCREENS = new Set<Screen['name']>([
   'cycle-phases',
   'rpe-guide',
   'red-flags',
+  'warmup-recovery',
 ]);
 
 function modeOf(screen: Screen): Mode {
@@ -122,6 +124,13 @@ export default function Shell() {
                 >
                   Red flags
                 </button>
+                <button
+                  type="button"
+                  className={cx('shell-tab', screen.name === 'warmup-recovery' && 'is-active')}
+                  onClick={() => reset({ name: 'warmup-recovery' })}
+                >
+                  Warm-up &amp; recovery
+                </button>
               </>
             )}
           </nav>
@@ -135,6 +144,7 @@ export default function Shell() {
           {screen.name === 'cycle-phases' && <CyclePhasesScreen />}
           {screen.name === 'rpe-guide' && <RpeGuideScreen />}
           {screen.name === 'red-flags' && <RedFlagsScreen />}
+          {screen.name === 'warmup-recovery' && <WarmupRecoveryScreen />}
           {screen.name === 'review' && <ReviewScreen submission={screen.submission} />}
           {screen.name === 'editor' && (
             <AnalysisEditorScreen key={screen.analysisId} analysisId={screen.analysisId} />

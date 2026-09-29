@@ -125,6 +125,15 @@ export default function HomeScreen() {
               </Pressable>
             </View>
 
+            <Pressable style={theme.card} onPress={() => router.push('/warmup-recovery')}>
+              <Text style={[theme.body, { color: colors.white, fontWeight: '700' }]}>
+                Warm-up & Recovery
+              </Text>
+              <Text style={[theme.muted, { marginTop: spacing.xs }]}>
+                Before you play and after you come off court →
+              </Text>
+            </Pressable>
+
             <View style={theme.card}>
               <Text style={theme.eyebrow}>Your coach</Text>
               <Text style={[theme.body, { marginTop: spacing.sm }]}>

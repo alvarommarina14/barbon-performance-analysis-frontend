@@ -472,6 +472,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/content/daily-routine/video": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm the warm-up or recovery video once it has finished uploading */
+        post: operations["confirmVideo_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily-routine/video-upload-intent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reserve a one-time upload URL for the warm-up or recovery video */
+        post: operations["videoUploadIntent_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily-routine/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm the daily routine PDF once it has finished uploading */
+        post: operations["confirmPdf_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily-routine/pdf-upload-intent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reserve a one-time upload URL for the daily routine PDF */
+        post: operations["pdfUploadIntent_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/register": {
         parameters: {
             query?: never;
@@ -864,6 +932,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/content/daily-routine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The warm-up and recovery videos and the daily routine PDF, if uploaded */
+        get: operations["get_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily-routine/playback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A short-lived signed playback token for the warm-up or recovery video */
+        get: operations["playback_3"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/coach/clients": {
         parameters: {
             query?: never;
@@ -906,7 +1008,7 @@ export interface paths {
             cookie?: never;
         };
         /** A short-lived signed playback token for the feedback video */
-        get: operations["playback_3"];
+        get: operations["playback_4"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1309,6 +1411,44 @@ export interface components {
             /** Format: int32 */
             maxDurationSeconds?: number;
         };
+        ConfirmRoutineVideoRequest: {
+            /** @enum {string} */
+            part: "WARMUP" | "RECOVERY";
+            /** Format: uuid */
+            videoAssetId: string;
+        };
+        DailyRoutineView: {
+            warmup?: components["schemas"]["RoutineVideoView"];
+            recovery?: components["schemas"]["RoutineVideoView"];
+            pdfUrl?: string;
+            pdfFileName?: string;
+            /** Format: int64 */
+            pdfSizeBytes?: number;
+            /** Format: date-time */
+            pdfUploadedAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        RoutineVideoView: {
+            /** Format: uuid */
+            videoAssetId: string;
+            /** @enum {string} */
+            status: "PENDING_UPLOAD" | "UPLOADING" | "PROCESSING" | "READY" | "ERRORED";
+            fileName?: string;
+            /** Format: int64 */
+            sizeBytes?: number;
+            /** Format: int32 */
+            durationSeconds?: number;
+            /** Format: date-time */
+            uploadedAt?: string;
+        };
+        RoutineVideoUploadIntentRequest: {
+            /** @enum {string} */
+            part: "WARMUP" | "RECOVERY";
+            /** Format: int64 */
+            sizeBytes?: number;
+            fileName: string;
+        };
         RegisterRequest: {
             /** Format: email */
             email: string;
@@ -1455,6 +1595,15 @@ export interface components {
             expiresAt: string;
         };
         RecordingTipsPlaybackView: {
+            /** Format: uuid */
+            videoAssetId: string;
+            hlsUrl: string;
+            dashUrl: string;
+            token: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        DailyRoutinePlaybackView: {
             /** Format: uuid */
             videoAssetId: string;
             hlsUrl: string;
@@ -2341,6 +2490,102 @@ export interface operations {
             };
         };
     };
+    confirmVideo_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmRoutineVideoRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DailyRoutineView"];
+                };
+            };
+        };
+    };
+    videoUploadIntent_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoutineVideoUploadIntentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["VideoUploadIntentResponse"];
+                };
+            };
+        };
+    };
+    confirmPdf_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmPdfUploadRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DailyRoutineView"];
+                };
+            };
+        };
+    };
+    pdfUploadIntent_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PdfUploadIntentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PdfUploadIntentResponse"];
+                };
+            };
+        };
+    };
     register: {
         parameters: {
             query?: never;
@@ -2871,6 +3116,48 @@ export interface operations {
             };
         };
     };
+    get_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DailyRoutineView"];
+                };
+            };
+        };
+    };
+    playback_3: {
+        parameters: {
+            query: {
+                part: "WARMUP" | "RECOVERY";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DailyRoutinePlaybackView"];
+                };
+            };
+        };
+    };
     clients: {
         parameters: {
             query?: never;
@@ -2911,7 +3198,7 @@ export interface operations {
             };
         };
     };
-    playback_3: {
+    playback_4: {
         parameters: {
             query?: never;
             header?: never;

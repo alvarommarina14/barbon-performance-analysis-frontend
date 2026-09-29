@@ -130,6 +130,12 @@ export default function StrengthScreen() {
           </View>
         ) : null}
 
+        <Pressable onPress={() => router.push('/warmup-recovery')}>
+          <Text style={[theme.muted, { color: colors.accent }]}>
+            Run the warm-up before every session →
+          </Text>
+        </Pressable>
+
         {isPending ? (
           <ActivityIndicator color={colors.accent} />
         ) : isError ? (

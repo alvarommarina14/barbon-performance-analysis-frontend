@@ -18,6 +18,7 @@ export type Screen =
   | { name: 'cycle-phases' }
   | { name: 'rpe-guide' }
   | { name: 'red-flags' }
+  | { name: 'warmup-recovery' }
   | { name: 'review'; submission: SubmissionSummary }
   | { name: 'editor'; analysisId: string }
   | { name: 'client-training'; playerProfileId: string; playerName: string };
