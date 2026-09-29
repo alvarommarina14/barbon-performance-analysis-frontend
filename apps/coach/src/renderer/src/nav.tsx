@@ -15,8 +15,11 @@ export type Screen =
   | { name: 'clients' }
   | { name: 'library' }
   | { name: 'recording-tips' }
+  | { name: 'cycle-phases' }
+  | { name: 'rpe-guide' }
   | { name: 'review'; submission: SubmissionSummary }
-  | { name: 'editor'; analysisId: string };
+  | { name: 'editor'; analysisId: string }
+  | { name: 'client-training'; playerProfileId: string; playerName: string };
 
 interface NavValue {
   screen: Screen;

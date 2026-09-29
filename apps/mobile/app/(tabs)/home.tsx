@@ -1,6 +1,6 @@
 import { colors, fonts, radii, spacing } from '@barbon-performance-analysis/core';
 import { useQuery } from '@tanstack/react-query';
-import { Redirect } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { api } from '@/api/client';
@@ -9,6 +9,7 @@ import { theme } from '@/ui/theme';
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
+  const router = useRouter();
 
   const home = useQuery({
     queryKey: ['player', 'home'],
@@ -61,6 +62,31 @@ export default function HomeScreen() {
               <View style={styles.tierPill}>
                 <Text style={styles.tierLabel}>{home.data.membershipTier}</Text>
               </View>
+              {home.data.currentPhase ? (
+                <View style={{ marginTop: spacing.md }}>
+                  <Text style={[theme.body, { color: colors.white, fontWeight: '700' }]}>
+                    {home.data.currentPhase.phaseName}
+                  </Text>
+                  <Text style={[theme.muted, { marginTop: spacing.xs }]}>
+                    {home.data.currentPhase.goal}
+                  </Text>
+                  {home.data.currentPhase.setsReps || home.data.currentPhase.rpeRange ? (
+                    <Text style={[theme.body, { marginTop: spacing.xs }]}>
+                      {[home.data.currentPhase.setsReps, home.data.currentPhase.rpeRange]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </Text>
+                  ) : null}
+                </View>
+              ) : null}
+              <Pressable
+                onPress={() => router.push('/strength')}
+                style={{ marginTop: spacing.md }}
+              >
+                <Text style={[theme.muted, { color: colors.accent }]}>
+                  See my training →
+                </Text>
+              </Pressable>
             </View>
 
             <View style={theme.card}>

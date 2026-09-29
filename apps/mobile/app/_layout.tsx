@@ -81,6 +81,42 @@ export default function RootLayout() {
               headerBackTitle: '',
             }}
           />
+          <Stack.Screen
+            name="strength"
+            options={{
+              headerShown: true,
+              title: 'Strength & conditioning',
+              headerTitleAlign: 'center',
+              headerStyle: { backgroundColor: colors.black },
+              headerShadowVisible: false,
+              headerTintColor: colors.accent,
+              headerTitleStyle: {
+                color: colors.white,
+                fontFamily: fonts.display,
+                fontSize: 20,
+              },
+              headerBackButtonDisplayMode: 'minimal',
+              headerBackTitle: '',
+            }}
+          />
+          <Stack.Screen
+            name="strength/[dayId]"
+            options={{
+              headerShown: true,
+              title: 'Training day',
+              headerTitleAlign: 'center',
+              headerStyle: { backgroundColor: colors.black },
+              headerShadowVisible: false,
+              headerTintColor: colors.accent,
+              headerTitleStyle: {
+                color: colors.white,
+                fontFamily: fonts.display,
+                fontSize: 20,
+              },
+              headerBackButtonDisplayMode: 'minimal',
+              headerBackTitle: '',
+            }}
+          />
         </Stack>
       </AuthProvider>
     </QueryClientProvider>

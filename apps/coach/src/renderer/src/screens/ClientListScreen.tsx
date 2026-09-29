@@ -1,7 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
+import { useNav } from '../nav';
 
 export default function ClientListScreen() {
+  const { navigate } = useNav();
+
   const clients = useQuery({
     queryKey: ['coach', 'clients'],
     queryFn: async () => {
@@ -46,7 +49,16 @@ export default function ClientListScreen() {
             </thead>
             <tbody>
               {clients.data.map((client) => (
-                <tr key={client.profileId}>
+                <tr
+                  key={client.profileId}
+                  onClick={() =>
+                    navigate({
+                      name: 'client-training',
+                      playerProfileId: client.profileId,
+                      playerName: client.name,
+                    })
+                  }
+                >
                   <td className="strong">{client.name}</td>
                   <td>{client.email}</td>
                   <td>
