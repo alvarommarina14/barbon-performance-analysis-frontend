@@ -124,15 +124,20 @@ ipcMain.handle(
           reject(new Error(`Upload failed with status ${response.statusCode}`));
           return;
         }
+        if (!event.sender.isDestroyed()) {
+          event.sender.send('content:progress', 1);
+        }
         resolve();
       });
 
+      // Reading the file runs ahead of the network, so the last chunk leaves the disk well before
+      // the storage has taken it. Hold at 99% until the PUT is answered; 100% means "stored".
       let sent = 0;
       const stream = createReadStream(filePath);
       stream.on('data', (chunk: Buffer) => {
         sent += chunk.length;
         if (!event.sender.isDestroyed()) {
-          event.sender.send('content:progress', size > 0 ? sent / size : 0);
+          event.sender.send('content:progress', size > 0 ? Math.min(sent / size, 0.99) : 0);
         }
       });
       stream.pipe(request);

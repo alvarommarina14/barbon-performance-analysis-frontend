@@ -5,6 +5,7 @@ import { api } from '../api/client';
 import { useNav } from '../nav';
 import { problemDetail } from '../lib/problem';
 import DayExerciseStep from './DayExerciseStep';
+import { UploadProgress } from '../components/UploadProgress';
 
 type TrainingDayView = components['schemas']['TrainingDayView'];
 type TrainingDayKind = TrainingDayView['kind'];
@@ -312,9 +313,7 @@ export default function ClientTrainingScreen({
       <div className="panel">
         <p className="section-title">Program PDF</p>
         {pdfProgress !== null ? (
-          <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${Math.round(pdfProgress * 100)}%` }} />
-          </div>
+          <UploadProgress fraction={pdfProgress} label="Uploading the program PDF" />
         ) : (
           <p className="lede">Uploads replace whatever the player currently sees.</p>
         )}
@@ -401,7 +400,7 @@ export default function ClientTrainingScreen({
             <div className="findings-foot">
               <button
                 type="button"
-                className="ghost"
+                className="primary"
                 disabled={saveWeeks.isPending || !weeksDirty || anyWeekBlank}
                 onClick={() => saveWeeks.mutate()}
               >

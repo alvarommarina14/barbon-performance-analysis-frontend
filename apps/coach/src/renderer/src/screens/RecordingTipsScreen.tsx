@@ -5,6 +5,7 @@ import { api } from '../api/client';
 import { useToast } from '../components/Toast';
 import { formatBytes, formatDate, formatDuration } from '../lib/format';
 import { problemDetail, problemSlug } from '../lib/problem';
+import { UploadProgress } from '../components/UploadProgress';
 
 type RecordingTips = components['schemas']['RecordingTipsView'];
 
@@ -115,9 +116,7 @@ export default function RecordingTipsScreen() {
       <div className="panel">
         <p className="section-title">Video</p>
         {videoProgress !== null ? (
-          <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${Math.round(videoProgress * 100)}%` }} />
-          </div>
+          <UploadProgress fraction={videoProgress} label="Uploading the video" />
         ) : (
           <>
             <p className="lede">
@@ -154,9 +153,7 @@ export default function RecordingTipsScreen() {
       <div className="panel">
         <p className="section-title">PDF guide</p>
         {pdfProgress !== null ? (
-          <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${Math.round(pdfProgress * 100)}%` }} />
-          </div>
+          <UploadProgress fraction={pdfProgress} label="Uploading the PDF" />
         ) : (
           <>
             <p className="lede">{data?.pdfUrl ? 'Uploaded and ready.' : 'No PDF uploaded yet.'}</p>

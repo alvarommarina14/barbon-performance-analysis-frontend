@@ -3,8 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '../api/client';
 import { useToast } from '../components/Toast';
-import { VideoLoader } from '../components/VideoLoader';
 import { problemDetail, problemSlug } from '../lib/problem';
+import { UploadProgress } from '../components/UploadProgress';
 
 type LibraryItem = components['schemas']['LibraryItemView'];
 type DrillCategory = components['schemas']['LibraryItemView']['category'];
@@ -265,10 +265,9 @@ export default function DrillLibraryScreen() {
             </label>
 
             {uploadFraction !== null ? (
-              <div className="video-frame-wrap modal-video">
-                <div className="video-frame" />
-                <VideoLoader fraction={uploadFraction} label="Uploading the drill video…" />
-              </div>
+              <UploadProgress fraction={uploadFraction} label="Uploading the drill video" />
+            ) : createItem.isPending ? (
+              <UploadProgress fraction={1} />
             ) : (
               <button type="button" className="ghost" onClick={() => pickAndUpload.mutate()}>
                 {draft.videoAssetId ? 'Replace video' : 'Select video'}

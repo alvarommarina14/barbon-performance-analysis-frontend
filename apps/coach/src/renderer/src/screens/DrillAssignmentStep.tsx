@@ -204,7 +204,7 @@ export default function DrillAssignmentStep({
             <div className="findings-foot">
               <button
                 type="button"
-                className="ghost"
+                className="primary"
                 disabled={save.isPending || !changed}
                 onClick={() => save.mutate()}
               >

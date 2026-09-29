@@ -9,6 +9,7 @@ import { problemDetail, problemSlug } from '../lib/problem';
 import { uid } from '../lib/uid';
 import { useNav } from '../nav';
 import DrillAssignmentStep from './DrillAssignmentStep';
+import { UploadProgress } from '../components/UploadProgress';
 
 type AnalysisDetail = components['schemas']['AnalysisDetail'];
 type FeedbackState = 'loading' | 'none' | 'processing' | 'errored' | 'ready' | 'published';
@@ -343,12 +344,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                     {upload.isPending ? 'Uploading…' : 'Choose a video…'}
                   </button>
                   {uploadFraction !== null ? (
-                    <div className="progress-track">
-                      <div
-                        className="progress-fill"
-                        style={{ width: `${Math.round(uploadFraction * 100)}%` }}
-                      />
-                    </div>
+                    <UploadProgress fraction={uploadFraction} label="Uploading the feedback video" />
                   ) : null}
                   {upload.isError ? <p className="error">{upload.error.message}</p> : null}
                 </>
@@ -475,7 +471,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                 <div className="findings-foot">
                   <button
                     type="button"
-                    className="ghost"
+                    className="primary"
                     disabled={saveFindings.isPending || !findingsChanged || anyFindingBlank}
                     onClick={() => saveFindings.mutate()}
                   >
@@ -527,7 +523,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
             Next: title &amp; publish →
           </button>
           {editable && !drillsChanged && drillCount === 0 ? (
-            <p className="lede">No drills added yet — you can still publish without any.</p>
+            <p className="error">No drills added yet — you can still publish without any.</p>
           ) : null}
         </>
       ) : (
@@ -560,7 +556,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
             {editable ? (
               <button
                 type="button"
-                className="ghost"
+                className="primary"
                 disabled={!headerDirty || saveHeader.isPending}
                 onClick={() => saveHeader.mutate()}
               >
@@ -592,7 +588,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                         : 'Save your changes first.'}
                 </p>
               ) : drillCount === 0 ? (
-                <p className="lede">No drills added — the player won’t get any exercises.</p>
+                <p className="error">No drills added — the player won’t get any exercises.</p>
               ) : null}
               {publish.isError ? <p className="error">{publish.error.message}</p> : null}
 

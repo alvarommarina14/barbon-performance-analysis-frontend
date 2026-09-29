@@ -202,7 +202,7 @@ export default function DayExerciseStep({ trainingDayId }: { trainingDayId: stri
           <div className="findings-foot">
             <button
               type="button"
-              className="ghost"
+              className="primary"
               disabled={save.isPending || !changed}
               onClick={() => save.mutate()}
             >

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { api } from '../api/client';
 import { formatBytes, formatDate } from '../lib/format';
 import { problemDetail } from '../lib/problem';
+import { UploadProgress } from '../components/UploadProgress';
 
 type RpeGuide = components['schemas']['RpeGuideView'];
 
@@ -73,9 +74,7 @@ export default function RpeGuideScreen() {
       <div className="panel">
         <p className="section-title">PDF guide</p>
         {pdfProgress !== null ? (
-          <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${Math.round(pdfProgress * 100)}%` }} />
-          </div>
+          <UploadProgress fraction={pdfProgress} label="Uploading the PDF" />
         ) : (
           <>
             <p className="lede">{data?.pdfUrl ? 'Uploaded and ready.' : 'No PDF uploaded yet.'}</p>
