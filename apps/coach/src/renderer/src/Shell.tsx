@@ -3,6 +3,7 @@ import { ToastProvider } from './components/Toast';
 import { cx } from './lib/cx';
 import { type Screen, useNav } from './nav';
 import AnalysisEditorScreen from './screens/AnalysisEditorScreen';
+import CallsScreen from './screens/CallsScreen';
 import ClientListScreen from './screens/ClientListScreen';
 import ClientTrainingScreen from './screens/ClientTrainingScreen';
 import CyclePhasesScreen from './screens/CyclePhasesScreen';
@@ -25,6 +26,7 @@ const SETUP_SCREENS = new Set<Screen['name']>([
   'rpe-guide',
   'red-flags',
   'warmup-recovery',
+  'calls',
 ]);
 
 function modeOf(screen: Screen): Mode {
@@ -131,6 +133,13 @@ export default function Shell() {
                 >
                   Warm-up &amp; recovery
                 </button>
+                <button
+                  type="button"
+                  className={cx('shell-tab', screen.name === 'calls' && 'is-active')}
+                  onClick={() => reset({ name: 'calls' })}
+                >
+                  Calls
+                </button>
               </>
             )}
           </nav>
@@ -145,6 +154,7 @@ export default function Shell() {
           {screen.name === 'rpe-guide' && <RpeGuideScreen />}
           {screen.name === 'red-flags' && <RedFlagsScreen />}
           {screen.name === 'warmup-recovery' && <WarmupRecoveryScreen />}
+          {screen.name === 'calls' && <CallsScreen />}
           {screen.name === 'review' && <ReviewScreen submission={screen.submission} />}
           {screen.name === 'editor' && (
             <AnalysisEditorScreen key={screen.analysisId} analysisId={screen.analysisId} />

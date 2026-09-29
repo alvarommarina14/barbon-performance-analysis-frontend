@@ -197,6 +197,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/coach/booking-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The link players open to book a call with the coach */
+        get: operations["bookingLink"];
+        /** Set or clear the link players open to book a call */
+        put: operations["setBookingLink"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/analyses/{analysisId}": {
         parameters: {
             query?: never;
@@ -1290,6 +1308,12 @@ export interface components {
             /** Format: int32 */
             sortOrder?: number;
         };
+        SetBookingLinkRequest: {
+            bookingUrl?: string;
+        };
+        BookingLinkView: {
+            bookingUrl?: string;
+        };
         UpdateAnalysisRequest: {
             title: string;
             summary?: string;
@@ -2099,6 +2123,50 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["DrillAssignmentView"][];
+                };
+            };
+        };
+    };
+    bookingLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BookingLinkView"];
+                };
+            };
+        };
+    };
+    setBookingLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetBookingLinkRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BookingLinkView"];
                 };
             };
         };

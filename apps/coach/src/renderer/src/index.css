@@ -891,6 +891,10 @@ button {
   width: 100%;
 }
 
+.booking-field {
+  align-self: stretch;
+}
+
 .red-flag-list {
   display: flex;
   flex-direction: column;

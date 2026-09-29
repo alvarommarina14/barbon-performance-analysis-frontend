@@ -1,7 +1,15 @@
 import { colors, fonts, radii, spacing } from '@barbon-performance-analysis/core';
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, useRouter } from 'expo-router';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { api } from '@/api/client';
 import { useAuth } from '@/auth/AuthContext';
@@ -133,6 +141,22 @@ export default function HomeScreen() {
                 Before you play and after you come off court →
               </Text>
             </Pressable>
+
+            {home.data.coach?.bookingUrl ? (
+              <View style={theme.card}>
+                <Text style={theme.eyebrow}>Book your call</Text>
+                <Text style={[theme.body, { marginTop: spacing.sm }]}>
+                  Included in your membership. Pick a time that works for you with{' '}
+                  {coachFirstName}.
+                </Text>
+                <Pressable
+                  style={[theme.primaryButton, { marginTop: spacing.md }]}
+                  onPress={() => Linking.openURL(home.data.coach?.bookingUrl as string)}
+                >
+                  <Text style={theme.primaryButtonLabel}>Book a call</Text>
+                </Pressable>
+              </View>
+            ) : null}
 
             <View style={theme.card}>
               <Text style={theme.eyebrow}>Your coach</Text>
