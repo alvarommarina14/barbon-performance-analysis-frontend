@@ -24,6 +24,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/strength/red-flags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Red flags for everyone, plus the named player's own */
+        get: operations["redFlags"];
+        /** Replace the red flags every client sees */
+        put: operations["replaceForEveryone"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/strength/players/{playerProfileId}/weekly-notes/{planWeek}": {
         parameters: {
             query?: never;
@@ -51,6 +69,23 @@ export interface paths {
         get?: never;
         /** Replace the whole training day list for one player */
         put: operations["replaceTrainingDays"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/strength/players/{playerProfileId}/red-flags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace one client's own red flags */
+        put: operations["replaceForPlayer"];
         post?: never;
         delete?: never;
         options?: never;
@@ -937,6 +972,19 @@ export interface components {
             /** Format: int32 */
             sortOrder?: number;
         };
+        RedFlagInput: {
+            title: string;
+            body?: string;
+        };
+        ReplaceRedFlagsRequest: {
+            flags: components["schemas"]["RedFlagInput"][];
+        };
+        RedFlagView: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            body?: string;
+        };
         WriteWeeklyNoteRequest: {
             body?: string;
         };
@@ -1357,6 +1405,10 @@ export interface components {
             url: string;
             ready?: boolean;
         };
+        RedFlagsView: {
+            forEveryone: components["schemas"]["RedFlagView"][];
+            forPlayer: components["schemas"]["RedFlagView"][];
+        };
         CoachCard: {
             /** Format: uuid */
             profileId: string;
@@ -1514,6 +1566,52 @@ export interface operations {
             };
         };
     };
+    redFlags: {
+        parameters: {
+            query?: {
+                playerProfileId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RedFlagsView"];
+                };
+            };
+        };
+    };
+    replaceForEveryone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplaceRedFlagsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RedFlagView"][];
+                };
+            };
+        };
+    };
     writeWeeklyNote: {
         parameters: {
             query?: never;
@@ -1563,6 +1661,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["TrainingDayView"][];
+                };
+            };
+        };
+    };
+    replaceForPlayer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                playerProfileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplaceRedFlagsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RedFlagView"][];
                 };
             };
         };

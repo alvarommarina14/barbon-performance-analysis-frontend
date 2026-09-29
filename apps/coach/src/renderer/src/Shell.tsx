@@ -10,6 +10,7 @@ import DrillLibraryScreen from './screens/DrillLibraryScreen';
 import QueueScreen from './screens/QueueScreen';
 import RecordingTipsScreen from './screens/RecordingTipsScreen';
 import ReviewScreen from './screens/ReviewScreen';
+import RedFlagsScreen from './screens/RedFlagsScreen';
 import RpeGuideScreen from './screens/RpeGuideScreen';
 
 type Mode = 'coaching' | 'setup';
@@ -21,6 +22,7 @@ const SETUP_SCREENS = new Set<Screen['name']>([
   'recording-tips',
   'cycle-phases',
   'rpe-guide',
+  'red-flags',
 ]);
 
 function modeOf(screen: Screen): Mode {
@@ -113,6 +115,13 @@ export default function Shell() {
                 >
                   RPE guide
                 </button>
+                <button
+                  type="button"
+                  className={cx('shell-tab', screen.name === 'red-flags' && 'is-active')}
+                  onClick={() => reset({ name: 'red-flags' })}
+                >
+                  Red flags
+                </button>
               </>
             )}
           </nav>
@@ -125,6 +134,7 @@ export default function Shell() {
           {screen.name === 'recording-tips' && <RecordingTipsScreen />}
           {screen.name === 'cycle-phases' && <CyclePhasesScreen />}
           {screen.name === 'rpe-guide' && <RpeGuideScreen />}
+          {screen.name === 'red-flags' && <RedFlagsScreen />}
           {screen.name === 'review' && <ReviewScreen submission={screen.submission} />}
           {screen.name === 'editor' && (
             <AnalysisEditorScreen key={screen.analysisId} analysisId={screen.analysisId} />

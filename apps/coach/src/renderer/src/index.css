@@ -876,6 +876,30 @@ button {
   align-self: stretch;
 }
 
+.red-flag-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  padding: 16px;
+}
+
+.red-flag-row .field {
+  flex: 1 1 240px;
+}
+
+.red-flag-row .field input {
+  width: 100%;
+}
+
+.red-flag-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text);
+}
+
 .drill-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));

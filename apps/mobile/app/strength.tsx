@@ -1,8 +1,16 @@
-import { colors, spacing } from '@barbon-performance-analysis/core';
+import { colors, fonts, radii, spacing } from '@barbon-performance-analysis/core';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { api } from '@/api/client';
 import { useAuth } from '@/auth/AuthContext';
@@ -76,6 +84,19 @@ export default function StrengthScreen() {
     enabled: Boolean(user),
   });
 
+  const redFlagsQuery = useQuery({
+    queryKey: ['strength', 'red-flags'],
+    queryFn: async () => {
+      const { data, error } = await api.GET('/api/v1/strength/red-flags');
+      if (error || !data) {
+        throw new Error('Could not load the red flags');
+      }
+      return data;
+    },
+    enabled: Boolean(user),
+  });
+  const redFlags = [...(redFlagsQuery.data?.forEveryone ?? []), ...(redFlagsQuery.data?.forPlayer ?? [])];
+
   const planWeeks = home.data?.planWeeks ?? PLAN_WEEKS;
   const currentWeek = home.data?.planWeek;
   const effectiveWeek = selectedWeek ?? currentWeek ?? 1;
@@ -93,6 +114,21 @@ export default function StrengthScreen() {
           <Text style={theme.eyebrow}>Barbon Performance</Text>
           <Text style={[theme.display, { marginTop: spacing.xs }]}>STRENGTH & CONDITIONING</Text>
         </View>
+
+        {redFlags.length > 0 ? (
+          <View style={styles.flags}>
+            <Text style={styles.flagsTitle}>RED FLAGS — READ FIRST</Text>
+            {redFlags.map((flag, index) => (
+              <View key={flag.id} style={[styles.flag, index > 0 && styles.flagDivider]}>
+                <Text style={styles.flagMark}>!</Text>
+                <Text style={[theme.body, { flex: 1 }]}>
+                  <Text style={styles.flagTitle}>{flag.title}</Text>
+                  {flag.body ? ` ${flag.body}` : ''}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
 
         {isPending ? (
           <ActivityIndicator color={colors.accent} />
@@ -233,3 +269,39 @@ export default function StrengthScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  flags: {
+    backgroundColor: 'rgba(255, 90, 90, 0.03)',
+    borderColor: 'rgba(255, 90, 90, 0.24)',
+    borderRadius: radii.md,
+    borderWidth: 1,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  flagsTitle: {
+    color: '#ffdede',
+    fontFamily: fonts.display,
+    fontSize: 20,
+    letterSpacing: 1.5,
+    marginBottom: spacing.xs,
+  },
+  flag: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  flagDivider: {
+    borderTopColor: 'rgba(255, 90, 90, 0.12)',
+    borderTopWidth: 1,
+  },
+  flagMark: {
+    color: colors.danger,
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  flagTitle: {
+    color: '#ffdede',
+    fontWeight: '700',
+  },
+});

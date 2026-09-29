@@ -5,6 +5,7 @@ import { api } from '../api/client';
 import { useNav } from '../nav';
 import { cx } from '../lib/cx';
 import { problemDetail } from '../lib/problem';
+import ClientRedFlagsTab from './ClientRedFlagsTab';
 import DayExerciseStep from './DayExerciseStep';
 import PlanStartPanel from './PlanStartPanel';
 import WeeklyNotesTab from './WeeklyNotesTab';
@@ -62,11 +63,12 @@ const blankRow = (): Row => ({
 
 const PDF_CONTENT_TYPE = 'application/pdf';
 
-type ClientTab = 'program' | 'weekly-notes';
+type ClientTab = 'program' | 'weekly-notes' | 'red-flags';
 
 const CLIENT_TABS: { key: ClientTab; label: string }[] = [
   { key: 'program', label: 'Program' },
   { key: 'weekly-notes', label: 'Weekly notes' },
+  { key: 'red-flags', label: 'Red flags' },
 ];
 
 export default function ClientTrainingScreen({
@@ -340,6 +342,7 @@ export default function ClientTrainingScreen({
       <main className="workspace">
         {heading}
         {tab === 'weekly-notes' ? <WeeklyNotesTab playerProfileId={playerProfileId} /> : null}
+        {tab === 'red-flags' ? <ClientRedFlagsTab playerProfileId={playerProfileId} /> : null}
       </main>
     );
   }
