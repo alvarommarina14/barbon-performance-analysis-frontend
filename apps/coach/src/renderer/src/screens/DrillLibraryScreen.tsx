@@ -231,13 +231,19 @@ export default function DrillLibraryScreen() {
                   <h5>{item.title}</h5>
                   {item.cue ? <p className="drill-cue">{item.cue}</p> : null}
                   <div className="drill-actions">
-                    <button type="button" className="ghost" onClick={() => setEditing(item)}>
+                    <button
+                      type="button"
+                      className="ghost"
+                      aria-label={`Edit ${item.title}`}
+                      onClick={() => setEditing(item)}
+                    >
                       Edit
                     </button>
                     <button
                       type="button"
                       className="ghost"
                       disabled={remove.isPending}
+                      aria-label={`Delete ${item.title}`}
                       onClick={() => confirmRemove(item)}
                     >
                       Delete

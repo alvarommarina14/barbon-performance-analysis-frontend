@@ -196,13 +196,13 @@ export default function DayExerciseStep({ trainingDayId }: { trainingDayId: stri
                     </div>
                   </div>
                   <div className="finding-actions">
-                    <button type="button" className="ghost" onClick={() => move(row.libraryItemId, -1)}>
+                    <button type="button" className="ghost" aria-label={`Move ${row.title} up`} onClick={() => move(row.libraryItemId, -1)}>
                       ↑
                     </button>
-                    <button type="button" className="ghost" onClick={() => move(row.libraryItemId, 1)}>
+                    <button type="button" className="ghost" aria-label={`Move ${row.title} down`} onClick={() => move(row.libraryItemId, 1)}>
                       ↓
                     </button>
-                    <button type="button" className="ghost" onClick={() => remove(row.libraryItemId)}>
+                    <button type="button" className="ghost" aria-label={`Remove ${row.title}`} onClick={() => remove(row.libraryItemId)}>
                       Remove
                     </button>
                   </div>

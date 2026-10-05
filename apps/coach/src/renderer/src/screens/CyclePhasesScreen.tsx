@@ -171,6 +171,7 @@ export default function CyclePhasesScreen() {
                     type="button"
                     className="ghost"
                     disabled={draft !== null}
+                    aria-label={`Edit ${template.name}`}
                     onClick={() => startEdit(template)}
                   >
                     Edit
@@ -179,6 +180,7 @@ export default function CyclePhasesScreen() {
                     type="button"
                     className="ghost"
                     disabled={remove.isPending}
+                    aria-label={`Delete ${template.name}`}
                     onClick={() => confirmRemove(template.name)}
                   >
                     Delete

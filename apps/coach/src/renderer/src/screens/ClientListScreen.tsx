@@ -1,9 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
+import type { components } from '@barbon-performance-analysis/api-client';
 import { useNav } from '../nav';
+
+type ClientSummary = components['schemas']['ClientSummary'];
 
 export default function ClientListScreen() {
   const { navigate } = useNav();
+
+  function openClient(client: ClientSummary) {
+    navigate({ name: 'client-training', playerProfileId: client.profileId, playerName: client.name });
+  }
 
   const clients = useQuery({
     queryKey: ['coach', 'clients'],
@@ -51,15 +58,21 @@ export default function ClientListScreen() {
               {clients.data.map((client) => (
                 <tr
                   key={client.profileId}
-                  onClick={() =>
-                    navigate({
-                      name: 'client-training',
-                      playerProfileId: client.profileId,
-                      playerName: client.name,
-                    })
-                  }
+                  className="is-clickable"
+                  onClick={() => openClient(client)}
                 >
-                  <td className="strong">{client.name}</td>
+                  <td className="strong">
+                    <button
+                      type="button"
+                      className="row-link"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openClient(client);
+                      }}
+                    >
+                      {client.name}
+                    </button>
+                  </td>
                   <td>{client.email}</td>
                   <td>
                     <span className="tier">{client.membershipTier}</span>

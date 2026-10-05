@@ -247,19 +247,20 @@ export default function TrainingDaysTab({
                     <option value="REHAB">Rehab</option>
                   </select>
                   <div className="day-actions">
-                    <button type="button" className="ghost" aria-label="Move up" onClick={() => move(index, -1)}>
+                    <button type="button" className="ghost" aria-label={`Move Day ${index + 1} up`} onClick={() => move(index, -1)}>
                       ↑
                     </button>
-                    <button type="button" className="ghost" aria-label="Move down" onClick={() => move(index, 1)}>
+                    <button type="button" className="ghost" aria-label={`Move Day ${index + 1} down`} onClick={() => move(index, 1)}>
                       ↓
                     </button>
-                    <button type="button" className="ghost" onClick={() => remove(index)}>
+                    <button type="button" className="ghost" aria-label={`Remove Day ${index + 1}`} onClick={() => remove(index)}>
                       Remove
                     </button>
                     {row.id ? (
                       <button
                         type="button"
                         className="ghost"
+                        aria-label={`Exercises for Day ${index + 1} (${row.exerciseCount})`}
                         onClick={() => onEditExercises({ id: row.id as string, title: row.title })}
                       >
                         Exercises ({row.exerciseCount}) →

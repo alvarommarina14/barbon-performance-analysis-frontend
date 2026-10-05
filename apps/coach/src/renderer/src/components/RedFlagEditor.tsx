@@ -93,15 +93,26 @@ export function RedFlagEditor({
               />
             </label>
             <div className="button-row">
-              <button type="button" className="ghost" onClick={() => move(index, -1)}>
+              <button
+                type="button"
+                className="ghost"
+                aria-label={`Move red flag ${index + 1} up`}
+                onClick={() => move(index, -1)}
+              >
                 ↑
               </button>
-              <button type="button" className="ghost" onClick={() => move(index, 1)}>
+              <button
+                type="button"
+                className="ghost"
+                aria-label={`Move red flag ${index + 1} down`}
+                onClick={() => move(index, 1)}
+              >
                 ↓
               </button>
               <button
                 type="button"
                 className="ghost"
+                aria-label={`Remove red flag ${index + 1}`}
                 onClick={() => setRows((prev) => prev.filter((r) => r.key !== row.key))}
               >
                 Remove

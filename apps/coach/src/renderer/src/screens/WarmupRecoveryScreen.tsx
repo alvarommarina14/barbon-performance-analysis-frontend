@@ -206,6 +206,7 @@ function RoutineVideoPanel({
         type="button"
         className="primary"
         disabled={upload.isPending}
+        aria-label={upload.isPending ? undefined : `${video ? 'Replace' : 'Upload'} the ${title.toLowerCase()}`}
         onClick={() => upload.mutate()}
       >
         {upload.isPending ? 'Uploading…' : video ? 'Replace video' : 'Upload video'}

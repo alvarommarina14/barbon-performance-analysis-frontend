@@ -407,6 +407,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                           <button
                             type="button"
                             className="stamp"
+                            aria-label={`Jump to ${formatTimestamp(row.timestampSeconds)}`}
                             onClick={() => seek(row.timestampSeconds)}
                           >
                             {formatTimestamp(row.timestampSeconds)}
@@ -435,6 +436,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                             <button
                               type="button"
                               className="ghost"
+                              aria-label={`Move the finding at ${formatTimestamp(row.timestampSeconds)} up`}
                               onClick={() => moveRow(row.key, -1)}
                             >
                               ↑
@@ -442,6 +444,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                             <button
                               type="button"
                               className="ghost"
+                              aria-label={`Move the finding at ${formatTimestamp(row.timestampSeconds)} down`}
                               onClick={() => moveRow(row.key, 1)}
                             >
                               ↓
@@ -449,6 +452,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                             <button
                               type="button"
                               className="ghost"
+                              aria-label={`Remove the finding at ${formatTimestamp(row.timestampSeconds)}`}
                               onClick={() => removeRow(row.key)}
                             >
                               Remove
@@ -457,7 +461,8 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                         </div>
                       ))
                     : findings.map((row) => (
-                        <div
+                        <button
+                          type="button"
                           className="finding-card"
                           key={row.key}
                           onClick={() => seek(row.timestampSeconds)}
@@ -467,7 +472,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                             <strong>{row.title}</strong>
                             {row.detail ? ` — ${row.detail}` : ''}
                           </p>
-                        </div>
+                        </button>
                       ))}
                 </div>
               )}
