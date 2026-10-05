@@ -681,6 +681,125 @@ button {
   gap: 16px;
 }
 
+/* --- Client training, Days tab: the day list is the only part that scrolls --- */
+
+.workspace.fit-screen {
+  min-height: 0;
+  gap: 16px;
+  padding-top: 28px;
+  padding-bottom: 28px;
+}
+
+.context-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  background: var(--dark);
+  color: var(--white);
+  font-size: 13px;
+}
+
+.chip-label {
+  color: var(--gray);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chip-accent {
+  color: var(--accent);
+}
+
+.chip-link {
+  align-self: center;
+  margin-left: 4px;
+}
+
+.days-panel {
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+
+.days-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.day-grid {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1.3fr) minmax(0, 1.5fr) 80px 120px auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.day-grid-head span {
+  color: var(--gray);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.day-row {
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.day-row input,
+.day-row select {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--dark);
+  color: var(--white);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.day-row input:focus,
+.day-row select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.day-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.day-unsaved {
+  font-size: 13px;
+}
+
+.days-foot {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.days-foot .primary {
+  margin-top: 0;
+}
+
 .upload-progress {
   display: flex;
   flex-direction: column;
