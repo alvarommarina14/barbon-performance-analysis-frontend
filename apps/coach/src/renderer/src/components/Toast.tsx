@@ -31,11 +31,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext value={value}>
       {children}
-      {message ? (
-        <div className="toast" role="status">
-          {message}
-        </div>
-      ) : null}
+      {/* The live region has to exist before the message arrives, or screen readers skip it. */}
+      <div role="status" aria-live="polite">
+        {message ? <div className="toast">{message}</div> : null}
+      </div>
     </ToastContext>
   );
 }

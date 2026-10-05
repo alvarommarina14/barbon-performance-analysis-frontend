@@ -144,7 +144,7 @@ export function RedFlagEditor({
           </button>
         </div>
         {anyBlank ? <p className="lede">Every red flag needs a text before it can be saved.</p> : null}
-        {error ? <p className="error">{error}</p> : null}
+        {error ? <p className="error" role="alert">{error}</p> : null}
       </div>
     </>
   );
@@ -158,7 +158,7 @@ export function RedFlagEditor({
       <div className="editor-main">{editor}</div>
       <div className="editor-side">
         <div className="panel findings-panel">
-          <p className="section-title">Red flag library</p>
+          <h2 className="section-title">Red flag library</h2>
           {library.length === 0 ? (
             <p className="lede">Your library is empty — add red flags under Setup → Red flags.</p>
           ) : (

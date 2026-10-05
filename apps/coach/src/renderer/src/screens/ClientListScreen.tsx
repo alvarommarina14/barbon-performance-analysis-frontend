@@ -31,7 +31,7 @@ export default function ClientListScreen() {
         <p className="lede">Loading…</p>
       ) : clients.isError ? (
         <div className="panel">
-          <p className="error">We could not load your clients right now.</p>
+          <p className="error" role="alert">We could not load your clients right now.</p>
           <button type="button" className="ghost" onClick={() => clients.refetch()}>
             Try again
           </button>

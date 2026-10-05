@@ -294,7 +294,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
     return (
       <main className="workspace">
         <div className="panel">
-          <p className="error">We could not load this analysis.</p>
+          <p className="error" role="alert">We could not load this analysis.</p>
           <button type="button" className="ghost" onClick={() => navigate({ name: 'queue' })}>
             Back to queue
           </button>
@@ -334,7 +334,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
         <div className="editor">
           <div className="editor-main">
             <div className="panel">
-              <p className="section-title">Feedback video</p>
+              <h2 className="section-title">Feedback video</h2>
               {feedbackState === 'loading' ? (
                 <p className="lede">Loading…</p>
               ) : feedbackState === 'none' ? (
@@ -351,7 +351,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                   {uploadFraction !== null ? (
                     <UploadProgress fraction={uploadFraction} label="Uploading the feedback video" />
                   ) : null}
-                  {upload.isError ? <p className="error">{upload.error.message}</p> : null}
+                  {upload.isError ? <p className="error" role="alert">{upload.error.message}</p> : null}
                 </>
               ) : feedbackState === 'processing' ? (
                 <div className="lede" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -360,7 +360,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                 </div>
               ) : feedbackState === 'errored' ? (
                 <>
-                  <p className="error">The feedback video failed to process.</p>
+                  <p className="error" role="alert">The feedback video failed to process.</p>
                   <button type="button" className="primary" onClick={() => upload.mutate()}>
                     Upload again
                   </button>
@@ -368,7 +368,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
               ) : playback.isPending ? (
                 <p className="lede">Loading video…</p>
               ) : playback.isError ? (
-                <p className="error">We could not load the feedback video.</p>
+                <p className="error" role="alert">We could not load the feedback video.</p>
               ) : playback.data ? (
                 <HlsVideo ref={videoRef} src={playback.data.hlsUrl} />
               ) : null}
@@ -378,7 +378,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
           <div className="editor-side">
             <div className="panel findings-panel">
               <div className="workspace-header">
-                <p className="section-title">Findings</p>
+                <h2 className="section-title">Findings</h2>
                 {canEditFindings ? (
                   <button
                     type="button"
@@ -418,6 +418,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                                 titleInputs.current[row.key] = element;
                               }}
                               placeholder="What to fix"
+                              aria-label={`What to fix at ${formatTimestamp(row.timestampSeconds)}`}
                               value={row.title}
                               onChange={(event) =>
                                 updateRow(row.key, { title: event.target.value })
@@ -426,6 +427,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                             <textarea
                               className="textarea"
                               placeholder="Detail (optional)"
+                              aria-label={`Detail for the finding at ${formatTimestamp(row.timestampSeconds)}`}
                               value={row.detail}
                               onChange={(event) =>
                                 updateRow(row.key, { detail: event.target.value })
@@ -491,7 +493,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                     <p className="lede">Every mark needs a title before it can be saved.</p>
                   ) : null}
                   {saveFindings.isError ? (
-                    <p className="error">{saveFindings.error.message}</p>
+                    <p className="error" role="alert">{saveFindings.error.message}</p>
                   ) : null}
                 </div>
               ) : null}
@@ -533,13 +535,13 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
             Next: title &amp; publish →
           </button>
           {editable && !drillsChanged && drillCount === 0 ? (
-            <p className="error">No drills added yet — you can still publish without any.</p>
+            <p className="error" role="alert">No drills added yet — you can still publish without any.</p>
           ) : null}
         </>
       ) : (
         <div className="editor-details-step">
           <div className="panel">
-            <p className="section-title">Details</p>
+            <h2 className="section-title">Details</h2>
             <label className="field">
               <span>Title</span>
               <input
@@ -573,12 +575,12 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                 {saveHeader.isPending ? 'Saving…' : 'Save'}
               </button>
             ) : null}
-            {saveHeader.isError ? <p className="error">{saveHeader.error.message}</p> : null}
+            {saveHeader.isError ? <p className="error" role="alert">{saveHeader.error.message}</p> : null}
           </div>
 
           {editable ? (
             <div className="panel">
-              <p className="section-title">Publish</p>
+              <h2 className="section-title">Publish</h2>
               <button
                 type="button"
                 className="primary"
@@ -598,9 +600,9 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                         : 'Save your changes first.'}
                 </p>
               ) : drillCount === 0 ? (
-                <p className="error">No drills added — the player won’t get any exercises.</p>
+                <p className="error" role="alert">No drills added — the player won’t get any exercises.</p>
               ) : null}
-              {publish.isError ? <p className="error">{publish.error.message}</p> : null}
+              {publish.isError ? <p className="error" role="alert">{publish.error.message}</p> : null}
 
               <button
                 type="button"

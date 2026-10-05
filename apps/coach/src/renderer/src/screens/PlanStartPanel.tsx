@@ -58,7 +58,7 @@ export default function PlanStartPanel({ playerProfileId }: { playerProfileId: s
 
   return (
     <div className="panel">
-      <p className="section-title">Twelve-week plan</p>
+      <h2 className="section-title">Twelve-week plan</h2>
       {plan.isError ? (
         <LoadError message={plan.error.message} onRetry={() => plan.refetch()} />
       ) : (
@@ -76,7 +76,7 @@ export default function PlanStartPanel({ playerProfileId }: { playerProfileId: s
           >
             {save.isPending ? 'Saving…' : 'Save start date'}
           </button>
-          {save.isError ? <p className="error">{save.error.message}</p> : null}
+          {save.isError ? <p className="error" role="alert">{save.error.message}</p> : null}
         </>
       )}
     </div>

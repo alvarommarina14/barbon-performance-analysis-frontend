@@ -193,7 +193,7 @@ export default function TrainingDaysTab({
 
       <div className="panel days-panel">
         <div className="workspace-header">
-          <p className="section-title">Training days</p>
+          <h2 className="section-title">Training days</h2>
           {days.isSuccess ? (
             <button type="button" className="ghost" onClick={addDay}>
               + Add a day
@@ -279,7 +279,7 @@ export default function TrainingDaysTab({
           {anyBlank ? (
             <p className="lede">Every day needs a title before it can be saved.</p>
           ) : null}
-          {save.isError ? <p className="error">{save.error.message}</p> : null}
+          {save.isError ? <p className="error" role="alert">{save.error.message}</p> : null}
           <button
             type="button"
             className="primary"

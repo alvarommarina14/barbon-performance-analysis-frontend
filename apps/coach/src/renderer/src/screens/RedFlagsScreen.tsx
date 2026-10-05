@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
+import { LoadError } from '../components/LoadError';
 import { RedFlagEditor } from '../components/RedFlagEditor';
 import { problemDetail } from '../lib/problem';
 
@@ -42,7 +43,7 @@ export default function RedFlagsScreen() {
       {library.isPending ? (
         <p className="lede">Loading…</p>
       ) : library.isError ? (
-        <p className="error">{library.error.message}</p>
+        <LoadError message={library.error.message} onRetry={() => library.refetch()} />
       ) : (
         <RedFlagEditor
           flags={library.data}

@@ -159,7 +159,7 @@ export default function DrillAssignmentStep({
     <div className="editor">
       <div className="editor-main">
         <div className="panel findings-panel">
-          <p className="section-title">Assigned drills</p>
+          <h2 className="section-title">Assigned drills</h2>
           {rows.length === 0 ? (
             <>
               <p className="lede">
@@ -167,7 +167,7 @@ export default function DrillAssignmentStep({
                   ? 'Pick drills from the library on the right. They show up on the player’s analysis.'
                   : 'No drills on this analysis.'}
               </p>
-              {editable ? <p className="error">No drills added yet for this breakdown.</p> : null}
+              {editable ? <p className="error" role="alert">No drills added yet for this breakdown.</p> : null}
             </>
           ) : null}
           {rows.length > 0 ? (
@@ -178,12 +178,14 @@ export default function DrillAssignmentStep({
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <strong>{row.title}</strong>
                     {editable ? (
-                      <textarea
-                        className="textarea"
-                        placeholder="Note for the player (optional)"
-                        value={row.coachNote}
-                        onChange={(e) => update(row.libraryItemId, { coachNote: e.target.value })}
-                      />
+                      <label className="field">
+                        <span>Note for the player (optional)</span>
+                        <textarea
+                          className="textarea"
+                          value={row.coachNote}
+                          onChange={(e) => update(row.libraryItemId, { coachNote: e.target.value })}
+                        />
+                      </label>
                     ) : row.coachNote ? (
                       <p className="lede">{row.coachNote}</p>
                     ) : null}
@@ -216,9 +218,9 @@ export default function DrillAssignmentStep({
                 {save.isPending ? 'Saving…' : 'Save drills'}
               </button>
               {changed && !save.isPending && attemptedNext ? (
-                <p className="error">You have unsaved drill changes.</p>
+                <p className="error" role="alert">You have unsaved drill changes.</p>
               ) : null}
-              {save.isError ? <p className="error">{save.error.message}</p> : null}
+              {save.isError ? <p className="error" role="alert">{save.error.message}</p> : null}
             </div>
           ) : null}
         </div>
@@ -227,11 +229,12 @@ export default function DrillAssignmentStep({
       {editable ? (
         <div className="editor-side">
           <div className="panel findings-panel">
-            <p className="section-title">Drill library</p>
+            <h2 className="section-title">Drill library</h2>
             <div className="tabs">
               <button
                 type="button"
                 className={cx('tab', pickerCategory === 'ALL' && 'on')}
+                aria-pressed={pickerCategory === 'ALL'}
                 onClick={() => setPickerCategory('ALL')}
               >
                 All
@@ -241,6 +244,7 @@ export default function DrillAssignmentStep({
                   key={c}
                   type="button"
                   className={cx('tab', pickerCategory === c && 'on')}
+                  aria-pressed={pickerCategory === c}
                   onClick={() => setPickerCategory(c)}
                 >
                   {label(c)}

@@ -101,6 +101,7 @@ export default function WeeklyNotesTab({ playerProfileId }: { playerProfileId: s
             key={w}
             type="button"
             className={cx('tab', w === selectedWeek && 'on', written.has(w) && 'has-note')}
+            aria-pressed={w === selectedWeek}
             onClick={() => leaveThen(() => setWeek(w))}
           >
             Week {w}
@@ -110,7 +111,7 @@ export default function WeeklyNotesTab({ playerProfileId }: { playerProfileId: s
       </div>
 
       <div className="panel">
-        <p className="section-title">Week {selectedWeek}</p>
+        <h2 className="section-title">Week {selectedWeek}</h2>
         <p className="lede">
           {startDate
             ? weekRange(startDate, selectedWeek)
@@ -121,6 +122,7 @@ export default function WeeklyNotesTab({ playerProfileId }: { playerProfileId: s
           className="textarea"
           rows={8}
           placeholder="What should the player focus on this week?"
+          aria-label={`Note for week ${selectedWeek}`}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
         />
@@ -146,7 +148,7 @@ export default function WeeklyNotesTab({ playerProfileId }: { playerProfileId: s
         >
           {save.isPending ? 'Saving…' : draft.trim() || !saved ? 'Save note' : 'Delete note'}
         </button>
-        {save.isError ? <p className="error">{save.error.message}</p> : null}
+        {save.isError ? <p className="error" role="alert">{save.error.message}</p> : null}
       </div>
     </>
   );

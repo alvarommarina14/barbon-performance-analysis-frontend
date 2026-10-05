@@ -57,6 +57,7 @@ export default function ClientTrainingScreen({
             key={key}
             type="button"
             className={cx('tab', tab === key && 'on')}
+            aria-pressed={tab === key}
             onClick={() => leaveThen(() => setTab(key))}
           >
             {label}

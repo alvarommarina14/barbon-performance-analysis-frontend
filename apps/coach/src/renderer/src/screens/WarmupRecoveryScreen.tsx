@@ -95,7 +95,7 @@ export default function WarmupRecoveryScreen() {
         <RoutineVideoPanel part="WARMUP" title="Warm-up video" video={data?.warmup} />
         <RoutineVideoPanel part="RECOVERY" title="Recovery video" video={data?.recovery} />
         <div className="panel">
-          <p className="section-title">Daily Routine PDF</p>
+          <h2 className="section-title">Daily Routine PDF</h2>
           {pdfProgress !== null ? (
             <UploadProgress fraction={pdfProgress} label="Uploading the PDF" />
           ) : (
@@ -180,7 +180,7 @@ function RoutineVideoPanel({
 
   return (
     <div className="panel">
-      <p className="section-title">{title}</p>
+      <h2 className="section-title">{title}</h2>
       {progress !== null ? (
         <UploadProgress fraction={progress} label="Uploading the video" />
       ) : (

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useAuth } from './auth/AuthContext';
 import { ToastProvider } from './components/Toast';
 import { cx } from './lib/cx';
@@ -33,10 +34,62 @@ function modeOf(screen: Screen): Mode {
   return SETUP_SCREENS.has(screen.name) ? 'setup' : 'coaching';
 }
 
+type TabScreen =
+  | 'queue'
+  | 'clients'
+  | 'library'
+  | 'recording-tips'
+  | 'cycle-phases'
+  | 'rpe-guide'
+  | 'red-flags'
+  | 'warmup-recovery'
+  | 'calls';
+
+const COACHING_TABS: { name: TabScreen; label: string }[] = [
+  { name: 'queue', label: 'Queue' },
+  { name: 'clients', label: 'Clients' },
+];
+
+const SETUP_TABS: { name: TabScreen; label: string }[] = [
+  { name: 'library', label: 'Library' },
+  { name: 'recording-tips', label: 'Recording tips' },
+  { name: 'cycle-phases', label: 'Cycle phases' },
+  { name: 'rpe-guide', label: 'RPE guide' },
+  { name: 'red-flags', label: 'Red flags' },
+  { name: 'warmup-recovery', label: 'Warm-up & recovery' },
+  { name: 'calls', label: 'Calls' },
+];
+
+// Drill-down screens keep their parent tab lit, so the coach always sees where they are.
+function sectionOf(screen: Screen): Screen['name'] {
+  if (screen.name === 'client-training') {
+    return 'clients';
+  }
+  if (screen.name === 'review' || screen.name === 'editor') {
+    return 'queue';
+  }
+  return screen.name;
+}
+
 export default function Shell() {
   const { user, logout } = useAuth();
   const { screen, reset, leaveThen } = useNav();
   const mode = modeOf(screen);
+  const section = sectionOf(screen);
+  const body = useRef<HTMLDivElement>(null);
+
+  // A new screen moves focus to its heading and names the window, so a screen reader announces
+  // where the coach landed instead of leaving focus on a button that no longer exists.
+  useEffect(() => {
+    const heading = body.current?.querySelector('h1');
+    document.title = heading?.textContent
+      ? `${heading.textContent} — Barbon Performance Analysis`
+      : 'Barbon Performance Analysis';
+    if (heading) {
+      heading.setAttribute('tabindex', '-1');
+      heading.focus({ preventScroll: true });
+    }
+  }, [screen]);
 
   return (
     <ToastProvider>
@@ -51,6 +104,7 @@ export default function Shell() {
               <button
                 type="button"
                 className={cx('shell-switch-seg', mode === 'coaching' && 'is-active')}
+                aria-current={mode === 'coaching' ? 'page' : undefined}
                 onClick={() => reset({ name: 'queue' })}
               >
                 Coaching
@@ -58,6 +112,7 @@ export default function Shell() {
               <button
                 type="button"
                 className={cx('shell-switch-seg', mode === 'setup' && 'is-active')}
+                aria-current={mode === 'setup' ? 'page' : undefined}
                 onClick={() => reset({ name: 'library' })}
               >
                 Setup
@@ -71,81 +126,22 @@ export default function Shell() {
             </div>
           </header>
 
-          <nav className="shell-subnav">
-            {mode === 'coaching' ? (
-              <>
-                <button
-                  type="button"
-                  className={cx('shell-tab', screen.name === 'queue' && 'is-active')}
-                  onClick={() => reset({ name: 'queue' })}
-                >
-                  Queue
-                </button>
-                <button
-                  type="button"
-                  className={cx('shell-tab', screen.name === 'clients' && 'is-active')}
-                  onClick={() => reset({ name: 'clients' })}
-                >
-                  Clients
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  className={cx('shell-tab', screen.name === 'library' && 'is-active')}
-                  onClick={() => reset({ name: 'library' })}
-                >
-                  Library
-                </button>
-                <button
-                  type="button"
-                  className={cx('shell-tab', screen.name === 'recording-tips' && 'is-active')}
-                  onClick={() => reset({ name: 'recording-tips' })}
-                >
-                  Recording tips
-                </button>
-                <button
-                  type="button"
-                  className={cx('shell-tab', screen.name === 'cycle-phases' && 'is-active')}
-                  onClick={() => reset({ name: 'cycle-phases' })}
-                >
-                  Cycle phases
-                </button>
-                <button
-                  type="button"
-                  className={cx('shell-tab', screen.name === 'rpe-guide' && 'is-active')}
-                  onClick={() => reset({ name: 'rpe-guide' })}
-                >
-                  RPE guide
-                </button>
-                <button
-                  type="button"
-                  className={cx('shell-tab', screen.name === 'red-flags' && 'is-active')}
-                  onClick={() => reset({ name: 'red-flags' })}
-                >
-                  Red flags
-                </button>
-                <button
-                  type="button"
-                  className={cx('shell-tab', screen.name === 'warmup-recovery' && 'is-active')}
-                  onClick={() => reset({ name: 'warmup-recovery' })}
-                >
-                  Warm-up &amp; recovery
-                </button>
-                <button
-                  type="button"
-                  className={cx('shell-tab', screen.name === 'calls' && 'is-active')}
-                  onClick={() => reset({ name: 'calls' })}
-                >
-                  Calls
-                </button>
-              </>
-            )}
+          <nav className="shell-subnav" aria-label={mode === 'coaching' ? 'Coaching' : 'Setup'}>
+            {(mode === 'coaching' ? COACHING_TABS : SETUP_TABS).map(({ name, label }) => (
+              <button
+                key={name}
+                type="button"
+                className={cx('shell-tab', section === name && 'is-active')}
+                aria-current={section === name ? 'page' : undefined}
+                onClick={() => reset({ name })}
+              >
+                {label}
+              </button>
+            ))}
           </nav>
         </div>
 
-        <div className="shell-body">
+        <div className="shell-body" ref={body}>
           {screen.name === 'queue' && <QueueScreen />}
           {screen.name === 'clients' && <ClientListScreen />}
           {screen.name === 'library' && <DrillLibraryScreen />}

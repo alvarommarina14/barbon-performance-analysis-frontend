@@ -158,7 +158,7 @@ export default function DrillLibraryScreen() {
         <p className="lede">Loading…</p>
       ) : library.isError ? (
         <div className="panel">
-          <p className="error">We could not load the drill library.</p>
+          <p className="error" role="alert">We could not load the drill library.</p>
           <button type="button" className="ghost" onClick={() => library.refetch()}>
             Try again
           </button>
@@ -228,7 +228,7 @@ export default function DrillLibraryScreen() {
                 </div>
                 <div className="drill-body">
                   <span className="tier">{label(item.category)}</span>
-                  <h5>{item.title}</h5>
+                  <h2 className="drill-title">{item.title}</h2>
                   {item.cue ? <p className="drill-cue">{item.cue}</p> : null}
                   <div className="drill-actions">
                     <button
@@ -297,7 +297,7 @@ export default function DrillLibraryScreen() {
             </button>
           )}
           {pickAndUpload.isError ? (
-            <p className="error">{pickAndUpload.error.message}</p>
+            <p className="error" role="alert">{pickAndUpload.error.message}</p>
           ) : null}
 
           <div className="button-row">
@@ -328,7 +328,7 @@ export default function DrillLibraryScreen() {
               Cancel
             </button>
           </div>
-          {createItem.isError ? <p className="error">{createItem.error.message}</p> : null}
+          {createItem.isError ? <p className="error" role="alert">{createItem.error.message}</p> : null}
         </Modal>
       ) : null}
     </main>

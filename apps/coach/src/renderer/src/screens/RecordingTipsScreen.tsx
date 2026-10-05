@@ -126,7 +126,7 @@ export default function RecordingTipsScreen() {
       </p>
 
       <div className="panel">
-        <p className="section-title">Video</p>
+        <h2 className="section-title">Video</h2>
         {videoProgress !== null ? (
           <UploadProgress fraction={videoProgress} label="Uploading the video" />
         ) : (
@@ -163,7 +163,7 @@ export default function RecordingTipsScreen() {
       </div>
 
       <div className="panel">
-        <p className="section-title">PDF guide</p>
+        <h2 className="section-title">PDF guide</h2>
         {pdfProgress !== null ? (
           <UploadProgress fraction={pdfProgress} label="Uploading the PDF" />
         ) : (

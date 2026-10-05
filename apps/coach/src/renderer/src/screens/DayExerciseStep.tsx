@@ -167,7 +167,7 @@ export default function DayExerciseStep({ trainingDayId }: { trainingDayId: stri
     <div className="editor">
       <div className="editor-main">
         <div className="panel findings-panel">
-          <p className="section-title">Exercises</p>
+          <h2 className="section-title">Exercises</h2>
           {rows.length === 0 ? (
             <p className="lede">Pick exercises from the library on the right.</p>
           ) : (
@@ -176,21 +176,25 @@ export default function DayExerciseStep({ trainingDayId }: { trainingDayId: stri
                 <div className="finding-row" key={row.libraryItemId}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
                     <strong>{row.title}</strong>
-                    <textarea
-                      className="textarea"
-                      placeholder="Cue override (optional)"
-                      value={row.cueOverride}
-                      onChange={(e) => update(row.libraryItemId, { cueOverride: e.target.value })}
-                    />
-                    <div style={{ display: 'flex', gap: 8 }}>
+                    <label className="field">
+                      <span>Cue override (optional)</span>
+                      <textarea
+                        className="textarea"
+                        value={row.cueOverride}
+                        onChange={(e) => update(row.libraryItemId, { cueOverride: e.target.value })}
+                      />
+                    </label>
+                    <div className="week-fields">
                       {(['setsRepsWk1', 'setsRepsWk2', 'setsRepsWk3', 'setsRepsWk4'] as const).map(
                         (field, i) => (
-                          <input
-                            key={field}
-                            placeholder={`Wk${i + 1}`}
-                            value={row[field]}
-                            onChange={(e) => update(row.libraryItemId, { [field]: e.target.value })}
-                          />
+                          <label className="field" key={field}>
+                            <span>Week {i + 1}</span>
+                            <input
+                              placeholder="3 × 10"
+                              value={row[field]}
+                              onChange={(e) => update(row.libraryItemId, { [field]: e.target.value })}
+                            />
+                          </label>
                         ),
                       )}
                     </div>
@@ -219,14 +223,14 @@ export default function DayExerciseStep({ trainingDayId }: { trainingDayId: stri
             >
               {save.isPending ? 'Saving…' : 'Save exercises'}
             </button>
-            {save.isError ? <p className="error">{save.error.message}</p> : null}
+            {save.isError ? <p className="error" role="alert">{save.error.message}</p> : null}
           </div>
         </div>
       </div>
 
       <div className="editor-side">
         <div className="panel findings-panel">
-          <p className="section-title">Fitness library</p>
+          <h2 className="section-title">Fitness library</h2>
           {library.isError ? (
             <LoadError message={library.error.message} onRetry={() => library.refetch()} />
           ) : library.isPending ? (

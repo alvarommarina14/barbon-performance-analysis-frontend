@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
+import { LoadError } from '../components/LoadError';
 import { RedFlagEditor } from '../components/RedFlagEditor';
 import { problemDetail } from '../lib/problem';
 
@@ -49,10 +50,10 @@ export default function ClientRedFlagsTab({ playerProfileId }: { playerProfileId
     return <p className="lede">Loading…</p>;
   }
   if (flags.isError) {
-    return <p className="error">{flags.error.message}</p>;
+    return <LoadError message={flags.error.message} onRetry={() => flags.refetch()} />;
   }
   if (library.isError) {
-    return <p className="error">{library.error.message}</p>;
+    return <LoadError message={library.error.message} onRetry={() => library.refetch()} />;
   }
 
   return (

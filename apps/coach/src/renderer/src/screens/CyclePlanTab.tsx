@@ -172,7 +172,7 @@ export default function CyclePlanTab({ playerProfileId }: { playerProfileId: str
       <div className="panel-row">
         <PlanStartPanel playerProfileId={playerProfileId} />
         <div className="panel">
-          <p className="section-title">Program PDF</p>
+          <h2 className="section-title">Program PDF</h2>
           {pdfProgress !== null ? (
             <UploadProgress fraction={pdfProgress} label="Uploading the program PDF" />
           ) : (
@@ -187,7 +187,7 @@ export default function CyclePlanTab({ playerProfileId }: { playerProfileId: str
             {uploadProgramPdf.isPending ? 'Uploading…' : 'Upload program PDF'}
           </button>
           {uploadProgramPdf.isError ? (
-            <p className="error">
+            <p className="error" role="alert">
               {uploadProgramPdf.error instanceof Error
                 ? uploadProgramPdf.error.message
                 : 'Could not upload the PDF'}
@@ -197,7 +197,7 @@ export default function CyclePlanTab({ playerProfileId }: { playerProfileId: str
       </div>
 
       <div className="panel">
-        <p className="section-title">Cycle phase</p>
+        <h2 className="section-title">Cycle phase</h2>
         {cyclePhases.isError ? (
           <LoadError message={cyclePhases.error.message} onRetry={() => cyclePhases.refetch()} />
         ) : cyclePhases.isPending ? (
@@ -226,7 +226,7 @@ export default function CyclePlanTab({ playerProfileId }: { playerProfileId: str
             <div className="findings-list cycle-weeks">
               {weekRows.map((week) => (
                 <div className="panel" key={week.weekNumber}>
-                  <p className="section-title">Week {week.weekNumber}</p>
+                  <h3 className="section-title">Week {week.weekNumber}</h3>
                   <label className="field">
                     <span>Phase name</span>
                     <input
@@ -270,7 +270,7 @@ export default function CyclePlanTab({ playerProfileId }: { playerProfileId: str
               >
                 {saveWeeks.isPending ? 'Saving…' : 'Save cycle phase'}
               </button>
-              {saveWeeks.isError ? <p className="error">{saveWeeks.error.message}</p> : null}
+              {saveWeeks.isError ? <p className="error" role="alert">{saveWeeks.error.message}</p> : null}
             </div>
           </>
         )}

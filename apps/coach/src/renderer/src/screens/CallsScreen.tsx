@@ -59,7 +59,7 @@ export default function CallsScreen() {
         <LoadError message={link.error.message} onRetry={() => link.refetch()} />
       ) : (
         <div className="panel">
-          <p className="section-title">Booking link</p>
+          <h2 className="section-title">Booking link</h2>
           <label className="field booking-field">
             <span>Link</span>
             <input
@@ -68,7 +68,7 @@ export default function CallsScreen() {
               onChange={(e) => setDraft(e.target.value)}
             />
           </label>
-          {!looksValid ? <p className="error">The link has to start with https://</p> : null}
+          {!looksValid ? <p className="error" role="alert">The link has to start with https://</p> : null}
           <div className="button-row">
             <button
               type="button"
@@ -87,7 +87,7 @@ export default function CallsScreen() {
               Open
             </button>
           </div>
-          {save.isError ? <p className="error">{save.error.message}</p> : null}
+          {save.isError ? <p className="error" role="alert">{save.error.message}</p> : null}
         </div>
       )}
     </main>

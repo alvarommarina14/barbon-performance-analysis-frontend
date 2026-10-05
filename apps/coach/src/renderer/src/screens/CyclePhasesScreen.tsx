@@ -153,7 +153,7 @@ export default function CyclePhasesScreen() {
         <p className="lede">Loading…</p>
       ) : templates.isError ? (
         <div className="panel">
-          <p className="error">We could not load the templates.</p>
+          <p className="error" role="alert">We could not load the templates.</p>
           <button type="button" className="ghost" onClick={() => templates.refetch()}>
             Try again
           </button>
@@ -165,7 +165,7 @@ export default function CyclePhasesScreen() {
           {templates.data.map((template) => (
             <div className="panel" key={template.name}>
               <div className="workspace-header">
-                <p className="section-title">{template.name}</p>
+                <h2 className="section-title">{template.name}</h2>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
                     type="button"
@@ -218,6 +218,7 @@ export default function CyclePhasesScreen() {
                   key={week.weekNumber}
                   type="button"
                   className={cx('tab', activeWeek === week.weekNumber && 'on')}
+                  aria-pressed={activeWeek === week.weekNumber}
                   onClick={() => setActiveWeek(week.weekNumber)}
                 >
                   Week {week.weekNumber}
@@ -286,7 +287,7 @@ export default function CyclePhasesScreen() {
                 Cancel
               </button>
             </div>
-            {save.isError ? <p className="error">{save.error.message}</p> : null}
+            {save.isError ? <p className="error" role="alert">{save.error.message}</p> : null}
           </div>
         </Modal>
       ) : null}

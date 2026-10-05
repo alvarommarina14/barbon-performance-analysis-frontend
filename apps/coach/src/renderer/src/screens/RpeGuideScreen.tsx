@@ -84,7 +84,7 @@ export default function RpeGuideScreen() {
       </p>
 
       <div className="panel">
-        <p className="section-title">PDF guide</p>
+        <h2 className="section-title">PDF guide</h2>
         {pdfProgress !== null ? (
           <UploadProgress fraction={pdfProgress} label="Uploading the PDF" />
         ) : (
@@ -112,7 +112,7 @@ export default function RpeGuideScreen() {
           {uploadPdf.isPending ? 'Uploading…' : data?.pdfUrl ? 'Replace PDF' : 'Upload PDF'}
         </button>
         {uploadPdf.isError ? (
-          <p className="error">
+          <p className="error" role="alert">
             {uploadPdf.error instanceof Error ? uploadPdf.error.message : 'Could not upload the PDF'}
           </p>
         ) : null}

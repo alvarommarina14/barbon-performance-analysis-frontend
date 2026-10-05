@@ -16,6 +16,9 @@ export default function LoginScreen() {
 
   async function submit(event: FormEvent) {
     event.preventDefault();
+    if (busy) {
+      return;
+    }
     setError(null);
     setBusy(true);
     try {
@@ -58,6 +61,8 @@ export default function LoginScreen() {
             autoComplete="username"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? 'login-error' : undefined}
             required
           />
         </label>
@@ -69,13 +74,20 @@ export default function LoginScreen() {
             autoComplete={isRegister ? 'new-password' : 'current-password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? 'login-error' : undefined}
             required
           />
         </label>
 
-        {error ? <p className="error">{error}</p> : null}
+        {error ? (
+          <p className="error" id="login-error" role="alert">
+            {error}
+          </p>
+        ) : null}
 
-        <button type="submit" className="primary" disabled={busy}>
+        {/* aria-disabled rather than disabled: a disabled button drops keyboard focus mid-submit. */}
+        <button type="submit" className="primary" aria-disabled={busy}>
           {busy
             ? isRegister
               ? 'Creating account…'
