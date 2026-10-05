@@ -20,6 +20,20 @@ export function formatDuration(seconds?: number): string | null {
   return `${minutes}:${String(seconds % 60).padStart(2, '0')}`;
 }
 
-export function formatDate(iso?: string): string | null {
-  return iso ? new Date(iso).toLocaleString() : null;
+// One fixed English format everywhere: the system locale would mix languages and date orders.
+const DATE = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const DATE_TIME = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+});
+
+export function formatDate(iso?: string | null): string | null {
+  return iso ? DATE.format(new Date(iso)) : null;
+}
+
+export function formatDateTime(iso?: string | null): string | null {
+  return iso ? DATE_TIME.format(new Date(iso)) : null;
 }

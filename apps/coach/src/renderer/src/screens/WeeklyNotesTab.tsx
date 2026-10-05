@@ -14,7 +14,7 @@ function weekRange(startDate: string, planWeek: number): string {
   start.setDate(start.getDate() + (planWeek - 1) * 7);
   const end = new Date(start);
   end.setDate(end.getDate() + 6);
-  const format = (d: Date) => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const format = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   return `${format(start)} – ${format(end)}`;
 }
 
@@ -115,7 +115,7 @@ export default function WeeklyNotesTab({ playerProfileId }: { playerProfileId: s
         <p className="lede">
           {startDate
             ? weekRange(startDate, selectedWeek)
-            : 'Set the plan start date on the Program tab to date these notes.'}
+            : 'Set the plan start date on the Cycle & plan tab to date these notes.'}
           {' · '}The player sees this note once the week starts.
         </p>
         <textarea

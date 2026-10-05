@@ -44,6 +44,9 @@ export default function CallsScreen() {
   const trimmed = draft.trim();
   const looksValid = trimmed === '' || /^https:\/\/\S+\.\S*$/.test(trimmed);
   useUnsavedChanges(trimmed !== saved);
+  // Judged once the coach leaves the field, not on the first keystroke of a link being typed.
+  const [touched, setTouched] = useState(false);
+  const showInvalid = touched && !looksValid;
 
   return (
     <main className="workspace">
@@ -66,9 +69,16 @@ export default function CallsScreen() {
               placeholder="https://calendar.app.google/…"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
+              onBlur={() => setTouched(true)}
+              aria-invalid={showInvalid ? true : undefined}
+              aria-describedby={showInvalid ? 'booking-link-error' : undefined}
             />
           </label>
-          {!looksValid ? <p className="error" role="alert">The link has to start with https://</p> : null}
+          {showInvalid ? (
+            <p className="error" id="booking-link-error" role="alert">
+              The link has to start with https://
+            </p>
+          ) : null}
           <div className="button-row">
             <button
               type="button"

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
 import type { components } from '@barbon-performance-analysis/api-client';
+import { formatDateTime } from '../lib/format';
 import { useNav } from '../nav';
 
 type ClientSummary = components['schemas']['ClientSummary'];
@@ -79,7 +80,7 @@ export default function ClientListScreen() {
                   </td>
                   <td>{client.planWeek ? `${client.planWeek} / ${client.planWeeks ?? 12}` : '—'}</td>
                   <td>
-                    {client.nextCallAt ? new Date(client.nextCallAt).toLocaleString() : '—'}
+                    {formatDateTime(client.nextCallAt) ?? '—'}
                   </td>
                 </tr>
               ))}

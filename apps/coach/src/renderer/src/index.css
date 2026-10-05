@@ -167,6 +167,11 @@ h1 {
   text-transform: uppercase;
 }
 
+.field-hint {
+  color: var(--gray);
+  font-size: 13px;
+}
+
 .field input,
 .field select {
   padding: 12px 14px;

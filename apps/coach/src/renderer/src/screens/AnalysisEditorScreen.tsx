@@ -7,6 +7,7 @@ import { useConfirm } from '../components/Confirm';
 import { HlsVideo } from '../components/HlsVideo';
 import { useToast } from '../components/Toast';
 import { problemDetail, problemSlug } from '../lib/problem';
+import { formatDate } from '../lib/format';
 import { uid } from '../lib/uid';
 import { useNav, useUnsavedChanges } from '../nav';
 import DrillAssignmentStep from './DrillAssignmentStep';
@@ -325,7 +326,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
         <h1>{data.title}</h1>
         <span className="tier">
           {status === 'PUBLISHED'
-            ? `Published ${data.publishedAt ? new Date(data.publishedAt).toLocaleDateString() : ''}`
+            ? `Published ${formatDate(data.publishedAt) ?? ''}`
             : 'Draft'}
         </span>
       </div>
@@ -534,9 +535,6 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
           >
             Next: title &amp; publish →
           </button>
-          {editable && !drillsChanged && drillCount === 0 ? (
-            <p className="error" role="alert">No drills added yet — you can still publish without any.</p>
-          ) : null}
         </>
       ) : (
         <div className="editor-details-step">
@@ -600,7 +598,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                         : 'Save your changes first.'}
                 </p>
               ) : drillCount === 0 ? (
-                <p className="error" role="alert">No drills added — the player won’t get any exercises.</p>
+                <p className="error">No drills added — the player won’t get any exercises.</p>
               ) : null}
               {publish.isError ? <p className="error" role="alert">{publish.error.message}</p> : null}
 

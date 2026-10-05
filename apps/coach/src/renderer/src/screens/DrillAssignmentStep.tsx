@@ -167,7 +167,7 @@ export default function DrillAssignmentStep({
                   ? 'Pick drills from the library on the right. They show up on the player’s analysis.'
                   : 'No drills on this analysis.'}
               </p>
-              {editable ? <p className="error" role="alert">No drills added yet for this breakdown.</p> : null}
+              {editable ? <p className="error">No drills added — the player won’t get any exercises.</p> : null}
             </>
           ) : null}
           {rows.length > 0 ? (

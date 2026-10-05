@@ -74,10 +74,20 @@ export default function LoginScreen() {
             autoComplete={isRegister ? 'new-password' : 'current-password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            minLength={isRegister ? 10 : undefined}
             aria-invalid={error ? true : undefined}
-            aria-describedby={error ? 'login-error' : undefined}
+            aria-describedby={
+              [isRegister ? 'password-hint' : null, error ? 'login-error' : null]
+                .filter(Boolean)
+                .join(' ') || undefined
+            }
             required
           />
+          {isRegister ? (
+            <small className="field-hint" id="password-hint">
+              At least 10 characters.
+            </small>
+          ) : null}
         </label>
 
         {error ? (

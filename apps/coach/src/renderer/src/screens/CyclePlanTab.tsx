@@ -218,7 +218,7 @@ export default function CyclePlanTab({ playerProfileId }: { playerProfileId: str
               </label>
             ) : (
               <p className="lede">
-                No templates yet — create one under Setup → Cycle phase templates, or edit the weeks
+                No templates yet — create one under Setup → Cycle phases, or edit the weeks
                 below by hand.
               </p>
             )}

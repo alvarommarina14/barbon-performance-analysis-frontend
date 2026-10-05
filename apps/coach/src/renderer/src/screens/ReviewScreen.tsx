@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { api } from '../api/client';
 import { HlsVideo } from '../components/HlsVideo';
 import { problemDetail, problemSlug } from '../lib/problem';
+import { formatDate } from '../lib/format';
 import { relativeDate } from '../lib/relativeTime';
 import { useNav } from '../nav';
 
@@ -13,7 +14,7 @@ export default function ReviewScreen({ submission }: { submission: SubmissionSum
   const { navigate, back } = useNav();
   const queryClient = useQueryClient();
 
-  const recordedDate = new Date(submission.recordedAt ?? submission.createdAt).toLocaleDateString();
+  const recordedDate = formatDate(submission.recordedAt ?? submission.createdAt);
   const [title, setTitle] = useState(`${submission.playerName} - ${recordedDate}`);
   const [summary, setSummary] = useState('');
   const [wantsDownload, setWantsDownload] = useState(false);
