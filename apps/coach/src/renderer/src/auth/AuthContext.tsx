@@ -1,4 +1,5 @@
 import type { components } from '@barbon-performance-analysis/api-client';
+import { useQueryClient } from '@tanstack/react-query';
 import { createContext, use, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { api, onSessionExpired, tokenStore } from '../api/client';
 
@@ -14,7 +15,14 @@ interface AuthState {
 const AuthContext = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<CurrentUser | null | undefined>(undefined);
+
+  // Cached queries belong to whoever was signed in; the next account must never see them.
+  const signOutLocally = useCallback(() => {
+    queryClient.clear();
+    setUser(null);
+  }, [queryClient]);
 
   useEffect(() => {
     let cancelled = false;
@@ -34,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  useEffect(() => onSessionExpired(() => setUser(null)), []);
+  useEffect(() => onSessionExpired(signOutLocally), [signOutLocally]);
 
   const login = useCallback(async (email: string, password: string) => {
     const { data, error } = await api.POST('/api/v1/auth/login', { body: { email, password } });
@@ -70,8 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await api.POST('/api/v1/auth/logout', { body: { refreshToken: tokens.refreshToken } });
     }
     await tokenStore.clear();
-    setUser(null);
-  }, []);
+    signOutLocally();
+  }, [signOutLocally]);
 
   const value = useMemo(
     () => ({ user, login, register, logout }),
