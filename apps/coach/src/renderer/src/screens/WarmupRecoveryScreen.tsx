@@ -2,6 +2,7 @@ import type { components } from '@barbon-performance-analysis/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '../api/client';
+import { LoadError } from '../components/LoadError';
 import { useToast } from '../components/Toast';
 import { UploadProgress } from '../components/UploadProgress';
 import { formatBytes, formatDate, formatDuration } from '../lib/format';
@@ -68,6 +69,17 @@ export default function WarmupRecoveryScreen() {
   });
 
   const data = routine.data;
+
+  if (routine.isError) {
+    return (
+      <main className="workspace">
+        <div className="workspace-header">
+          <h1>Warm-up &amp; recovery</h1>
+        </div>
+        <LoadError message={routine.error.message} onRetry={() => routine.refetch()} />
+      </main>
+    );
+  }
 
   return (
     <main className="workspace">

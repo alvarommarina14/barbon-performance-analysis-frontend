@@ -2,6 +2,7 @@ import type { components } from '@barbon-performance-analysis/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '../api/client';
+import { LoadError } from '../components/LoadError';
 import { formatBytes, formatDate } from '../lib/format';
 import { problemDetail } from '../lib/problem';
 import { UploadProgress } from '../components/UploadProgress';
@@ -60,6 +61,17 @@ export default function RpeGuideScreen() {
   });
 
   const data = guide.data;
+
+  if (guide.isError) {
+    return (
+      <main className="workspace">
+        <div className="workspace-header">
+          <h1>RPE guide</h1>
+        </div>
+        <LoadError message={guide.error.message} onRetry={() => guide.refetch()} />
+      </main>
+    );
+  }
 
   return (
     <main className="workspace">

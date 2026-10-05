@@ -2,6 +2,7 @@ import type { components } from '@barbon-performance-analysis/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '../api/client';
+import { LoadError } from '../components/LoadError';
 import { useToast } from '../components/Toast';
 import { formatBytes, formatDate, formatDuration } from '../lib/format';
 import { problemDetail, problemSlug } from '../lib/problem';
@@ -103,6 +104,17 @@ export default function RecordingTipsScreen() {
   });
 
   const data = tips.data;
+
+  if (tips.isError) {
+    return (
+      <main className="workspace">
+        <div className="workspace-header">
+          <h1>Recording tips</h1>
+        </div>
+        <LoadError message={tips.error.message} onRetry={() => tips.refetch()} />
+      </main>
+    );
+  }
 
   return (
     <main className="workspace">

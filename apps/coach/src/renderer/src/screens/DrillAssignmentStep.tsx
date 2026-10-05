@@ -2,6 +2,7 @@ import type { components } from '@barbon-performance-analysis/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
+import { LoadError } from '../components/LoadError';
 import { cx } from '../lib/cx';
 import { problemDetail } from '../lib/problem';
 
@@ -150,6 +151,10 @@ export default function DrillAssignmentStep({
     (item) => pickerCategory === 'ALL' || item.category === pickerCategory,
   );
 
+  if (assigned.isError) {
+    return <LoadError message={assigned.error.message} onRetry={() => assigned.refetch()} />;
+  }
+
   return (
     <div className="editor">
       <div className="editor-main">
@@ -242,7 +247,9 @@ export default function DrillAssignmentStep({
                 </button>
               ))}
             </div>
-            {library.isPending ? (
+            {library.isError ? (
+              <LoadError message={library.error.message} onRetry={() => library.refetch()} />
+            ) : library.isPending ? (
               <p className="lede">Loading…</p>
             ) : pickable.length === 0 ? (
               <p className="lede">Nothing here — add drills from the Library tab.</p>

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import { LoadError } from '../components/LoadError';
 import { problemDetail } from '../lib/problem';
 import { useUnsavedChanges } from '../nav';
 
@@ -58,20 +59,26 @@ export default function PlanStartPanel({ playerProfileId }: { playerProfileId: s
   return (
     <div className="panel">
       <p className="section-title">Twelve-week plan</p>
-      <p className="lede">{plan.isPending ? 'Loading…' : status}</p>
-      <label className="field">
-        <span>Plan start date</span>
-        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-      </label>
-      <button
-        type="button"
-        className="primary"
-        disabled={save.isPending || startDate === saved}
-        onClick={() => save.mutate()}
-      >
-        {save.isPending ? 'Saving…' : 'Save start date'}
-      </button>
-      {save.isError ? <p className="error">{save.error.message}</p> : null}
+      {plan.isError ? (
+        <LoadError message={plan.error.message} onRetry={() => plan.refetch()} />
+      ) : (
+        <>
+          <p className="lede">{plan.isPending ? 'Loading…' : status}</p>
+          <label className="field">
+            <span>Plan start date</span>
+            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+          </label>
+          <button
+            type="button"
+            className="primary"
+            disabled={plan.isPending || save.isPending || startDate === saved}
+            onClick={() => save.mutate()}
+          >
+            {save.isPending ? 'Saving…' : 'Save start date'}
+          </button>
+          {save.isError ? <p className="error">{save.error.message}</p> : null}
+        </>
+      )}
     </div>
   );
 }

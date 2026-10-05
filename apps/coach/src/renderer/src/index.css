@@ -793,6 +793,17 @@ button {
   font-size: 13px;
 }
 
+.load-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.days-foot[hidden] {
+  display: none;
+}
+
 .days-foot {
   display: flex;
   justify-content: flex-end;

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
+import { LoadError } from '../components/LoadError';
 import { relativeDate } from '../lib/relativeTime';
 import { useNav } from '../nav';
 
@@ -99,7 +100,9 @@ export default function QueueScreen() {
       )}
 
       <p className="section-title">Drafts in progress</p>
-      {analyses.isPending ? (
+      {analyses.isError ? (
+        <LoadError message="We could not load your drafts." onRetry={() => analyses.refetch()} />
+      ) : analyses.isPending ? (
         <p className="lede">Loading…</p>
       ) : drafts.length === 0 ? (
         <div className="panel">

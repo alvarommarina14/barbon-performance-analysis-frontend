@@ -2,6 +2,7 @@ import type { components } from '@barbon-performance-analysis/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
+import { LoadError } from '../components/LoadError';
 import { problemDetail } from '../lib/problem';
 import { useUnsavedChanges } from '../nav';
 
@@ -193,12 +194,16 @@ export default function TrainingDaysTab({
       <div className="panel days-panel">
         <div className="workspace-header">
           <p className="section-title">Training days</p>
-          <button type="button" className="ghost" onClick={addDay}>
-            + Add a day
-          </button>
+          {days.isSuccess ? (
+            <button type="button" className="ghost" onClick={addDay}>
+              + Add a day
+            </button>
+          ) : null}
         </div>
 
-        {days.isPending ? (
+        {days.isError ? (
+          <LoadError message={days.error.message} onRetry={() => days.refetch()} />
+        ) : days.isPending ? (
           <p className="lede">Loading…</p>
         ) : rows.length === 0 ? (
           <p className="lede">No training days yet. Add one to get started.</p>
@@ -269,7 +274,7 @@ export default function TrainingDaysTab({
           </>
         )}
 
-        <div className="days-foot">
+        <div className="days-foot" hidden={!days.isSuccess}>
           {anyBlank ? (
             <p className="lede">Every day needs a title before it can be saved.</p>
           ) : null}

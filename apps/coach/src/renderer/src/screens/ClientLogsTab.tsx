@@ -2,6 +2,7 @@ import type { components } from '@barbon-performance-analysis/api-client';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '../api/client';
+import { LoadError } from '../components/LoadError';
 import { problemDetail } from '../lib/problem';
 
 type DayExerciseView = components['schemas']['DayExerciseView'];
@@ -83,11 +84,14 @@ export default function ClientLogsTab({ playerProfileId }: { playerProfileId: st
     },
   });
 
+  if (days.isError) {
+    return <LoadError message={days.error.message} onRetry={() => days.refetch()} />;
+  }
   if (days.isPending) {
     return <p className="lede">Loading…</p>;
   }
-  if (!days.data || days.data.length === 0) {
-    return <p className="lede">No training days yet — add them on the Program tab.</p>;
+  if (days.data.length === 0) {
+    return <p className="lede">No training days yet — add them on the Days tab.</p>;
   }
 
   const logByExercise = new Map((logs.data ?? []).map((log) => [log.dayExerciseId, log]));
@@ -118,32 +122,43 @@ export default function ClientLogsTab({ playerProfileId }: { playerProfileId: st
         </label>
       </div>
 
-      <div className="table-scroll">
-        <table className="clients">
-          <thead>
-            <tr>
-              <th>Exercise</th>
-              <th>Prescribed</th>
-              <th>Logged</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(exercises.data ?? []).map((exercise) => {
-              const log = logByExercise.get(exercise.id);
-              return (
-                <tr key={exercise.id}>
-                  <td>{exercise.title}</td>
-                  <td>{prescribed(exercise, selectedWeek) ?? '—'}</td>
-                  <td>{log ? describeSets(log) : <span className="lede">Not logged</span>}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-      {exercises.data && exercises.data.length === 0 ? (
+      {exercises.isError || logs.isError ? (
+        <LoadError
+          message={(exercises.error ?? logs.error)?.message ?? 'Could not load the logs'}
+          onRetry={() => {
+            void exercises.refetch();
+            void logs.refetch();
+          }}
+        />
+      ) : exercises.isPending || logs.isPending ? (
+        <p className="lede">Loading…</p>
+      ) : exercises.data.length === 0 ? (
         <p className="lede">This day has no exercises yet.</p>
-      ) : null}
+      ) : (
+        <div className="table-scroll">
+          <table className="clients">
+            <thead>
+              <tr>
+                <th>Exercise</th>
+                <th>Prescribed</th>
+                <th>Logged</th>
+              </tr>
+            </thead>
+            <tbody>
+              {exercises.data.map((exercise) => {
+                const log = logByExercise.get(exercise.id);
+                return (
+                  <tr key={exercise.id}>
+                    <td>{exercise.title}</td>
+                    <td>{prescribed(exercise, selectedWeek) ?? '—'}</td>
+                    <td>{log ? describeSets(log) : <span className="lede">Not logged</span>}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </>
   );
 }

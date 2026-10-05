@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
+import { LoadError } from '../components/LoadError';
 import { problemDetail } from '../lib/problem';
 import { useUnsavedChanges } from '../nav';
 import PlanStartPanel from './PlanStartPanel';
@@ -197,7 +198,9 @@ export default function CyclePlanTab({ playerProfileId }: { playerProfileId: str
 
       <div className="panel">
         <p className="section-title">Cycle phase</p>
-        {cyclePhases.isPending ? (
+        {cyclePhases.isError ? (
+          <LoadError message={cyclePhases.error.message} onRetry={() => cyclePhases.refetch()} />
+        ) : cyclePhases.isPending ? (
           <p className="lede">Loading…</p>
         ) : (
           <>

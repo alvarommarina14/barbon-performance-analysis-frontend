@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import { LoadError } from '../components/LoadError';
 import { useConfirm } from '../components/Confirm';
 import { cx } from '../lib/cx';
 import { problemDetail } from '../lib/problem';
@@ -76,6 +77,21 @@ export default function WeeklyNotesTab({ playerProfileId }: { playerProfileId: s
 
   const written = new Set(notes.data?.map((n) => n.planWeek));
   const startDate = plan.data?.startDate;
+
+  if (notes.isError || plan.isError) {
+    return (
+      <LoadError
+        message={(notes.error ?? plan.error)?.message ?? 'Could not load the weekly notes'}
+        onRetry={() => {
+          void notes.refetch();
+          void plan.refetch();
+        }}
+      />
+    );
+  }
+  if (notes.isPending || plan.isPending) {
+    return <p className="lede">Loading…</p>;
+  }
 
   return (
     <>

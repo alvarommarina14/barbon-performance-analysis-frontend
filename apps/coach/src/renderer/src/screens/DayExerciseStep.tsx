@@ -2,6 +2,7 @@ import type { components } from '@barbon-performance-analysis/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
+import { LoadError } from '../components/LoadError';
 import { cx } from '../lib/cx';
 import { problemDetail } from '../lib/problem';
 import { useUnsavedChanges } from '../nav';
@@ -158,6 +159,10 @@ export default function DayExerciseStep({ trainingDayId }: { trainingDayId: stri
 
   const pickable = (library.data ?? []).filter((item) => item.category === 'FITNESS');
 
+  if (assigned.isError) {
+    return <LoadError message={assigned.error.message} onRetry={() => assigned.refetch()} />;
+  }
+
   return (
     <div className="editor">
       <div className="editor-main">
@@ -222,7 +227,9 @@ export default function DayExerciseStep({ trainingDayId }: { trainingDayId: stri
       <div className="editor-side">
         <div className="panel findings-panel">
           <p className="section-title">Fitness library</p>
-          {library.isPending ? (
+          {library.isError ? (
+            <LoadError message={library.error.message} onRetry={() => library.refetch()} />
+          ) : library.isPending ? (
             <p className="lede">Loading…</p>
           ) : pickable.length === 0 ? (
             <p className="lede">

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import { LoadError } from '../components/LoadError';
 import { problemDetail } from '../lib/problem';
 import { useUnsavedChanges } from '../nav';
 
@@ -54,37 +55,41 @@ export default function CallsScreen() {
         similar. Clients get a “Book a call” button that opens it. Leave it empty to hide the button.
       </p>
 
-      <div className="panel">
-        <p className="section-title">Booking link</p>
-        <label className="field booking-field">
-          <span>Link</span>
-          <input
-            placeholder="https://calendar.app.google/…"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-          />
-        </label>
-        {!looksValid ? <p className="error">The link has to start with https://</p> : null}
-        <div className="button-row">
-          <button
-            type="button"
-            className="primary"
-            disabled={save.isPending || trimmed === saved || !looksValid}
-            onClick={() => save.mutate()}
-          >
-            {save.isPending ? 'Saving…' : 'Save link'}
-          </button>
-          <button
-            type="button"
-            className="ghost"
-            disabled={!saved}
-            onClick={() => window.open(saved, '_blank')}
-          >
-            Open
-          </button>
+      {link.isError ? (
+        <LoadError message={link.error.message} onRetry={() => link.refetch()} />
+      ) : (
+        <div className="panel">
+          <p className="section-title">Booking link</p>
+          <label className="field booking-field">
+            <span>Link</span>
+            <input
+              placeholder="https://calendar.app.google/…"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+            />
+          </label>
+          {!looksValid ? <p className="error">The link has to start with https://</p> : null}
+          <div className="button-row">
+            <button
+              type="button"
+              className="primary"
+              disabled={save.isPending || trimmed === saved || !looksValid}
+              onClick={() => save.mutate()}
+            >
+              {save.isPending ? 'Saving…' : 'Save link'}
+            </button>
+            <button
+              type="button"
+              className="ghost"
+              disabled={!saved}
+              onClick={() => window.open(saved, '_blank')}
+            >
+              Open
+            </button>
+          </div>
+          {save.isError ? <p className="error">{save.error.message}</p> : null}
         </div>
-        {save.isError ? <p className="error">{save.error.message}</p> : null}
-      </div>
+      )}
     </main>
   );
 }
