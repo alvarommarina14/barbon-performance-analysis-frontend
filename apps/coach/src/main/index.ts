@@ -2,7 +2,7 @@ import { createReadStream, statSync } from 'node:fs';
 import * as http from 'node:http';
 import * as https from 'node:https';
 import { basename, join } from 'node:path';
-import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from 'electron';
 import * as tus from 'tus-js-client';
 import { tokenVault } from './tokenVault';
 
@@ -25,6 +25,7 @@ function createWindow(): BrowserWindow {
       sandbox: false,
       contextIsolation: true,
       nodeIntegration: false,
+      devTools: isDev,
     },
   });
 
@@ -184,6 +185,11 @@ ipcMain.handle(
 );
 
 app.whenReady().then(() => {
+  // The default menu is invisible (autoHideMenuBar) but still owns Ctrl+R, which would reload the
+  // window and drop unsaved work, and Ctrl+Shift+I. An installed build gets no menu at all.
+  if (!isDev) {
+    Menu.setApplicationMenu(null);
+  }
   createWindow();
 
   app.on('activate', () => {
