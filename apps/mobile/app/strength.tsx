@@ -1,7 +1,7 @@
 import { colors, fonts, radii, spacing } from '@barbon-performance-analysis/core';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Linking,
@@ -35,6 +35,22 @@ export default function StrengthScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
+  const rail = useRef<ScrollView>(null);
+  const railWidth = useRef<number | null>(null);
+  const currentPill = useRef<{ x: number; width: number } | null>(null);
+  const railCentered = useRef(false);
+
+  // The rail and the current week's pill report their layout in no fixed order, so whichever
+  // arrives last does the one-time scroll.
+  function centerCurrentWeek() {
+    const pill = currentPill.current;
+    if (railCentered.current || !pill || railWidth.current === null) {
+      return;
+    }
+    railCentered.current = true;
+    const x = Math.max(0, pill.x - (railWidth.current - pill.width) / 2);
+    rail.current?.scrollTo({ x, animated: false });
+  }
 
   const home = useQuery({
     queryKey: ['player', 'home'],
@@ -154,9 +170,14 @@ export default function StrengthScreen() {
         ) : (
           <>
             <ScrollView
+              ref={rail}
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ gap: spacing.sm }}
+              onLayout={(event) => {
+                railWidth.current = event.nativeEvent.layout.width;
+                centerCurrentWeek();
+              }}
             >
               {Array.from({ length: planWeeks }, (_, index) => index + 1).map((week) => {
                 const active = week === effectiveWeek;
@@ -170,6 +191,15 @@ export default function StrengthScreen() {
                       active && theme.pillActive,
                     ]}
                     onPress={() => setSelectedWeek(week)}
+                    onLayout={
+                      current
+                        ? (event) => {
+                            const { x, width } = event.nativeEvent.layout;
+                            currentPill.current = { x, width };
+                            centerCurrentWeek();
+                          }
+                        : undefined
+                    }
                   >
                     <Text style={[theme.pillLabel, active && theme.pillLabelActive]}>
                       Week {week}
