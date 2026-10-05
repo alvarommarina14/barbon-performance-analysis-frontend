@@ -87,15 +87,15 @@ export default function StrengthScreen() {
   const redFlagsQuery = useQuery({
     queryKey: ['strength', 'red-flags'],
     queryFn: async () => {
-      const { data, error } = await api.GET('/api/v1/strength/red-flags');
-      if (error || !data) {
+      const { data } = await api.GET('/api/v1/strength/red-flags');
+      if (!data) {
         throw new Error('Could not load the red flags');
       }
       return data;
     },
     enabled: Boolean(user),
   });
-  const redFlags = [...(redFlagsQuery.data?.forEveryone ?? []), ...(redFlagsQuery.data?.forPlayer ?? [])];
+  const redFlags = redFlagsQuery.data ?? [];
 
   const planWeeks = home.data?.planWeeks ?? PLAN_WEEKS;
   const currentWeek = home.data?.planWeek;

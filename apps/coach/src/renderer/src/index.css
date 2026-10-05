@@ -895,15 +895,6 @@ button {
   align-self: stretch;
 }
 
-.red-flag-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 0;
-  padding-left: 18px;
-  color: var(--text);
-}
-
 .drill-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));

@@ -1,5 +1,6 @@
 import type { components } from '@barbon-performance-analysis/api-client';
 import { useEffect, useMemo, useState } from 'react';
+import { cx } from '../lib/cx';
 
 type RedFlagView = components['schemas']['RedFlagView'];
 type RedFlagInput = components['schemas']['RedFlagInput'];
@@ -25,9 +26,17 @@ interface RedFlagEditorProps {
   error: string | null;
   placeholder: string;
   onSave: (flags: RedFlagInput[]) => void;
+  library?: RedFlagView[];
 }
 
-export function RedFlagEditor({ flags, saving, error, placeholder, onSave }: RedFlagEditorProps) {
+export function RedFlagEditor({
+  flags,
+  saving,
+  error,
+  placeholder,
+  onSave,
+  library,
+}: RedFlagEditorProps) {
   const [rows, setRows] = useState<Row[]>(() => toRows(flags));
   const savedShape = useMemo(() => serialize(toRows(flags)), [flags]);
 
@@ -55,7 +64,11 @@ export function RedFlagEditor({ flags, saving, error, placeholder, onSave }: Red
     });
   }
 
-  return (
+  function addFromLibrary(flag: RedFlagView) {
+    setRows((prev) => [...prev, { key: newKey(), title: flag.title, body: flag.body ?? '' }]);
+  }
+
+  const editor = (
     <>
       {rows.length === 0 ? <p className="lede">No red flags yet.</p> : null}
       <div className="findings-list">
@@ -121,5 +134,42 @@ export function RedFlagEditor({ flags, saving, error, placeholder, onSave }: Red
         {error ? <p className="error">{error}</p> : null}
       </div>
     </>
+  );
+
+  if (!library) {
+    return editor;
+  }
+
+  return (
+    <div className="editor">
+      <div className="editor-main">{editor}</div>
+      <div className="editor-side">
+        <div className="panel findings-panel">
+          <p className="section-title">Red flag library</p>
+          {library.length === 0 ? (
+            <p className="lede">Your library is empty — add red flags under Setup → Red flags.</p>
+          ) : (
+            <div className="findings-list">
+              {library.map((flag) => {
+                const added = rows.some((r) => r.title.trim() === flag.title);
+                return (
+                  <button
+                    key={flag.id}
+                    type="button"
+                    className={cx('drill-pick', added && 'is-added')}
+                    disabled={added}
+                    onClick={() => addFromLibrary(flag)}
+                  >
+                    <strong>{flag.title}</strong>
+                    {flag.body ? <span className="drill-cue">{flag.body}</span> : null}
+                    <span className="drill-pick-add">{added ? 'Added' : '+ Add'}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

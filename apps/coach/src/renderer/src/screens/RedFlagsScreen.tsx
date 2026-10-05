@@ -6,12 +6,12 @@ import { problemDetail } from '../lib/problem';
 export default function RedFlagsScreen() {
   const queryClient = useQueryClient();
 
-  const flags = useQuery({
-    queryKey: ['strength', 'red-flags'],
+  const library = useQuery({
+    queryKey: ['strength', 'red-flag-library'],
     queryFn: async () => {
-      const { data, error } = await api.GET('/api/v1/strength/red-flags');
+      const { data, error } = await api.GET('/api/v1/strength/red-flag-library');
       if (!data) {
-        throw new Error(problemDetail(error) ?? 'Could not load the red flags');
+        throw new Error(problemDetail(error) ?? 'Could not load the red flag library');
       }
       return data;
     },
@@ -19,13 +19,15 @@ export default function RedFlagsScreen() {
 
   const save = useMutation({
     mutationFn: async (next: { title: string; body?: string }[]) => {
-      const { data, error } = await api.PUT('/api/v1/strength/red-flags', { body: { flags: next } });
+      const { data, error } = await api.PUT('/api/v1/strength/red-flag-library', {
+        body: { flags: next },
+      });
       if (!data) {
-        throw new Error(problemDetail(error) ?? 'Could not save the red flags');
+        throw new Error(problemDetail(error) ?? 'Could not save the red flag library');
       }
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['strength', 'red-flags'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['strength', 'red-flag-library'] }),
   });
 
   return (
@@ -34,16 +36,16 @@ export default function RedFlagsScreen() {
         <h1>Red flags</h1>
       </div>
       <p className="lede">
-        Warning signs every client reads at the top of their training, before they start a session.
-        Add client-specific ones from the client's Red flags tab.
+        Your library of common warning signs. Clients don't see it — pick the ones that apply to each
+        client from their Red flags tab, and add anything specific to their condition there.
       </p>
-      {flags.isPending ? (
+      {library.isPending ? (
         <p className="lede">Loading…</p>
-      ) : flags.isError ? (
-        <p className="error">{flags.error.message}</p>
+      ) : library.isError ? (
+        <p className="error">{library.error.message}</p>
       ) : (
         <RedFlagEditor
-          flags={flags.data.forEveryone}
+          flags={library.data}
           saving={save.isPending}
           error={save.isError ? save.error.message : null}
           placeholder="Sharp or electric pain during any exercise"

@@ -24,17 +24,17 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/strength/red-flags": {
+    "/api/v1/strength/red-flag-library": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Red flags for everyone, plus the named player's own */
-        get: operations["redFlags"];
-        /** Replace the red flags every client sees */
-        put: operations["replaceForEveryone"];
+        /** The red flags a coach picks from for any client */
+        get: operations["library"];
+        /** Replace the red flag library */
+        put: operations["replaceLibrary"];
         post?: never;
         delete?: never;
         options?: never;
@@ -84,7 +84,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Replace one client's own red flags */
+        /** Replace one client's red flags */
         put: operations["replaceForPlayer"];
         post?: never;
         delete?: never;
@@ -378,7 +378,7 @@ export interface paths {
             cookie?: never;
         };
         /** The organisation's whole drill library */
-        get: operations["library"];
+        get: operations["library_1"];
         put?: never;
         /** Add a drill to the library once its video has finished uploading */
         post: operations["createLibraryItem"];
@@ -823,6 +823,23 @@ export interface paths {
         };
         /** What was logged on one training day in one plan week */
         get: operations["dayLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/strength/red-flags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One player's red flags */
+        get: operations["forPlayer"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1635,10 +1652,6 @@ export interface components {
             url: string;
             ready?: boolean;
         };
-        RedFlagsView: {
-            forEveryone: components["schemas"]["RedFlagView"][];
-            forPlayer: components["schemas"]["RedFlagView"][];
-        };
         CoachCard: {
             /** Format: uuid */
             profileId: string;
@@ -1805,11 +1818,9 @@ export interface operations {
             };
         };
     };
-    redFlags: {
+    library: {
         parameters: {
-            query?: {
-                playerProfileId?: string;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -1822,12 +1833,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["RedFlagsView"];
+                    "*/*": components["schemas"]["RedFlagView"][];
                 };
             };
         };
     };
-    replaceForEveryone: {
+    replaceLibrary: {
         parameters: {
             query?: never;
             header?: never;
@@ -2439,7 +2450,7 @@ export interface operations {
             };
         };
     };
-    library: {
+    library_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -3107,6 +3118,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ExerciseLogView"][];
+                };
+            };
+        };
+    };
+    forPlayer: {
+        parameters: {
+            query?: {
+                playerProfileId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RedFlagView"][];
                 };
             };
         };
