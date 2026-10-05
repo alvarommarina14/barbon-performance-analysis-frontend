@@ -41,6 +41,34 @@ discovers that LAN address from the Metro bundler host, and the desktop app reac
 URLs — neither client needs extra configuration. Locally uploaded videos are progressive MP4
 (no HLS); `HlsVideo` in the coach app plays them natively.
 
+## Against the deployed backend
+
+Both clients take the backend URL at build time; without it they fall back to localhost.
+
+**Coach app installers.** Run the "Coach installers" workflow (Actions tab → Run workflow) with
+the backend URL, e.g. `https://<api-host>`. It builds an unsigned Windows `.exe` and macOS `.dmg`
+and attaches them to the run. Unsigned means the first launch warns: on Windows choose
+"More info → Run anyway"; on macOS right-click the app → Open. An installed build has no menu and
+no DevTools, so Ctrl+R cannot reload the window and drop unsaved work.
+
+To build the Windows installer locally instead:
+
+```bash
+cd apps/coach
+VITE_API_URL=https://<api-host> pnpm exec electron-vite build
+pnpm exec electron-builder --win -c.directories.output=<a folder outside OneDrive>
+```
+
+The output folder must be outside a OneDrive-synced folder: OneDrive locks the folder while
+electron-builder renames it and the build fails with `EPERM`.
+
+**Mobile app with Expo Go.** For informal testing the phone can run the app from the dev server
+while talking to the deployed backend:
+
+```bash
+EXPO_PUBLIC_API_URL=https://<api-host> pnpm mobile
+```
+
 ## The API contract
 
 The backend's OpenAPI spec is the source of truth for both clients. After a DTO changes there:
