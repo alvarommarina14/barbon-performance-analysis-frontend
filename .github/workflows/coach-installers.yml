@@ -1,0 +1,44 @@
+name: Coach installers
+
+# Run by hand from the Actions tab. Builds unsigned installers of the coach app against the API
+# URL given at dispatch time and attaches them to the run as artifacts.
+on:
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: Backend base URL the app talks to (https://..., no trailing slash)
+        required: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: --win
+            artifact: apps/coach/release/*.exe
+          - os: macos-latest
+            target: --mac
+            artifact: apps/coach/release/*.dmg
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build installer
+        working-directory: apps/coach
+        env:
+          VITE_API_URL: ${{ inputs.api_url }}
+          # No signing certificate yet: skip the keychain lookup instead of failing on macOS.
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: pnpm exec electron-vite build && pnpm exec electron-builder ${{ matrix.target }} --publish never
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coach-installer-${{ matrix.os }}
+          path: ${{ matrix.artifact }}
+          if-no-files-found: error
