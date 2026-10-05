@@ -739,7 +739,7 @@ button {
 
 .day-grid {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1.3fr) minmax(0, 1.5fr) 80px 120px auto;
+  grid-template-columns: 64px minmax(0, 1.3fr) minmax(0, 1.5fr) 80px 120px auto;
   gap: 10px;
   align-items: center;
 }
@@ -773,6 +773,12 @@ button {
 .day-row select:focus {
   border-color: var(--accent);
   outline: none;
+}
+
+.day-label {
+  color: var(--white);
+  font-weight: 700;
+  font-size: 14px;
 }
 
 .day-actions {

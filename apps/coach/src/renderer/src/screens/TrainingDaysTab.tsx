@@ -11,7 +11,6 @@ type CyclePhaseView = components['schemas']['CyclePhaseView'];
 
 interface Row {
   id: string | null;
-  dayLabel: string;
   title: string;
   focus: string;
   durationMinutes: string;
@@ -21,7 +20,6 @@ interface Row {
 
 const toRow = (day: TrainingDayView): Row => ({
   id: day.id,
-  dayLabel: day.dayLabel,
   title: day.title,
   focus: day.focus ?? '',
   durationMinutes: day.durationMinutes != null ? String(day.durationMinutes) : '',
@@ -31,7 +29,6 @@ const toRow = (day: TrainingDayView): Row => ({
 
 const blankRow = (): Row => ({
   id: null,
-  dayLabel: '',
   title: '',
   focus: '',
   durationMinutes: '',
@@ -123,7 +120,6 @@ export default function TrainingDaysTab({
         body: {
           days: rows.map((r) => ({
             id: r.id ?? undefined,
-            dayLabel: r.dayLabel.trim(),
             title: r.title.trim(),
             focus: r.focus.trim() || undefined,
             durationMinutes: r.durationMinutes.trim() ? Number(r.durationMinutes) : undefined,
@@ -171,7 +167,7 @@ export default function TrainingDaysTab({
     setDirty(true);
   }
 
-  const anyBlank = rows.some((r) => !r.dayLabel.trim() || !r.title.trim());
+  const anyBlank = rows.some((r) => !r.title.trim());
 
   return (
     <>
@@ -217,12 +213,7 @@ export default function TrainingDaysTab({
             <div className="days-list">
               {rows.map((row, index) => (
                 <div className="day-grid day-row" key={row.id ?? `new-${index}`}>
-                  <input
-                    aria-label="Day label"
-                    placeholder="Day A"
-                    value={row.dayLabel}
-                    onChange={(e) => update(index, { dayLabel: e.target.value })}
-                  />
+                  <span className="day-label">Day {index + 1}</span>
                   <input
                     aria-label="Title"
                     placeholder="Rehab — forearm & scapular"
@@ -278,7 +269,7 @@ export default function TrainingDaysTab({
 
         <div className="days-foot">
           {anyBlank ? (
-            <p className="lede">Every day needs a label and a title before it can be saved.</p>
+            <p className="lede">Every day needs a title before it can be saved.</p>
           ) : null}
           {save.isError ? <p className="error">{save.error.message}</p> : null}
           <button

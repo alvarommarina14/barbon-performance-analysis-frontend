@@ -1176,7 +1176,6 @@ export interface components {
         TrainingDayInput: {
             /** Format: uuid */
             id?: string;
-            dayLabel: string;
             title: string;
             focus?: string;
             /** Format: int32 */
