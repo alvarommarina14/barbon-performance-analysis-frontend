@@ -2,6 +2,7 @@ import type { components } from '@barbon-performance-analysis/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '../api/client';
+import { useConfirm } from '../components/Confirm';
 import { useToast } from '../components/Toast';
 import { problemDetail, problemSlug } from '../lib/problem';
 import { UploadProgress } from '../components/UploadProgress';
@@ -25,6 +26,7 @@ interface Draft {
 export default function DrillLibraryScreen() {
   const queryClient = useQueryClient();
   const toast = useToast();
+  const confirm = useConfirm();
 
   const library = useQuery({
     queryKey: ['drills', 'library'],
@@ -125,6 +127,18 @@ export default function DrillLibraryScreen() {
     onError: (err) => toast.show(err instanceof Error ? err.message : 'Could not delete the drill'),
   });
 
+  async function confirmRemove(item: LibraryItem) {
+    const sure = await confirm({
+      title: `Delete “${item.title}”?`,
+      message: 'The drill and its video leave your library for good.',
+      confirmLabel: 'Delete drill',
+      danger: true,
+    });
+    if (sure) {
+      remove.mutate(item.id);
+    }
+  }
+
   return (
     <main className="workspace">
       <div className="workspace-header">
@@ -223,7 +237,7 @@ export default function DrillLibraryScreen() {
                       type="button"
                       className="ghost"
                       disabled={remove.isPending}
-                      onClick={() => remove.mutate(item.id)}
+                      onClick={() => confirmRemove(item)}
                     >
                       Delete
                     </button>

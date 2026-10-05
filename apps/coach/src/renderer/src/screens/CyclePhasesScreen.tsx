@@ -2,6 +2,8 @@ import type { components } from '@barbon-performance-analysis/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '../api/client';
+import { useConfirm } from '../components/Confirm';
+import { useToast } from '../components/Toast';
 import { cx } from '../lib/cx';
 import { problemDetail } from '../lib/problem';
 
@@ -72,6 +74,9 @@ export default function CyclePhasesScreen() {
     },
   });
 
+  const confirm = useConfirm();
+  const toast = useToast();
+
   const remove = useMutation({
     mutationFn: async (name: string) => {
       const { response } = await api.DELETE('/api/v1/strength/cycle-phase-templates/{name}', {
@@ -82,7 +87,20 @@ export default function CyclePhasesScreen() {
       }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['strength', 'cycle-phase-templates'] }),
+    onError: (err) => toast.show(err instanceof Error ? err.message : 'Could not delete the template'),
   });
+
+  async function confirmRemove(name: string) {
+    const sure = await confirm({
+      title: `Delete “${name}”?`,
+      message: 'Clients who already got this template keep their weeks; it only leaves this list.',
+      confirmLabel: 'Delete template',
+      danger: true,
+    });
+    if (sure) {
+      remove.mutate(name);
+    }
+  }
 
   function startNew() {
     setDraft({ name: '', editingName: null, weeks: blankWeeks() });
@@ -160,7 +178,7 @@ export default function CyclePhasesScreen() {
                     type="button"
                     className="ghost"
                     disabled={remove.isPending}
-                    onClick={() => remove.mutate(template.name)}
+                    onClick={() => confirmRemove(template.name)}
                   >
                     Delete
                   </button>

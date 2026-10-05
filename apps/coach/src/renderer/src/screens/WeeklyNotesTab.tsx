@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import { useConfirm } from '../components/Confirm';
 import { cx } from '../lib/cx';
 import { problemDetail } from '../lib/problem';
 import { useNav, useUnsavedChanges } from '../nav';
@@ -56,6 +57,7 @@ export default function WeeklyNotesTab({ playerProfileId }: { playerProfileId: s
   }, [saved, selectedWeek]);
 
   const { leaveThen } = useNav();
+  const confirm = useConfirm();
   useUnsavedChanges(draft !== saved);
 
   const save = useMutation({
@@ -110,7 +112,21 @@ export default function WeeklyNotesTab({ playerProfileId }: { playerProfileId: s
           type="button"
           className="primary"
           disabled={save.isPending || draft.trim() === saved.trim()}
-          onClick={() => save.mutate()}
+          onClick={async () => {
+            const deleting = !draft.trim();
+            if (
+              deleting &&
+              !(await confirm({
+                title: `Delete the note for week ${selectedWeek}?`,
+                message: 'The player stops seeing it.',
+                confirmLabel: 'Delete note',
+                danger: true,
+              }))
+            ) {
+              return;
+            }
+            save.mutate();
+          }}
         >
           {save.isPending ? 'Saving…' : draft.trim() || !saved ? 'Save note' : 'Delete note'}
         </button>
