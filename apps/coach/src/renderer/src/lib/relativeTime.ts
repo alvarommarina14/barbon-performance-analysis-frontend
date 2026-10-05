@@ -16,7 +16,7 @@ export function relativeDate(iso: string): string {
     return new Date(then).toLocaleDateString();
   }
   for (const [unit, ms] of UNITS) {
-    if (Math.abs(diff) >= ms || unit === 'minute') {
+    if (Math.abs(diff) >= ms) {
       return rtf.format(Math.round(diff / ms), unit);
     }
   }

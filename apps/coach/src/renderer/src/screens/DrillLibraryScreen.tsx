@@ -2,8 +2,11 @@ import type { components } from '@barbon-performance-analysis/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '../api/client';
+import { useConfirm } from '../components/Confirm';
+import { Modal } from '../components/Modal';
 import { useToast } from '../components/Toast';
 import { problemDetail, problemSlug } from '../lib/problem';
+import { UploadProgress } from '../components/UploadProgress';
 
 type LibraryItem = components['schemas']['LibraryItemView'];
 type DrillCategory = components['schemas']['LibraryItemView']['category'];
@@ -15,7 +18,7 @@ const label = (c: DrillCategory) => c.charAt(0) + c.slice(1).toLowerCase();
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 interface Draft {
-  videoAssetId: string;
+  videoAssetId: string | null;
   title: string;
   cue: string;
   category: DrillCategory;
@@ -24,6 +27,7 @@ interface Draft {
 export default function DrillLibraryScreen() {
   const queryClient = useQueryClient();
   const toast = useToast();
+  const confirm = useConfirm();
 
   const library = useQuery({
     queryKey: ['drills', 'library'],
@@ -52,19 +56,19 @@ export default function DrillLibraryScreen() {
       if (!data) {
         throw new Error(problemDetail(error) ?? 'Could not start the upload');
       }
+      setDraft((prev) => (prev ? { ...prev, videoAssetId: data.videoAssetId } : prev));
       setUploadFraction(0);
       // The IPC bridge is generic (filePath + uploadUrl); it streams from disk in the main process.
       await window.barbonAnalysis.uploadFeedback(
         { filePath: picked.path, uploadUrl: data.uploadUrl },
         setUploadFraction,
       );
-      setDraft({ videoAssetId: data.videoAssetId, title: '', cue: '', category: 'FOREHAND' });
     },
     onSettled: () => setUploadFraction(null),
   });
 
   const createItem = useMutation({
-    mutationFn: async (d: Draft) => {
+    mutationFn: async (d: { videoAssetId: string; title: string; cue: string; category: DrillCategory }) => {
       for (let attempt = 0; attempt < 30; attempt += 1) {
         const { data, error } = await api.POST('/api/v1/drills/library', {
           body: {
@@ -124,7 +128,17 @@ export default function DrillLibraryScreen() {
     onError: (err) => toast.show(err instanceof Error ? err.message : 'Could not delete the drill'),
   });
 
-  const busy = pickAndUpload.isPending || createItem.isPending;
+  async function confirmRemove(item: LibraryItem) {
+    const sure = await confirm({
+      title: `Delete “${item.title}”?`,
+      message: 'The drill and its video leave your library for good.',
+      confirmLabel: 'Delete drill',
+      danger: true,
+    });
+    if (sure) {
+      remove.mutate(item.id);
+    }
+  }
 
   return (
     <main className="workspace">
@@ -133,82 +147,18 @@ export default function DrillLibraryScreen() {
         <button
           type="button"
           className="primary"
-          disabled={busy || draft !== null}
-          onClick={() => pickAndUpload.mutate()}
+          disabled={draft !== null}
+          onClick={() => setDraft({ videoAssetId: null, title: '', cue: '', category: 'FOREHAND' })}
         >
-          {pickAndUpload.isPending ? 'Uploading…' : 'Add a drill'}
+          Add a drill
         </button>
       </div>
-
-      {uploadFraction !== null ? (
-        <div className="panel">
-          <p className="lede">Uploading the drill video…</p>
-          <div className="progress-track">
-            <div
-              className="progress-fill"
-              style={{ width: `${Math.round(uploadFraction * 100)}%` }}
-            />
-          </div>
-        </div>
-      ) : null}
-      {pickAndUpload.isError ? (
-        <p className="error">{pickAndUpload.error.message}</p>
-      ) : null}
-
-      {draft ? (
-        <div className="panel">
-          <p className="section-title">New drill</p>
-          <label className="field">
-            <span>Title</span>
-            <input
-              value={draft.title}
-              onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-            />
-          </label>
-          <label className="field">
-            <span>Cue</span>
-            <input value={draft.cue} onChange={(e) => setDraft({ ...draft, cue: e.target.value })} />
-          </label>
-          <label className="field">
-            <span>Category</span>
-            <select
-              value={draft.category}
-              onChange={(e) => setDraft({ ...draft, category: e.target.value as DrillCategory })}
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {label(c)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button
-              type="button"
-              className="primary"
-              disabled={createItem.isPending || !draft.title.trim()}
-              onClick={() => createItem.mutate(draft)}
-            >
-              {createItem.isPending ? 'Saving…' : 'Add to library'}
-            </button>
-            <button
-              type="button"
-              className="ghost"
-              disabled={createItem.isPending}
-              onClick={() => setDraft(null)}
-            >
-              Cancel
-            </button>
-          </div>
-          {createItem.isError ? <p className="error">{createItem.error.message}</p> : null}
-        </div>
-      ) : null}
 
       {library.isPending ? (
         <p className="lede">Loading…</p>
       ) : library.isError ? (
         <div className="panel">
-          <p className="error">We could not load the drill library.</p>
+          <p className="error" role="alert">We could not load the drill library.</p>
           <button type="button" className="ghost" onClick={() => library.refetch()}>
             Try again
           </button>
@@ -249,7 +199,7 @@ export default function DrillLibraryScreen() {
                     ))}
                   </select>
                 </label>
-                <div style={{ display: 'flex', gap: 10 }}>
+                <div className="button-row">
                   <button
                     type="button"
                     className="primary"
@@ -278,17 +228,23 @@ export default function DrillLibraryScreen() {
                 </div>
                 <div className="drill-body">
                   <span className="tier">{label(item.category)}</span>
-                  <h5>{item.title}</h5>
+                  <h2 className="drill-title">{item.title}</h2>
                   {item.cue ? <p className="drill-cue">{item.cue}</p> : null}
                   <div className="drill-actions">
-                    <button type="button" className="ghost" onClick={() => setEditing(item)}>
+                    <button
+                      type="button"
+                      className="ghost"
+                      aria-label={`Edit ${item.title}`}
+                      onClick={() => setEditing(item)}
+                    >
                       Edit
                     </button>
                     <button
                       type="button"
                       className="ghost"
                       disabled={remove.isPending}
-                      onClick={() => remove.mutate(item.id)}
+                      aria-label={`Delete ${item.title}`}
+                      onClick={() => confirmRemove(item)}
                     >
                       Delete
                     </button>
@@ -299,6 +255,82 @@ export default function DrillLibraryScreen() {
           )}
         </div>
       )}
+
+      {draft ? (
+        <Modal
+          title="New drill"
+          onClose={() => setDraft(null)}
+          closeDisabled={createItem.isPending || uploadFraction !== null}
+        >
+          <label className="field">
+            <span>Title</span>
+            <input
+              value={draft.title}
+              onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+            />
+          </label>
+          <label className="field">
+            <span>Cue</span>
+            <input value={draft.cue} onChange={(e) => setDraft({ ...draft, cue: e.target.value })} />
+          </label>
+          <label className="field">
+            <span>Category</span>
+            <select
+              value={draft.category}
+              onChange={(e) => setDraft({ ...draft, category: e.target.value as DrillCategory })}
+            >
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {label(c)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {uploadFraction !== null ? (
+            <UploadProgress fraction={uploadFraction} label="Uploading the drill video" />
+          ) : createItem.isPending ? (
+            <UploadProgress fraction={1} />
+          ) : (
+            <button type="button" className="ghost" onClick={() => pickAndUpload.mutate()}>
+              {draft.videoAssetId ? 'Replace video' : 'Select video'}
+            </button>
+          )}
+          {pickAndUpload.isError ? (
+            <p className="error" role="alert">{pickAndUpload.error.message}</p>
+          ) : null}
+
+          <div className="button-row">
+            <button
+              type="button"
+              className="primary"
+              disabled={
+                createItem.isPending ||
+                uploadFraction !== null ||
+                !draft.videoAssetId ||
+                !draft.title.trim()
+              }
+              onClick={() => {
+                if (!draft.videoAssetId) {
+                  return;
+                }
+                createItem.mutate({ ...draft, videoAssetId: draft.videoAssetId });
+              }}
+            >
+              {createItem.isPending ? 'Saving…' : 'Add to library'}
+            </button>
+            <button
+              type="button"
+              className="ghost"
+              disabled={createItem.isPending}
+              onClick={() => setDraft(null)}
+            >
+              Cancel
+            </button>
+          </div>
+          {createItem.isError ? <p className="error" role="alert">{createItem.error.message}</p> : null}
+        </Modal>
+      ) : null}
     </main>
   );
 }

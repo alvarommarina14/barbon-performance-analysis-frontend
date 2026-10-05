@@ -1,14 +1,17 @@
 import type { components } from '@barbon-performance-analysis/api-client';
 import { formatTimestamp } from '@barbon-performance-analysis/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../api/client';
+import { useConfirm } from '../components/Confirm';
 import { HlsVideo } from '../components/HlsVideo';
 import { useToast } from '../components/Toast';
 import { problemDetail, problemSlug } from '../lib/problem';
+import { formatDate } from '../lib/format';
 import { uid } from '../lib/uid';
-import { useNav } from '../nav';
+import { useNav, useUnsavedChanges } from '../nav';
 import DrillAssignmentStep from './DrillAssignmentStep';
+import { UploadProgress } from '../components/UploadProgress';
 
 type AnalysisDetail = components['schemas']['AnalysisDetail'];
 type FeedbackState = 'loading' | 'none' | 'processing' | 'errored' | 'ready' | 'published';
@@ -21,7 +24,8 @@ interface FindingRow {
 }
 
 export default function AnalysisEditorScreen({ analysisId }: { analysisId: string }) {
-  const { navigate, back } = useNav();
+  const { navigate, back, forgetUnsaved } = useNav();
+  const confirm = useConfirm();
   const toast = useToast();
   const queryClient = useQueryClient();
 
@@ -67,6 +71,17 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
 
   const [uploadFraction, setUploadFraction] = useState<number | null>(null);
   const [step, setStep] = useState<'marks' | 'drills' | 'details'>('marks');
+
+  const [drillsChanged, setDrillsChanged] = useState(false);
+  const [drillCount, setDrillCount] = useState(0);
+  const [drillsNextAttempted, setDrillsNextAttempted] = useState(false);
+  const handleDrillsStateChange = useCallback(
+    (state: { changed: boolean; count: number }) => {
+      setDrillsChanged(state.changed);
+      setDrillCount(state.count);
+    },
+    [],
+  );
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const titleInputs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -123,6 +138,8 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
     findings.length > 0 &&
     !findingsChanged &&
     !headerDirty;
+
+  useUnsavedChanges(editable && (findingsChanged || headerDirty || drillsChanged));
 
   const cache = (fresh: AnalysisDetail) => queryClient.setQueryData(['analysis', analysisId], fresh);
 
@@ -220,6 +237,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
       queryClient.invalidateQueries({ queryKey: ['submissions', 'queue'] });
       queryClient.invalidateQueries({ queryKey: ['analyses'] });
       toast.show('Draft discarded — the video is back in your queue.');
+      forgetUnsaved();
       navigate({ name: 'queue' });
     },
   });
@@ -277,7 +295,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
     return (
       <main className="workspace">
         <div className="panel">
-          <p className="error">We could not load this analysis.</p>
+          <p className="error" role="alert">We could not load this analysis.</p>
           <button type="button" className="ghost" onClick={() => navigate({ name: 'queue' })}>
             Back to queue
           </button>
@@ -308,7 +326,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
         <h1>{data.title}</h1>
         <span className="tier">
           {status === 'PUBLISHED'
-            ? `Published ${data.publishedAt ? new Date(data.publishedAt).toLocaleDateString() : ''}`
+            ? `Published ${formatDate(data.publishedAt) ?? ''}`
             : 'Draft'}
         </span>
       </div>
@@ -317,7 +335,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
         <div className="editor">
           <div className="editor-main">
             <div className="panel">
-              <p className="section-title">Feedback video</p>
+              <h2 className="section-title">Feedback video</h2>
               {feedbackState === 'loading' ? (
                 <p className="lede">Loading…</p>
               ) : feedbackState === 'none' ? (
@@ -332,23 +350,18 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                     {upload.isPending ? 'Uploading…' : 'Choose a video…'}
                   </button>
                   {uploadFraction !== null ? (
-                    <div className="progress-track">
-                      <div
-                        className="progress-fill"
-                        style={{ width: `${Math.round(uploadFraction * 100)}%` }}
-                      />
-                    </div>
+                    <UploadProgress fraction={uploadFraction} label="Uploading the feedback video" />
                   ) : null}
-                  {upload.isError ? <p className="error">{upload.error.message}</p> : null}
+                  {upload.isError ? <p className="error" role="alert">{upload.error.message}</p> : null}
                 </>
               ) : feedbackState === 'processing' ? (
                 <div className="lede" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                   <span className="spinner" />
-                  Cloudflare is processing the video…
+                  Processing the video…
                 </div>
               ) : feedbackState === 'errored' ? (
                 <>
-                  <p className="error">The feedback video failed to process.</p>
+                  <p className="error" role="alert">The feedback video failed to process.</p>
                   <button type="button" className="primary" onClick={() => upload.mutate()}>
                     Upload again
                   </button>
@@ -356,7 +369,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
               ) : playback.isPending ? (
                 <p className="lede">Loading video…</p>
               ) : playback.isError ? (
-                <p className="error">We could not load the feedback video.</p>
+                <p className="error" role="alert">We could not load the feedback video.</p>
               ) : playback.data ? (
                 <HlsVideo ref={videoRef} src={playback.data.hlsUrl} />
               ) : null}
@@ -366,7 +379,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
           <div className="editor-side">
             <div className="panel findings-panel">
               <div className="workspace-header">
-                <p className="section-title">Findings</p>
+                <h2 className="section-title">Findings</h2>
                 {canEditFindings ? (
                   <button
                     type="button"
@@ -395,6 +408,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                           <button
                             type="button"
                             className="stamp"
+                            aria-label={`Jump to ${formatTimestamp(row.timestampSeconds)}`}
                             onClick={() => seek(row.timestampSeconds)}
                           >
                             {formatTimestamp(row.timestampSeconds)}
@@ -405,6 +419,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                                 titleInputs.current[row.key] = element;
                               }}
                               placeholder="What to fix"
+                              aria-label={`What to fix at ${formatTimestamp(row.timestampSeconds)}`}
                               value={row.title}
                               onChange={(event) =>
                                 updateRow(row.key, { title: event.target.value })
@@ -413,6 +428,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                             <textarea
                               className="textarea"
                               placeholder="Detail (optional)"
+                              aria-label={`Detail for the finding at ${formatTimestamp(row.timestampSeconds)}`}
                               value={row.detail}
                               onChange={(event) =>
                                 updateRow(row.key, { detail: event.target.value })
@@ -423,6 +439,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                             <button
                               type="button"
                               className="ghost"
+                              aria-label={`Move the finding at ${formatTimestamp(row.timestampSeconds)} up`}
                               onClick={() => moveRow(row.key, -1)}
                             >
                               ↑
@@ -430,6 +447,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                             <button
                               type="button"
                               className="ghost"
+                              aria-label={`Move the finding at ${formatTimestamp(row.timestampSeconds)} down`}
                               onClick={() => moveRow(row.key, 1)}
                             >
                               ↓
@@ -437,6 +455,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                             <button
                               type="button"
                               className="ghost"
+                              aria-label={`Remove the finding at ${formatTimestamp(row.timestampSeconds)}`}
                               onClick={() => removeRow(row.key)}
                             >
                               Remove
@@ -445,7 +464,8 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                         </div>
                       ))
                     : findings.map((row) => (
-                        <div
+                        <button
+                          type="button"
                           className="finding-card"
                           key={row.key}
                           onClick={() => seek(row.timestampSeconds)}
@@ -455,7 +475,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                             <strong>{row.title}</strong>
                             {row.detail ? ` — ${row.detail}` : ''}
                           </p>
-                        </div>
+                        </button>
                       ))}
                 </div>
               )}
@@ -464,7 +484,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                 <div className="findings-foot">
                   <button
                     type="button"
-                    className="ghost"
+                    className="primary"
                     disabled={saveFindings.isPending || !findingsChanged || anyFindingBlank}
                     onClick={() => saveFindings.mutate()}
                   >
@@ -474,7 +494,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                     <p className="lede">Every mark needs a title before it can be saved.</p>
                   ) : null}
                   {saveFindings.isError ? (
-                    <p className="error">{saveFindings.error.message}</p>
+                    <p className="error" role="alert">{saveFindings.error.message}</p>
                   ) : null}
                 </div>
               ) : null}
@@ -495,12 +515,23 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
         </div>
       ) : step === 'drills' ? (
         <>
-          <DrillAssignmentStep analysisId={analysisId} editable={editable} />
+          <DrillAssignmentStep
+            analysisId={analysisId}
+            editable={editable}
+            onStateChange={handleDrillsStateChange}
+            attemptedNext={drillsNextAttempted}
+          />
           <button
             type="button"
             className="primary"
             style={{ alignSelf: 'flex-start' }}
-            onClick={() => setStep('details')}
+            onClick={() => {
+              if (editable && drillsChanged) {
+                setDrillsNextAttempted(true);
+                return;
+              }
+              setStep('details');
+            }}
           >
             Next: title &amp; publish →
           </button>
@@ -508,7 +539,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
       ) : (
         <div className="editor-details-step">
           <div className="panel">
-            <p className="section-title">Details</p>
+            <h2 className="section-title">Details</h2>
             <label className="field">
               <span>Title</span>
               <input
@@ -535,19 +566,19 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
             {editable ? (
               <button
                 type="button"
-                className="ghost"
+                className="primary"
                 disabled={!headerDirty || saveHeader.isPending}
                 onClick={() => saveHeader.mutate()}
               >
                 {saveHeader.isPending ? 'Saving…' : 'Save'}
               </button>
             ) : null}
-            {saveHeader.isError ? <p className="error">{saveHeader.error.message}</p> : null}
+            {saveHeader.isError ? <p className="error" role="alert">{saveHeader.error.message}</p> : null}
           </div>
 
           {editable ? (
             <div className="panel">
-              <p className="section-title">Publish</p>
+              <h2 className="section-title">Publish</h2>
               <button
                 type="button"
                 className="primary"
@@ -566,18 +597,22 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
                         ? 'Save your marks first.'
                         : 'Save your changes first.'}
                 </p>
+              ) : drillCount === 0 ? (
+                <p className="error">No drills added — the player won’t get any exercises.</p>
               ) : null}
-              {publish.isError ? <p className="error">{publish.error.message}</p> : null}
+              {publish.isError ? <p className="error" role="alert">{publish.error.message}</p> : null}
 
               <button
                 type="button"
                 className="ghost"
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      'Discard this analysis? All marks are lost and the video returns to your queue.',
-                    )
-                  ) {
+                onClick={async () => {
+                  const sure = await confirm({
+                    title: 'Discard this analysis?',
+                    message: 'All marks are lost and the video returns to your queue.',
+                    confirmLabel: 'Discard draft',
+                    danger: true,
+                  });
+                  if (sure) {
                     discard.mutate();
                   }
                 }}

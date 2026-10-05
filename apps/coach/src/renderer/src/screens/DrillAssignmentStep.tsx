@@ -2,6 +2,7 @@ import type { components } from '@barbon-performance-analysis/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
+import { LoadError } from '../components/LoadError';
 import { cx } from '../lib/cx';
 import { problemDetail } from '../lib/problem';
 
@@ -18,12 +19,21 @@ interface Row {
   coachNote: string;
 }
 
+interface DrillsState {
+  changed: boolean;
+  count: number;
+}
+
 export default function DrillAssignmentStep({
   analysisId,
   editable,
+  onStateChange,
+  attemptedNext,
 }: {
   analysisId: string;
   editable: boolean;
+  onStateChange?: (state: DrillsState) => void;
+  attemptedNext?: boolean;
 }) {
   const queryClient = useQueryClient();
 
@@ -79,6 +89,10 @@ export default function DrillAssignmentStep({
     const current = rows.map((r) => [r.libraryItemId, r.coachNote.trim()]);
     return JSON.stringify(server) !== JSON.stringify(current);
   }, [assigned.data, rows]);
+
+  useEffect(() => {
+    onStateChange?.({ changed, count: rows.length });
+  }, [changed, rows.length, onStateChange]);
 
   const save = useMutation({
     mutationFn: async () => {
@@ -137,18 +151,26 @@ export default function DrillAssignmentStep({
     (item) => pickerCategory === 'ALL' || item.category === pickerCategory,
   );
 
+  if (assigned.isError) {
+    return <LoadError message={assigned.error.message} onRetry={() => assigned.refetch()} />;
+  }
+
   return (
     <div className="editor">
       <div className="editor-main">
         <div className="panel findings-panel">
-          <p className="section-title">Assigned drills</p>
+          <h2 className="section-title">Assigned drills</h2>
           {rows.length === 0 ? (
-            <p className="lede">
-              {editable
-                ? 'Pick drills from the library on the right. They show up on the player’s analysis.'
-                : 'No drills on this analysis.'}
-            </p>
-          ) : (
+            <>
+              <p className="lede">
+                {editable
+                  ? 'Pick drills from the library on the right. They show up on the player’s analysis.'
+                  : 'No drills on this analysis.'}
+              </p>
+              {editable ? <p className="error">No drills added — the player won’t get any exercises.</p> : null}
+            </>
+          ) : null}
+          {rows.length > 0 ? (
             <div className="findings-list">
               {rows.map((row) => (
                 <div className="finding-row" key={row.libraryItemId}>
@@ -156,25 +178,27 @@ export default function DrillAssignmentStep({
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <strong>{row.title}</strong>
                     {editable ? (
-                      <textarea
-                        className="textarea"
-                        placeholder="Note for the player (optional)"
-                        value={row.coachNote}
-                        onChange={(e) => update(row.libraryItemId, { coachNote: e.target.value })}
-                      />
+                      <label className="field">
+                        <span>Note for the player (optional)</span>
+                        <textarea
+                          className="textarea"
+                          value={row.coachNote}
+                          onChange={(e) => update(row.libraryItemId, { coachNote: e.target.value })}
+                        />
+                      </label>
                     ) : row.coachNote ? (
                       <p className="lede">{row.coachNote}</p>
                     ) : null}
                   </div>
                   {editable ? (
                     <div className="finding-actions">
-                      <button type="button" className="ghost" onClick={() => move(row.libraryItemId, -1)}>
+                      <button type="button" className="ghost" aria-label={`Move ${row.title} up`} onClick={() => move(row.libraryItemId, -1)}>
                         ↑
                       </button>
-                      <button type="button" className="ghost" onClick={() => move(row.libraryItemId, 1)}>
+                      <button type="button" className="ghost" aria-label={`Move ${row.title} down`} onClick={() => move(row.libraryItemId, 1)}>
                         ↓
                       </button>
-                      <button type="button" className="ghost" onClick={() => remove(row.libraryItemId)}>
+                      <button type="button" className="ghost" aria-label={`Remove ${row.title}`} onClick={() => remove(row.libraryItemId)}>
                         Remove
                       </button>
                     </div>
@@ -182,18 +206,21 @@ export default function DrillAssignmentStep({
                 </div>
               ))}
             </div>
-          )}
+          ) : null}
           {editable ? (
             <div className="findings-foot">
               <button
                 type="button"
-                className="ghost"
+                className="primary"
                 disabled={save.isPending || !changed}
                 onClick={() => save.mutate()}
               >
                 {save.isPending ? 'Saving…' : 'Save drills'}
               </button>
-              {save.isError ? <p className="error">{save.error.message}</p> : null}
+              {changed && !save.isPending && attemptedNext ? (
+                <p className="error" role="alert">You have unsaved drill changes.</p>
+              ) : null}
+              {save.isError ? <p className="error" role="alert">{save.error.message}</p> : null}
             </div>
           ) : null}
         </div>
@@ -202,11 +229,12 @@ export default function DrillAssignmentStep({
       {editable ? (
         <div className="editor-side">
           <div className="panel findings-panel">
-            <p className="section-title">Drill library</p>
+            <h2 className="section-title">Drill library</h2>
             <div className="tabs">
               <button
                 type="button"
                 className={cx('tab', pickerCategory === 'ALL' && 'on')}
+                aria-pressed={pickerCategory === 'ALL'}
                 onClick={() => setPickerCategory('ALL')}
               >
                 All
@@ -216,13 +244,16 @@ export default function DrillAssignmentStep({
                   key={c}
                   type="button"
                   className={cx('tab', pickerCategory === c && 'on')}
+                  aria-pressed={pickerCategory === c}
                   onClick={() => setPickerCategory(c)}
                 >
                   {label(c)}
                 </button>
               ))}
             </div>
-            {library.isPending ? (
+            {library.isError ? (
+              <LoadError message={library.error.message} onRetry={() => library.refetch()} />
+            ) : library.isPending ? (
               <p className="lede">Loading…</p>
             ) : pickable.length === 0 ? (
               <p className="lede">Nothing here — add drills from the Library tab.</p>

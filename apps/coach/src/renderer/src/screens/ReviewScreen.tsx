@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { api } from '../api/client';
 import { HlsVideo } from '../components/HlsVideo';
 import { problemDetail, problemSlug } from '../lib/problem';
+import { formatDate } from '../lib/format';
 import { relativeDate } from '../lib/relativeTime';
 import { useNav } from '../nav';
 
@@ -13,7 +14,8 @@ export default function ReviewScreen({ submission }: { submission: SubmissionSum
   const { navigate, back } = useNav();
   const queryClient = useQueryClient();
 
-  const [title, setTitle] = useState(`${submission.playerName} breakdown`);
+  const recordedDate = formatDate(submission.recordedAt ?? submission.createdAt);
+  const [title, setTitle] = useState(`${submission.playerName} - ${recordedDate}`);
   const [summary, setSummary] = useState('');
   const [wantsDownload, setWantsDownload] = useState(false);
   const [alreadyAnalysed, setAlreadyAnalysed] = useState(false);
@@ -91,7 +93,7 @@ export default function ReviewScreen({ submission }: { submission: SubmissionSum
               <p className="lede">Loading video…</p>
             ) : playback.isError ? (
               <>
-                <p className="error">We could not load the video.</p>
+                <p className="error" role="alert">We could not load the video.</p>
                 <button type="button" className="ghost" onClick={() => playback.refetch()}>
                   Try again
                 </button>
@@ -107,7 +109,7 @@ export default function ReviewScreen({ submission }: { submission: SubmissionSum
 
         <div className="editor-side">
           <div className="panel">
-            <p className="section-title">Edit the video</p>
+            <h2 className="section-title">Edit the video</h2>
             <p className="lede">Pull the original into your editor, then upload the cut on the next step.</p>
             {!wantsDownload ? (
               <button type="button" className="ghost" onClick={() => setWantsDownload(true)}>
@@ -115,7 +117,7 @@ export default function ReviewScreen({ submission }: { submission: SubmissionSum
               </button>
             ) : download.isError ? (
               <>
-                <p className="error">We could not prepare the download.</p>
+                <p className="error" role="alert">We could not prepare the download.</p>
                 <button type="button" className="ghost" onClick={() => download.refetch()}>
                   Try again
                 </button>
@@ -130,7 +132,7 @@ export default function ReviewScreen({ submission }: { submission: SubmissionSum
           </div>
 
           <div className="panel">
-            <p className="section-title">Start the analysis</p>
+            <h2 className="section-title">Start the analysis</h2>
             <label className="field">
               <span>Title</span>
               <input value={title} onChange={(event) => setTitle(event.target.value)} />
@@ -145,11 +147,11 @@ export default function ReviewScreen({ submission }: { submission: SubmissionSum
             </label>
 
             {alreadyAnalysed ? (
-              <p className="error">
+              <p className="error" role="alert">
                 This video already has an analysis — find it under “Drafts in progress”.
               </p>
             ) : start.isError ? (
-              <p className="error">{start.error.message}</p>
+              <p className="error" role="alert">{start.error.message}</p>
             ) : null}
 
             <button

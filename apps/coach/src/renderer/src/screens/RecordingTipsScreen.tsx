@@ -2,8 +2,11 @@ import type { components } from '@barbon-performance-analysis/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '../api/client';
+import { LoadError } from '../components/LoadError';
 import { useToast } from '../components/Toast';
+import { formatBytes, formatDate, formatDuration } from '../lib/format';
 import { problemDetail, problemSlug } from '../lib/problem';
+import { UploadProgress } from '../components/UploadProgress';
 
 type RecordingTips = components['schemas']['RecordingTipsView'];
 
@@ -36,7 +39,7 @@ export default function RecordingTipsScreen() {
         return;
       }
       const { data, error } = await api.POST('/api/v1/content/recording-tips/video-upload-intent', {
-        body: { sizeBytes: picked.size },
+        body: { sizeBytes: picked.size, fileName: picked.name },
       });
       if (!data) {
         throw new Error(problemDetail(error) ?? 'Could not start the upload');
@@ -84,7 +87,12 @@ export default function RecordingTipsScreen() {
         setPdfProgress,
       );
       const confirm = await api.POST('/api/v1/content/recording-tips/pdf', {
-        body: { objectKey: data.objectKey, contentType: PDF_CONTENT_TYPE },
+        body: {
+          objectKey: data.objectKey,
+          contentType: PDF_CONTENT_TYPE,
+          fileName: picked.name,
+          sizeBytes: picked.size,
+        },
       });
       if (!confirm.data) {
         throw new Error(problemDetail(confirm.error) ?? 'Could not confirm the PDF');
@@ -97,6 +105,17 @@ export default function RecordingTipsScreen() {
 
   const data = tips.data;
 
+  if (tips.isError) {
+    return (
+      <main className="workspace">
+        <div className="workspace-header">
+          <h1>Recording tips</h1>
+        </div>
+        <LoadError message={tips.error.message} onRetry={() => tips.refetch()} />
+      </main>
+    );
+  }
+
   return (
     <main className="workspace">
       <div className="workspace-header">
@@ -107,19 +126,31 @@ export default function RecordingTipsScreen() {
       </p>
 
       <div className="panel">
-        <p className="section-title">Video</p>
+        <h2 className="section-title">Video</h2>
         {videoProgress !== null ? (
-          <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${Math.round(videoProgress * 100)}%` }} />
-          </div>
+          <UploadProgress fraction={videoProgress} label="Uploading the video" />
         ) : (
-          <p className="lede">
-            {!data?.videoAssetId
-              ? 'No video uploaded yet.'
-              : data.videoStatus === 'READY'
-                ? 'Uploaded and ready.'
-                : 'Processing…'}
-          </p>
+          <>
+            <p className="lede">
+              {!data?.videoAssetId
+                ? 'No video uploaded yet.'
+                : data.videoStatus === 'READY'
+                  ? 'Uploaded and ready.'
+                  : 'Processing…'}
+            </p>
+            {data?.videoAssetId ? (
+              <p className="lede">
+                {[
+                  data.videoFileName,
+                  formatBytes(data.videoSizeBytes),
+                  formatDuration(data.videoDurationSeconds),
+                  formatDate(data.videoUploadedAt) ? `Uploaded ${formatDate(data.videoUploadedAt)}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </p>
+            ) : null}
+          </>
         )}
         <button
           type="button"
@@ -132,13 +163,24 @@ export default function RecordingTipsScreen() {
       </div>
 
       <div className="panel">
-        <p className="section-title">PDF guide</p>
+        <h2 className="section-title">PDF guide</h2>
         {pdfProgress !== null ? (
-          <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${Math.round(pdfProgress * 100)}%` }} />
-          </div>
+          <UploadProgress fraction={pdfProgress} label="Uploading the PDF" />
         ) : (
-          <p className="lede">{data?.pdfUrl ? 'Uploaded and ready.' : 'No PDF uploaded yet.'}</p>
+          <>
+            <p className="lede">{data?.pdfUrl ? 'Uploaded and ready.' : 'No PDF uploaded yet.'}</p>
+            {data?.pdfUrl ? (
+              <p className="lede">
+                {[
+                  data.pdfFileName,
+                  formatBytes(data.pdfSizeBytes),
+                  formatDate(data.pdfUploadedAt) ? `Uploaded ${formatDate(data.pdfUploadedAt)}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </p>
+            ) : null}
+          </>
         )}
         <button
           type="button"

@@ -1,7 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
+import type { components } from '@barbon-performance-analysis/api-client';
+import { formatDateTime } from '../lib/format';
+import { useNav } from '../nav';
+
+type ClientSummary = components['schemas']['ClientSummary'];
 
 export default function ClientListScreen() {
+  const { navigate } = useNav();
+
+  function openClient(client: ClientSummary) {
+    navigate({ name: 'client-training', playerProfileId: client.profileId, playerName: client.name });
+  }
+
   const clients = useQuery({
     queryKey: ['coach', 'clients'],
     queryFn: async () => {
@@ -21,7 +32,7 @@ export default function ClientListScreen() {
         <p className="lede">Loading…</p>
       ) : clients.isError ? (
         <div className="panel">
-          <p className="error">We could not load your clients right now.</p>
+          <p className="error" role="alert">We could not load your clients right now.</p>
           <button type="button" className="ghost" onClick={() => clients.refetch()}>
             Try again
           </button>
@@ -46,15 +57,30 @@ export default function ClientListScreen() {
             </thead>
             <tbody>
               {clients.data.map((client) => (
-                <tr key={client.profileId}>
-                  <td className="strong">{client.name}</td>
+                <tr
+                  key={client.profileId}
+                  className="is-clickable"
+                  onClick={() => openClient(client)}
+                >
+                  <td className="strong">
+                    <button
+                      type="button"
+                      className="row-link"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openClient(client);
+                      }}
+                    >
+                      {client.name}
+                    </button>
+                  </td>
                   <td>{client.email}</td>
                   <td>
                     <span className="tier">{client.membershipTier}</span>
                   </td>
-                  <td>{client.currentWeek} / 4</td>
+                  <td>{client.planWeek ? `${client.planWeek} / ${client.planWeeks ?? 12}` : '—'}</td>
                   <td>
-                    {client.nextCallAt ? new Date(client.nextCallAt).toLocaleString() : '—'}
+                    {formatDateTime(client.nextCallAt) ?? '—'}
                   </td>
                 </tr>
               ))}

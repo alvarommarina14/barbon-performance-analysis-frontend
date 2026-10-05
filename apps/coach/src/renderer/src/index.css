@@ -4,17 +4,77 @@
   --dark: #141414;
   --card: #1e1e1e;
   --line: rgba(255, 255, 255, 0.09);
+  /* Form field borders: WCAG 1.4.11 asks for 3:1 against the card behind them (#6b6b6b is 3.1:1). */
+  --field-line: #6b6b6b;
   --accent: #c8ff00;
   --white: #f5f5f5;
   --text: #e0e0e0;
   --gray: #8d8d8d;
   --danger: #ff5a5a;
+  --titlebar-h: 32px;
 
   color-scheme: dark;
 }
 
+.titlebar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  height: var(--titlebar-h);
+  background: var(--black);
+  border-bottom: 1px solid var(--line);
+  -webkit-app-region: drag;
+}
+
+.titlebar-drag {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding-left: 12px;
+}
+
+.titlebar-title {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+
+.titlebar-controls {
+  display: flex;
+  height: 100%;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar-btn {
+  width: 46px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: var(--gray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.titlebar-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--white);
+}
+
+.titlebar-close:hover {
+  background: var(--danger);
+  color: var(--black);
+}
+
 * {
   box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
 }
 
 body {
@@ -22,6 +82,28 @@ body {
   background: var(--black);
   color: var(--text);
   font-family: 'DM Sans', system-ui, sans-serif;
+  overflow: hidden;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* The one scrolling region in the whole app: the title bar above it never moves, and every
+   screen below fills exactly the remaining height instead of guessing at 100vh minus its own
+   height (which drifted by a few px once the window went frameless). */
+.app-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+h1[tabindex='-1']:focus {
+  outline: none;
 }
 
 h1 {
@@ -55,9 +137,9 @@ h1 {
 /* --- Login --- */
 
 .login {
+  flex: 1;
   display: grid;
   place-items: center;
-  min-height: 100vh;
   padding: 24px;
 }
 
@@ -85,10 +167,15 @@ h1 {
   text-transform: uppercase;
 }
 
+.field-hint {
+  color: var(--gray);
+  font-size: 13px;
+}
+
 .field input,
 .field select {
   padding: 12px 14px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--field-line);
   border-radius: 8px;
   background: var(--dark);
   color: var(--white);
@@ -120,8 +207,10 @@ button {
   text-transform: uppercase;
 }
 
-.primary:disabled {
-  opacity: 0.6;
+.primary:disabled,
+.primary[aria-disabled='true'] {
+  background: #2a2a2a;
+  color: var(--gray);
   cursor: default;
 }
 
@@ -139,8 +228,33 @@ button {
   color: var(--accent);
 }
 
+/* A primary action paired with a ghost one (Save/Cancel, Add/Cancel) reads as mismatched at the
+   .primary size meant for standalone CTAs — drop it to the .ghost scale so the pair aligns. */
+.button-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.button-row .primary {
+  margin-top: 0;
+  padding: 8px 14px;
+  font-size: 12px;
+}
+
+.primary:focus-visible,
+.ghost:focus-visible,
+.tab:focus-visible,
+.shell-tab:focus-visible,
+.shell-switch-seg:focus-visible,
+.titlebar-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .ghost:disabled {
-  opacity: 0.4;
+  border-color: var(--line);
+  color: #555;
   cursor: default;
 }
 
@@ -162,8 +276,8 @@ button {
 .workspace {
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: 24px;
-  min-height: 100vh;
   padding: 40px;
 }
 
@@ -228,6 +342,34 @@ button {
   border-bottom: none;
 }
 
+.clients tbody tr.is-clickable {
+  cursor: pointer;
+}
+
+.clients tbody tr.is-clickable:hover td {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.row-link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.row-link:hover {
+  color: var(--accent);
+}
+
+.row-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
 .clients .strong {
   color: var(--white);
   font-weight: 500;
@@ -248,15 +390,19 @@ button {
 /* --- Shell --- */
 
 .shell {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
 }
 
-.shell-bar {
+.shell-header {
   position: sticky;
   top: 0;
   z-index: 10;
+}
+
+.shell-bar {
   display: flex;
   align-items: center;
   gap: 32px;
@@ -272,9 +418,36 @@ button {
   letter-spacing: 0.04em;
 }
 
-.shell-nav {
+.shell-switch {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  background: var(--card);
+}
+
+.shell-switch-seg {
+  padding: 7px 16px;
+  border: none;
+  border-radius: 100px;
+  background: transparent;
+  color: var(--gray);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.shell-switch-seg.is-active {
+  background: var(--accent);
+  color: var(--black);
+}
+
+.shell-subnav {
   display: flex;
   gap: 8px;
+  padding: 10px 40px;
+  border-bottom: 1px solid var(--line);
+  background: var(--dark);
 }
 
 .shell-tab {
@@ -345,6 +518,16 @@ button {
   gap: 12px;
 }
 
+/* 4 week panels side by side instead of stacked — reorganizing horizontally avoids needing any
+   scroll at all in the common case, rather than capping the list and scrolling it internally. */
+.cycle-weeks {
+  align-self: stretch;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
 .findings-foot {
   display: flex;
   flex-direction: column;
@@ -372,18 +555,23 @@ button {
   min-height: 110px;
 }
 
+/* The editor grid fills whatever room is left in .editor-screen instead of guessing a viewport
+   offset — it shrinks on its own when a step adds something below it (e.g. the drills step's
+   "Next" button), so nothing downstream can push the page into an outer scrollbar. */
+.editor-screen .editor {
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+
+.editor-screen .editor-main,
+.editor-screen .editor-side {
+  min-height: 0;
+}
+
 @media (min-width: 1081px) {
-  /* Anchor the marks column to the viewport so the findings list scrolls inside itself rather
-     than stretching the page. Offset ≈ sticky bar + back link + header + workspace padding. */
-  .editor-screen .editor-side {
-    max-height: calc(100vh - 236px);
-  }
-  .editor-screen .editor-main,
-  .editor-screen .editor-side {
-    min-height: 0;
-  }
   .editor-screen .video-frame {
-    max-height: calc(100vh - 320px);
+    max-height: calc(100vh - var(--titlebar-h) - 320px);
     object-fit: contain;
   }
   .findings-panel {
@@ -411,7 +599,7 @@ button {
 
 @media (min-width: 1081px) {
   .review-screen .video-frame {
-    max-height: calc(100vh - 360px);
+    max-height: calc(100vh - var(--titlebar-h) - 360px);
     object-fit: contain;
   }
 }
@@ -475,7 +663,7 @@ button {
 
 .textarea {
   padding: 12px 14px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--field-line);
   border-radius: 8px;
   background: var(--dark);
   color: var(--white);
@@ -492,7 +680,7 @@ button {
 
 .panel input {
   padding: 12px 14px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--field-line);
   border-radius: 8px;
   background: var(--dark);
   color: var(--white);
@@ -517,6 +705,236 @@ button {
   height: 100%;
   background: var(--accent);
   transition: width 0.2s;
+}
+
+.panel-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+/* --- Client training, Days tab: the day list is the only part that scrolls --- */
+
+.workspace.fit-screen {
+  min-height: 0;
+  gap: 16px;
+  padding-top: 28px;
+  padding-bottom: 28px;
+}
+
+.context-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  background: var(--dark);
+  color: var(--white);
+  font-size: 13px;
+}
+
+.chip-label {
+  color: var(--gray);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chip-accent {
+  color: var(--accent);
+}
+
+.chip-link {
+  align-self: center;
+  margin-left: 4px;
+}
+
+.days-panel {
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+
+.days-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.day-grid {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1.3fr) minmax(0, 1.5fr) 80px 120px auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.day-grid-head span {
+  color: var(--gray);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.day-row {
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.day-row input,
+.day-row select {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--field-line);
+  border-radius: 8px;
+  background: var(--dark);
+  color: var(--white);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.day-row input:focus,
+.day-row select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.day-label {
+  color: var(--white);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.day-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.day-unsaved {
+  font-size: 13px;
+}
+
+.week-fields {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.load-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.days-foot[hidden] {
+  display: none;
+}
+
+.days-foot {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.days-foot .primary {
+  margin-top: 0;
+}
+
+/* Zoomed in (or a small window) the one-screen layout has no room left for the list: fall back
+   to scrolling the page, and stack each day so Title and Focus keep a usable width. */
+@media (max-height: 640px) {
+  .workspace.fit-screen {
+    min-height: auto;
+  }
+
+  .days-panel {
+    flex: none;
+  }
+
+  .days-list {
+    overflow-y: visible;
+  }
+}
+
+@media (max-width: 1000px) {
+  .day-grid-head {
+    display: none;
+  }
+
+  .day-grid {
+    grid-template-columns: 64px minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      'label title title'
+      'focus focus focus'
+      'minutes kind kind'
+      'actions actions actions';
+  }
+
+  .day-row > :nth-child(1) {
+    grid-area: label;
+  }
+
+  .day-row > :nth-child(2) {
+    grid-area: title;
+  }
+
+  .day-row > :nth-child(3) {
+    grid-area: focus;
+  }
+
+  .day-row > :nth-child(4) {
+    grid-area: minutes;
+  }
+
+  .day-row > :nth-child(5) {
+    grid-area: kind;
+  }
+
+  .day-row > :nth-child(6) {
+    grid-area: actions;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
+.upload-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.upload-progress-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--gray);
+  font-size: 12px;
+}
+
+.upload-progress-pct {
+  margin-left: auto;
+  color: var(--white);
+  font-variant-numeric: tabular-nums;
+}
+
+.upload-progress .progress-track {
+  margin-top: 0;
 }
 
 .mark-btn {
@@ -568,11 +986,21 @@ button {
 .finding-card {
   display: flex;
   gap: 12px;
+  width: 100%;
   padding: 12px 14px;
+  border: none;
   border-left: 3px solid var(--accent);
   border-radius: 6px;
   background: var(--card);
+  color: inherit;
+  font: inherit;
+  text-align: left;
   cursor: pointer;
+}
+
+.finding-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .finding-card p {
@@ -586,6 +1014,7 @@ button {
 
 .section-title {
   margin: 0;
+  font-weight: 400;
   color: var(--white);
   font-size: 13px;
   letter-spacing: 0.12em;
@@ -618,6 +1047,38 @@ button {
   background: var(--card);
   color: var(--white);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+}
+
+.modal {
+  width: 100%;
+  max-width: 420px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+
+.modal:focus {
+  outline: none;
+}
+
+.modal-wide {
+  max-width: 640px;
+}
+
+.primary.danger:not(:disabled) {
+  background: var(--danger);
+  color: var(--black);
 }
 
 .spinner {
@@ -659,6 +1120,34 @@ button {
 .tab.on {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.tab.has-note::after {
+  content: ' •';
+  color: var(--accent);
+}
+
+.panel > .textarea {
+  align-self: stretch;
+}
+
+.red-flag-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  padding: 16px;
+}
+
+.red-flag-row .field {
+  flex: 1 1 240px;
+}
+
+.red-flag-row .field input {
+  width: 100%;
+}
+
+.booking-field {
+  align-self: stretch;
 }
 
 .drill-grid {
@@ -709,7 +1198,7 @@ button {
   padding: 14px;
 }
 
-.drill-body h5 {
+.drill-body .drill-title {
   margin: 0;
   font-size: 15px;
   font-weight: 700;

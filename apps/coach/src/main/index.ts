@@ -18,6 +18,8 @@ function createWindow(): BrowserWindow {
     // Matches the mockup's background so the window does not flash white while loading.
     backgroundColor: '#0a0a0a',
     autoHideMenuBar: true,
+    // No native title bar: the renderer draws its own to match the app's dark theme.
+    frame: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -27,6 +29,24 @@ function createWindow(): BrowserWindow {
   });
 
   window.on('ready-to-show', () => window.show());
+  window.on('maximize', () => window.webContents.send('window:maximize-changed', true));
+  window.on('unmaximize', () => window.webContents.send('window:maximize-changed', false));
+
+  // The renderer cancels a close or reload while something is unsaved; Electron does that silently,
+  // so ask here. preventDefault() on this event means "unload anyway".
+  window.webContents.on('will-prevent-unload', (event) => {
+    const choice = dialog.showMessageBoxSync(window, {
+      type: 'warning',
+      buttons: ['Discard changes', 'Keep editing'],
+      defaultId: 1,
+      cancelId: 1,
+      title: 'Discard unsaved changes?',
+      message: 'You have changes that are not saved yet. If you leave now, they are lost.',
+    });
+    if (choice === 0) {
+      event.preventDefault();
+    }
+  });
 
   // External links open in the user's browser, never inside the app window.
   window.webContents.setWindowOpenHandler(({ url }) => {
@@ -120,15 +140,20 @@ ipcMain.handle(
           reject(new Error(`Upload failed with status ${response.statusCode}`));
           return;
         }
+        if (!event.sender.isDestroyed()) {
+          event.sender.send('content:progress', 1);
+        }
         resolve();
       });
 
+      // Reading the file runs ahead of the network, so the last chunk leaves the disk well before
+      // the storage has taken it. Hold at 99% until the PUT is answered; 100% means "stored".
       let sent = 0;
       const stream = createReadStream(filePath);
       stream.on('data', (chunk: Buffer) => {
         sent += chunk.length;
         if (!event.sender.isDestroyed()) {
-          event.sender.send('content:progress', size > 0 ? sent / size : 0);
+          event.sender.send('content:progress', size > 0 ? Math.min(sent / size, 0.99) : 0);
         }
       });
       stream.pipe(request);
@@ -139,6 +164,24 @@ ipcMain.handle(
 ipcMain.handle('session:read', () => tokenVault.read());
 ipcMain.handle('session:write', (_event, payload: string) => tokenVault.write(payload));
 ipcMain.handle('session:clear', () => tokenVault.clear());
+
+ipcMain.handle('window:minimize', (event) => BrowserWindow.fromWebContents(event.sender)?.minimize());
+ipcMain.handle('window:toggleMaximize', (event) => {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) {
+    return;
+  }
+  if (window.isMaximized()) {
+    window.unmaximize();
+  } else {
+    window.maximize();
+  }
+});
+ipcMain.handle('window:close', (event) => BrowserWindow.fromWebContents(event.sender)?.close());
+ipcMain.handle(
+  'window:isMaximized',
+  (event) => BrowserWindow.fromWebContents(event.sender)?.isMaximized() ?? false,
+);
 
 app.whenReady().then(() => {
   createWindow();

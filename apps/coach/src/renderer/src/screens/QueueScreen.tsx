@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
+import { LoadError } from '../components/LoadError';
 import { relativeDate } from '../lib/relativeTime';
 import { useNav } from '../nav';
 
@@ -48,12 +49,12 @@ export default function QueueScreen() {
         </button>
       </div>
 
-      <p className="section-title">To review</p>
+      <h2 className="section-title">To review</h2>
       {queue.isPending ? (
         <p className="lede">Loading…</p>
       ) : queue.isError ? (
         <div className="panel">
-          <p className="error">We could not load the queue.</p>
+          <p className="error" role="alert">We could not load the queue.</p>
           <button type="button" className="ghost" onClick={() => queue.refetch()}>
             Try again
           </button>
@@ -98,8 +99,10 @@ export default function QueueScreen() {
         </div>
       )}
 
-      <p className="section-title">Drafts in progress</p>
-      {analyses.isPending ? (
+      <h2 className="section-title">Drafts in progress</h2>
+      {analyses.isError ? (
+        <LoadError message="We could not load your drafts." onRetry={() => analyses.refetch()} />
+      ) : analyses.isPending ? (
         <p className="lede">Loading…</p>
       ) : drafts.length === 0 ? (
         <div className="panel">
