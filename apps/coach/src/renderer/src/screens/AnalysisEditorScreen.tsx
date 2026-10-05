@@ -351,7 +351,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
               ) : feedbackState === 'processing' ? (
                 <div className="lede" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                   <span className="spinner" />
-                  Cloudflare is processing the video…
+                  Processing the video…
                 </div>
               ) : feedbackState === 'errored' ? (
                 <>
