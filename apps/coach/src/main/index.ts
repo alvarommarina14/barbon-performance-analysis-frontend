@@ -32,6 +32,22 @@ function createWindow(): BrowserWindow {
   window.on('maximize', () => window.webContents.send('window:maximize-changed', true));
   window.on('unmaximize', () => window.webContents.send('window:maximize-changed', false));
 
+  // The renderer cancels a close or reload while something is unsaved; Electron does that silently,
+  // so ask here. preventDefault() on this event means "unload anyway".
+  window.webContents.on('will-prevent-unload', (event) => {
+    const choice = dialog.showMessageBoxSync(window, {
+      type: 'warning',
+      buttons: ['Discard changes', 'Keep editing'],
+      defaultId: 1,
+      cancelId: 1,
+      title: 'Discard unsaved changes?',
+      message: 'You have changes that are not saved yet. If you leave now, they are lost.',
+    });
+    if (choice === 0) {
+      event.preventDefault();
+    }
+  });
+
   // External links open in the user's browser, never inside the app window.
   window.webContents.setWindowOpenHandler(({ url }) => {
     void shell.openExternal(url);

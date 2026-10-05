@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
 import { problemDetail } from '../lib/problem';
+import { useUnsavedChanges } from '../nav';
 import PlanStartPanel from './PlanStartPanel';
 import { UploadProgress } from '../components/UploadProgress';
 
@@ -133,6 +134,7 @@ export default function CyclePlanTab({ playerProfileId }: { playerProfileId: str
   }
 
   const anyWeekBlank = weekRows.some((w) => !w.phaseName.trim() || !w.goal.trim());
+  useUnsavedChanges(weeksDirty);
 
   const [pdfProgress, setPdfProgress] = useState<number | null>(null);
   const uploadProgramPdf = useMutation({

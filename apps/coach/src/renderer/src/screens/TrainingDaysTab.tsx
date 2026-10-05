@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
 import { problemDetail } from '../lib/problem';
+import { useUnsavedChanges } from '../nav';
 
 type TrainingDayView = components['schemas']['TrainingDayView'];
 type TrainingDayKind = TrainingDayView['kind'];
@@ -168,6 +169,7 @@ export default function TrainingDaysTab({
   }
 
   const anyBlank = rows.some((r) => !r.title.trim());
+  useUnsavedChanges(dirty);
 
   return (
     <>

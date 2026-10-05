@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
 import { cx } from '../lib/cx';
 import { problemDetail } from '../lib/problem';
+import { useUnsavedChanges } from '../nav';
 
 type LibraryItem = components['schemas']['LibraryItemView'];
 
@@ -80,6 +81,7 @@ export default function DayExerciseStep({ trainingDayId }: { trainingDayId: stri
     }));
     return shape(server) !== shape(rows);
   }, [assigned.data, rows]);
+  useUnsavedChanges(changed);
 
   const save = useMutation({
     mutationFn: async () => {

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { problemDetail } from '../lib/problem';
+import { useUnsavedChanges } from '../nav';
 
 const QUERY_KEY = ['coach', 'booking-link'];
 
@@ -41,6 +42,7 @@ export default function CallsScreen() {
 
   const trimmed = draft.trim();
   const looksValid = trimmed === '' || /^https:\/\/\S+\.\S*$/.test(trimmed);
+  useUnsavedChanges(trimmed !== saved);
 
   return (
     <main className="workspace">

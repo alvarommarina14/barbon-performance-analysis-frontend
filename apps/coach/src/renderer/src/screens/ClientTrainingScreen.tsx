@@ -25,14 +25,14 @@ export default function ClientTrainingScreen({
   playerProfileId: string;
   playerName: string;
 }) {
-  const { back } = useNav();
+  const { back, leaveThen } = useNav();
   const [tab, setTab] = useState<ClientTab>('days');
   const [selectedDay, setSelectedDay] = useState<{ id: string; title: string } | null>(null);
 
   if (selectedDay) {
     return (
       <main className="workspace">
-        <button type="button" className="back-link" onClick={() => setSelectedDay(null)}>
+        <button type="button" className="back-link" onClick={() => leaveThen(() => setSelectedDay(null))}>
           ← {playerName}'s training days
         </button>
         <div className="workspace-header">
@@ -57,7 +57,7 @@ export default function ClientTrainingScreen({
             key={key}
             type="button"
             className={cx('tab', tab === key && 'on')}
-            onClick={() => setTab(key)}
+            onClick={() => leaveThen(() => setTab(key))}
           >
             {label}
           </button>
@@ -67,8 +67,8 @@ export default function ClientTrainingScreen({
       {tab === 'days' ? (
         <TrainingDaysTab
           playerProfileId={playerProfileId}
-          onEditExercises={setSelectedDay}
-          onOpenCyclePlan={() => setTab('cycle-plan')}
+          onEditExercises={(day) => leaveThen(() => setSelectedDay(day))}
+          onOpenCyclePlan={() => leaveThen(() => setTab('cycle-plan'))}
         />
       ) : null}
       {tab === 'cycle-plan' ? <CyclePlanTab playerProfileId={playerProfileId} /> : null}

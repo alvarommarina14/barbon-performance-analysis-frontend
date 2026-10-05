@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { problemDetail } from '../lib/problem';
+import { useUnsavedChanges } from '../nav';
 
 export default function PlanStartPanel({ playerProfileId }: { playerProfileId: string }) {
   const queryClient = useQueryClient();
@@ -25,6 +26,8 @@ export default function PlanStartPanel({ playerProfileId }: { playerProfileId: s
   useEffect(() => {
     setStartDate(saved);
   }, [saved]);
+
+  useUnsavedChanges(startDate !== saved);
 
   const save = useMutation({
     mutationFn: async () => {

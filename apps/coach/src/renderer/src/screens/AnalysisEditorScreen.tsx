@@ -3,11 +3,12 @@ import { formatTimestamp } from '@barbon-performance-analysis/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../api/client';
+import { useConfirm } from '../components/Confirm';
 import { HlsVideo } from '../components/HlsVideo';
 import { useToast } from '../components/Toast';
 import { problemDetail, problemSlug } from '../lib/problem';
 import { uid } from '../lib/uid';
-import { useNav } from '../nav';
+import { useNav, useUnsavedChanges } from '../nav';
 import DrillAssignmentStep from './DrillAssignmentStep';
 import { UploadProgress } from '../components/UploadProgress';
 
@@ -22,7 +23,8 @@ interface FindingRow {
 }
 
 export default function AnalysisEditorScreen({ analysisId }: { analysisId: string }) {
-  const { navigate, back } = useNav();
+  const { navigate, back, forgetUnsaved } = useNav();
+  const confirm = useConfirm();
   const toast = useToast();
   const queryClient = useQueryClient();
 
@@ -136,6 +138,8 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
     !findingsChanged &&
     !headerDirty;
 
+  useUnsavedChanges(editable && (findingsChanged || headerDirty || drillsChanged));
+
   const cache = (fresh: AnalysisDetail) => queryClient.setQueryData(['analysis', analysisId], fresh);
 
   const saveHeader = useMutation({
@@ -232,6 +236,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
       queryClient.invalidateQueries({ queryKey: ['submissions', 'queue'] });
       queryClient.invalidateQueries({ queryKey: ['analyses'] });
       toast.show('Draft discarded — the video is back in your queue.');
+      forgetUnsaved();
       navigate({ name: 'queue' });
     },
   });
@@ -595,12 +600,14 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
               <button
                 type="button"
                 className="ghost"
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      'Discard this analysis? All marks are lost and the video returns to your queue.',
-                    )
-                  ) {
+                onClick={async () => {
+                  const sure = await confirm({
+                    title: 'Discard this analysis?',
+                    message: 'All marks are lost and the video returns to your queue.',
+                    confirmLabel: 'Discard draft',
+                    danger: true,
+                  });
+                  if (sure) {
                     discard.mutate();
                   }
                 }}

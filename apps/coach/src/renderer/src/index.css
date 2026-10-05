@@ -898,6 +898,7 @@ button {
 
 .section-title {
   margin: 0;
+  font-weight: 400;
   color: var(--white);
   font-size: 13px;
   letter-spacing: 0.12em;
@@ -949,6 +950,19 @@ button {
   max-width: 420px;
   max-height: calc(100vh - 48px);
   overflow-y: auto;
+}
+
+.modal:focus {
+  outline: none;
+}
+
+.modal-wide {
+  max-width: 640px;
+}
+
+.primary.danger:not(:disabled) {
+  background: var(--danger);
+  color: var(--black);
 }
 
 .spinner {

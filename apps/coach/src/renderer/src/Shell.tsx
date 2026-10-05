@@ -35,7 +35,7 @@ function modeOf(screen: Screen): Mode {
 
 export default function Shell() {
   const { user, logout } = useAuth();
-  const { screen, reset } = useNav();
+  const { screen, reset, leaveThen } = useNav();
   const mode = modeOf(screen);
 
   return (
@@ -65,7 +65,7 @@ export default function Shell() {
             </div>
             <div className="workspace-user">
               <span>{user?.name}</span>
-              <button type="button" className="ghost" onClick={logout}>
+              <button type="button" className="ghost" onClick={() => leaveThen(() => void logout())}>
                 Sign out
               </button>
             </div>

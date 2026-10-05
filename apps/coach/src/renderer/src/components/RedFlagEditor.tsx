@@ -1,6 +1,7 @@
 import type { components } from '@barbon-performance-analysis/api-client';
 import { useEffect, useMemo, useState } from 'react';
 import { cx } from '../lib/cx';
+import { useUnsavedChanges } from '../nav';
 
 type RedFlagView = components['schemas']['RedFlagView'];
 type RedFlagInput = components['schemas']['RedFlagInput'];
@@ -46,6 +47,7 @@ export function RedFlagEditor({
 
   const dirty = serialize(rows) !== savedShape;
   const anyBlank = rows.some((r) => !r.title.trim());
+  useUnsavedChanges(dirty);
 
   function update(key: string, patch: Partial<Row>) {
     setRows((prev) => prev.map((r) => (r.key === key ? { ...r, ...patch } : r)));

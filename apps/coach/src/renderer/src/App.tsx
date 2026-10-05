@@ -1,4 +1,5 @@
 import { useAuth } from './auth/AuthContext';
+import { ConfirmProvider } from './components/Confirm';
 import { TitleBar } from './components/TitleBar';
 import { NavProvider } from './nav';
 import Shell from './Shell';
@@ -18,9 +19,11 @@ export default function App() {
         ) : !user ? (
           <LoginScreen />
         ) : (
-          <NavProvider>
-            <Shell />
-          </NavProvider>
+          <ConfirmProvider>
+            <NavProvider>
+              <Shell />
+            </NavProvider>
+          </ConfirmProvider>
         )}
       </div>
     </>

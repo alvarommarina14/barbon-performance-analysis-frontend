@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { cx } from '../lib/cx';
 import { problemDetail } from '../lib/problem';
+import { useNav, useUnsavedChanges } from '../nav';
 
 const PLAN_WEEKS = 12;
 
@@ -54,6 +55,9 @@ export default function WeeklyNotesTab({ playerProfileId }: { playerProfileId: s
     setDraft(saved);
   }, [saved, selectedWeek]);
 
+  const { leaveThen } = useNav();
+  useUnsavedChanges(draft !== saved);
+
   const save = useMutation({
     mutationFn: async () => {
       const { data, error } = await api.PUT(
@@ -79,7 +83,7 @@ export default function WeeklyNotesTab({ playerProfileId }: { playerProfileId: s
             key={w}
             type="button"
             className={cx('tab', w === selectedWeek && 'on', written.has(w) && 'has-note')}
-            onClick={() => setWeek(w)}
+            onClick={() => leaveThen(() => setWeek(w))}
           >
             Week {w}
             {w === plan.data?.planWeek ? ' · now' : ''}
