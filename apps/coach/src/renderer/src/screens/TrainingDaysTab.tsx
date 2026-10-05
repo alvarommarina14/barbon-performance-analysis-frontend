@@ -229,11 +229,13 @@ export default function TrainingDaysTab({
                   />
                   <input
                     aria-label="Focus"
+                    placeholder="Focus"
                     value={row.focus}
                     onChange={(e) => update(index, { focus: e.target.value })}
                   />
                   <input
                     aria-label="Duration in minutes"
+                    placeholder="Min"
                     type="number"
                     value={row.durationMinutes}
                     onChange={(e) => update(index, { durationMinutes: e.target.value })}

@@ -855,6 +855,63 @@ button {
   margin-top: 0;
 }
 
+/* Zoomed in (or a small window) the one-screen layout has no room left for the list: fall back
+   to scrolling the page, and stack each day so Title and Focus keep a usable width. */
+@media (max-height: 640px) {
+  .workspace.fit-screen {
+    min-height: auto;
+  }
+
+  .days-panel {
+    flex: none;
+  }
+
+  .days-list {
+    overflow-y: visible;
+  }
+}
+
+@media (max-width: 1000px) {
+  .day-grid-head {
+    display: none;
+  }
+
+  .day-grid {
+    grid-template-columns: 64px minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      'label title title'
+      'focus focus focus'
+      'minutes kind kind'
+      'actions actions actions';
+  }
+
+  .day-row > :nth-child(1) {
+    grid-area: label;
+  }
+
+  .day-row > :nth-child(2) {
+    grid-area: title;
+  }
+
+  .day-row > :nth-child(3) {
+    grid-area: focus;
+  }
+
+  .day-row > :nth-child(4) {
+    grid-area: minutes;
+  }
+
+  .day-row > :nth-child(5) {
+    grid-area: kind;
+  }
+
+  .day-row > :nth-child(6) {
+    grid-area: actions;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
 .upload-progress {
   display: flex;
   flex-direction: column;
