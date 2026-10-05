@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '../api/client';
 import { useConfirm } from '../components/Confirm';
+import { Modal } from '../components/Modal';
 import { useToast } from '../components/Toast';
 import { cx } from '../lib/cx';
 import { problemDetail } from '../lib/problem';
@@ -193,100 +194,99 @@ export default function CyclePhasesScreen() {
       )}
 
       {draft ? (
-        <div className="modal-overlay">
-          <div className="panel modal">
-            <p className="section-title">
-              {draft.editingName ? `Edit “${draft.editingName}”` : 'New template'}
-            </p>
-            {!draft.editingName ? (
-              <label className="field">
-                <span>Template name</span>
-                <input
-                  value={draft.name}
-                  onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-                />
-              </label>
-            ) : null}
-            <div className="tabs">
-              {draft.weeks.map((week) => {
-                const complete = week.phaseName.trim() && week.goal.trim();
-                return (
-                  <button
-                    key={week.weekNumber}
-                    type="button"
-                    className={cx('tab', activeWeek === week.weekNumber && 'on')}
-                    onClick={() => setActiveWeek(week.weekNumber)}
-                  >
-                    Week {week.weekNumber}
-                    {complete ? ' ✓' : ''}
-                  </button>
-                );
-              })}
-            </div>
-            {(() => {
-              const week = draft.weeks.find((w) => w.weekNumber === activeWeek);
-              if (!week) {
-                return null;
-              }
+        <Modal
+          title={draft.editingName ? `Edit “${draft.editingName}”` : 'New template'}
+          onClose={() => setDraft(null)}
+          closeDisabled={save.isPending}
+        >
+          {!draft.editingName ? (
+            <label className="field">
+              <span>Template name</span>
+              <input
+                value={draft.name}
+                onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+              />
+            </label>
+          ) : null}
+          <div className="tabs">
+            {draft.weeks.map((week) => {
+              const complete = week.phaseName.trim() && week.goal.trim();
               return (
-                <div className="panel">
-                  <label className="field">
-                    <span>Phase name</span>
-                    <input
-                      value={week.phaseName}
-                      onChange={(e) => updateWeek(week.weekNumber, { phaseName: e.target.value })}
-                    />
-                  </label>
-                  <label className="field">
-                    <span>Goal</span>
-                    <textarea
-                      className="textarea"
-                      value={week.goal}
-                      onChange={(e) => updateWeek(week.weekNumber, { goal: e.target.value })}
-                    />
-                  </label>
-                  <label className="field">
-                    <span>Sets &amp; reps</span>
-                    <input
-                      placeholder="e.g. 3 × 10–12"
-                      value={week.setsReps}
-                      onChange={(e) => updateWeek(week.weekNumber, { setsReps: e.target.value })}
-                    />
-                  </label>
-                  <label className="field">
-                    <span>RPE range</span>
-                    <input
-                      placeholder="e.g. RPE 6–7"
-                      value={week.rpeRange}
-                      onChange={(e) => updateWeek(week.weekNumber, { rpeRange: e.target.value })}
-                    />
-                  </label>
-                </div>
+                <button
+                  key={week.weekNumber}
+                  type="button"
+                  className={cx('tab', activeWeek === week.weekNumber && 'on')}
+                  onClick={() => setActiveWeek(week.weekNumber)}
+                >
+                  Week {week.weekNumber}
+                  {complete ? ' ✓' : ''}
+                </button>
               );
-            })()}
-            <div className="findings-foot">
-              <div className="button-row">
-                <button
-                  type="button"
-                  className="primary"
-                  disabled={save.isPending || !draft.name.trim() || anyBlank}
-                  onClick={() => save.mutate(draft)}
-                >
-                  {save.isPending ? 'Saving…' : 'Save template'}
-                </button>
-                <button
-                  type="button"
-                  className="ghost"
-                  disabled={save.isPending}
-                  onClick={() => setDraft(null)}
-                >
-                  Cancel
-                </button>
-              </div>
-              {save.isError ? <p className="error">{save.error.message}</p> : null}
-            </div>
+            })}
           </div>
-        </div>
+          {(() => {
+            const week = draft.weeks.find((w) => w.weekNumber === activeWeek);
+            if (!week) {
+              return null;
+            }
+            return (
+              <div className="panel">
+                <label className="field">
+                  <span>Phase name</span>
+                  <input
+                    value={week.phaseName}
+                    onChange={(e) => updateWeek(week.weekNumber, { phaseName: e.target.value })}
+                  />
+                </label>
+                <label className="field">
+                  <span>Goal</span>
+                  <textarea
+                    className="textarea"
+                    value={week.goal}
+                    onChange={(e) => updateWeek(week.weekNumber, { goal: e.target.value })}
+                  />
+                </label>
+                <label className="field">
+                  <span>Sets &amp; reps</span>
+                  <input
+                    placeholder="e.g. 3 × 10–12"
+                    value={week.setsReps}
+                    onChange={(e) => updateWeek(week.weekNumber, { setsReps: e.target.value })}
+                  />
+                </label>
+                <label className="field">
+                  <span>RPE range</span>
+                  <input
+                    placeholder="e.g. RPE 6–7"
+                    value={week.rpeRange}
+                    onChange={(e) => updateWeek(week.weekNumber, { rpeRange: e.target.value })}
+                  />
+                </label>
+              </div>
+            );
+          })()}
+          <div className="findings-foot">
+            <div className="button-row">
+              <button
+                type="button"
+                className="primary"
+                disabled={save.isPending || !draft.name.trim() || anyBlank}
+                onClick={() => save.mutate(draft)}
+              >
+                {save.isPending ? 'Saving…' : 'Save template'}
+              </button>
+              <button
+                type="button"
+                className="ghost"
+                disabled={save.isPending}
+                onClick={() => setDraft(null)}
+              >
+                Cancel
+              </button>
+            </div>
+            {save.isError ? <p className="error">{save.error.message}</p> : null}
+          </div>
+        </Modal>
       ) : null}
     </main>
   );
