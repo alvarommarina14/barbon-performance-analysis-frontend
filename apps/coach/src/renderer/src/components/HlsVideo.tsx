@@ -28,9 +28,22 @@ export const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(function Hls
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const video = videoRef.current;
-      const direction = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
       const target = event.target as HTMLElement | null;
-      if (!video || direction === 0 || target?.closest('input, textarea, select')) {
+      if (!video || target?.closest('input, textarea, select')) {
+        return;
+      }
+      if (event.key === ' ') {
+        event.preventDefault();
+        event.stopPropagation();
+        if (video.paused) {
+          void video.play();
+        } else {
+          video.pause();
+        }
+        return;
+      }
+      const direction = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+      if (direction === 0) {
         return;
       }
       event.preventDefault();
