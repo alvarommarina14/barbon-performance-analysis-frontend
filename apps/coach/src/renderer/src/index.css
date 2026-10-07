@@ -613,8 +613,11 @@ button {
   border-radius: 12px;
 }
 
+/* Panels align their children to the start, which would shrink this wrapper to the video's
+   intrinsic width — a portrait phone clip then plays at ~480px inside an 800px panel. */
 .video-frame-wrap {
   position: relative;
+  align-self: stretch;
 }
 
 .video-loader {
