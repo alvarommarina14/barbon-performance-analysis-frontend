@@ -1222,7 +1222,8 @@ button {
   background: #000;
 }
 
-.drill-thumb img {
+.video-thumb {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1270,10 +1271,10 @@ button {
 }
 
 .drill-pick {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
   padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -1285,6 +1286,21 @@ button {
 
 .drill-pick:hover:not(:disabled) {
   border-color: var(--accent);
+}
+
+.drill-pick-thumb {
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: 6px;
+  background: #000;
+}
+
+.drill-pick-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
 }
 
 .drill-pick strong {

@@ -7,6 +7,7 @@ import { Modal } from '../components/Modal';
 import { useToast } from '../components/Toast';
 import { problemDetail, problemSlug } from '../lib/problem';
 import { UploadProgress } from '../components/UploadProgress';
+import { DrillThumb } from '../components/DrillThumb';
 
 type LibraryItem = components['schemas']['LibraryItemView'];
 type DrillCategory = components['schemas']['LibraryItemView']['category'];
@@ -216,7 +217,11 @@ export default function DrillLibraryScreen() {
             ) : (
               <div className="drill-card" key={item.id}>
                 <div className="drill-thumb">
-                  {item.thumbnailUrl ? <img src={item.thumbnailUrl} alt="" /> : null}
+                  <DrillThumb
+                    libraryItemId={item.id}
+                    thumbnailUrl={item.thumbnailUrl}
+                    ready={item.videoStatus === 'READY'}
+                  />
                   {item.videoStatus !== 'READY' ? (
                     <span className="drill-status">Processing…</span>
                   ) : item.durationSeconds ? (

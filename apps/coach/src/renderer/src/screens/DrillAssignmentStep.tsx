@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
 import { LoadError } from '../components/LoadError';
+import { DrillThumb } from '../components/DrillThumb';
 import { cx } from '../lib/cx';
 import { problemDetail } from '../lib/problem';
 
@@ -269,10 +270,19 @@ export default function DrillAssignmentStep({
                       disabled={added}
                       onClick={() => add(item)}
                     >
-                      <span className="tier">{label(item.category)}</span>
-                      <strong>{item.title}</strong>
-                      {item.cue ? <span className="drill-cue">{item.cue}</span> : null}
-                      <span className="drill-pick-add">{added ? 'Added' : '+ Add'}</span>
+                      <span className="drill-pick-thumb">
+                        <DrillThumb
+                          libraryItemId={item.id}
+                          thumbnailUrl={item.thumbnailUrl}
+                          ready={item.videoStatus === 'READY'}
+                        />
+                      </span>
+                      <span className="drill-pick-body">
+                        <span className="tier">{label(item.category)}</span>
+                        <strong>{item.title}</strong>
+                        {item.cue ? <span className="drill-cue">{item.cue}</span> : null}
+                        <span className="drill-pick-add">{added ? 'Added' : '+ Add'}</span>
+                      </span>
                     </button>
                   );
                 })}
