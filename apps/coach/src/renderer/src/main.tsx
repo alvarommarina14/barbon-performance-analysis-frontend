@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import { AuthProvider } from './auth/AuthContext';
 import './index.css';
+import { installFieldTabbing } from './lib/fieldTabbing';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -13,6 +14,8 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+installFieldTabbing(document);
 
 const container = document.getElementById('root');
 if (!container) {
