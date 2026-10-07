@@ -41,6 +41,13 @@ function formatLongDay(isoDate: string): string {
   });
 }
 
+function isFromTheLastMonth(note: { weekStartsOn?: string; updatedAt: string }): boolean {
+  const monthAgo = new Date();
+  monthAgo.setMonth(monthAgo.getMonth() - 1);
+  const dated = note.weekStartsOn ? new Date(`${note.weekStartsOn}T00:00:00`) : new Date(note.updatedAt);
+  return dated >= monthAgo;
+}
+
 export default function HomeScreen() {
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -64,7 +71,9 @@ export default function HomeScreen() {
       if (error || !data) {
         throw new Error('Could not load your coach notes');
       }
-      return [...data].sort((a, b) => (b.planWeek ?? 0) - (a.planWeek ?? 0));
+      return data
+        .filter(isFromTheLastMonth)
+        .sort((a, b) => (b.planWeek ?? 0) - (a.planWeek ?? 0));
     },
     enabled: Boolean(user),
   });
