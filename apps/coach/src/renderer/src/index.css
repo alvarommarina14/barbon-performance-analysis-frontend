@@ -821,7 +821,7 @@ button {
 
 .day-grid {
   display: grid;
-  grid-template-columns: 64px minmax(0, 1.3fr) minmax(0, 1.5fr) 80px 120px auto;
+  grid-template-columns: 64px minmax(0, 1.3fr) minmax(0, 1.5fr) 80px 120px 290px;
   gap: 10px;
   align-items: center;
 }
@@ -1361,4 +1361,122 @@ button {
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+/* --- Program: day blocks, cover, templates --- */
+
+.day-protocol {
+  grid-column: 2 / -1;
+  min-height: 84px;
+}
+
+@media (max-width: 1000px) {
+  .day-row > .day-protocol {
+    grid-column: 1 / -1;
+  }
+}
+
+.day-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+/* The highlighted block is where the library's "+ Add" puts an exercise. */
+.day-block.is-active {
+  border-color: var(--accent);
+}
+
+.day-block-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.day-block-head input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 14px;
+}
+
+.block-exercise {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--card);
+}
+
+.block-exercise-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.block-exercise-texts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.block-exercise-texts .textarea {
+  min-height: 60px;
+}
+
+.program-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 1080px) {
+  .program-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.program-cover {
+  align-items: stretch;
+}
+
+.program-cover .primary {
+  align-self: flex-start;
+}
+
+.program-cover .textarea {
+  min-height: 64px;
+}
+
+.template-apply {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  width: 100%;
+}
+
+.template-apply .field {
+  flex: 1;
+}
+
+/* Centres the pill on the taller select beside it. */
+.template-apply .ghost {
+  margin-bottom: 7px;
+}
+
+.template-row {
+  align-items: center;
+  width: 100%;
+}
+
+.logs-block-row th {
+  padding-top: 20px;
+  color: var(--accent);
 }

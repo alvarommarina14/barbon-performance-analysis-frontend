@@ -56,11 +56,11 @@ export default function ClientLogsTab({ playerProfileId }: { playerProfileId: st
   const selectedDayId = dayId ?? days.data?.[0]?.id ?? null;
   const selectedWeek = week ?? plan.data?.planWeek ?? 1;
 
-  const exercises = useQuery({
-    queryKey: ['strength', 'training-day', selectedDayId, 'exercises'],
+  const sections = useQuery({
+    queryKey: ['strength', 'training-day', selectedDayId, 'sections'],
     enabled: Boolean(selectedDayId),
     queryFn: async () => {
-      const { data, error } = await api.GET('/api/v1/strength/training-days/{trainingDayId}/exercises', {
+      const { data, error } = await api.GET('/api/v1/strength/training-days/{trainingDayId}/sections', {
         params: { path: { trainingDayId: selectedDayId as string } },
       });
       if (!data) {
@@ -122,17 +122,17 @@ export default function ClientLogsTab({ playerProfileId }: { playerProfileId: st
         </label>
       </div>
 
-      {exercises.isError || logs.isError ? (
+      {sections.isError || logs.isError ? (
         <LoadError
-          message={(exercises.error ?? logs.error)?.message ?? 'Could not load the logs'}
+          message={(sections.error ?? logs.error)?.message ?? 'Could not load the logs'}
           onRetry={() => {
-            void exercises.refetch();
+            void sections.refetch();
             void logs.refetch();
           }}
         />
-      ) : exercises.isPending || logs.isPending ? (
+      ) : sections.isPending || logs.isPending ? (
         <p className="lede">Loading…</p>
-      ) : exercises.data.length === 0 ? (
+      ) : sections.data.every((section) => section.exercises.length === 0) ? (
         <p className="lede">This day has no exercises yet.</p>
       ) : (
         <div className="table-scroll">
@@ -144,18 +144,27 @@ export default function ClientLogsTab({ playerProfileId }: { playerProfileId: st
                 <th>Logged</th>
               </tr>
             </thead>
-            <tbody>
-              {exercises.data.map((exercise) => {
-                const log = logByExercise.get(exercise.id);
-                return (
-                  <tr key={exercise.id}>
-                    <td>{exercise.title}</td>
-                    <td>{prescribed(exercise, selectedWeek) ?? '—'}</td>
-                    <td>{log ? describeSets(log) : <span className="lede">Not logged</span>}</td>
+            {sections.data
+              .filter((section) => section.exercises.length > 0)
+              .map((section) => (
+                <tbody key={section.id}>
+                  <tr className="logs-block-row">
+                    <th colSpan={3} scope="colgroup">
+                      {section.title}
+                    </th>
                   </tr>
-                );
-              })}
-            </tbody>
+                  {section.exercises.map((exercise) => {
+                    const log = logByExercise.get(exercise.id);
+                    return (
+                      <tr key={exercise.id}>
+                        <td>{exercise.title}</td>
+                        <td>{prescribed(exercise, selectedWeek) ?? '—'}</td>
+                        <td>{log ? describeSets(log) : <span className="lede">Not logged</span>}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              ))}
           </table>
         </div>
       )}
