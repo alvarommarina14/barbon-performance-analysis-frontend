@@ -16,6 +16,7 @@
   color-scheme: dark;
 }
 
+
 .titlebar {
   flex: 0 0 auto;
   display: flex;
@@ -474,6 +475,13 @@ button {
 
 .shell-body {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Lets the editor take exactly the window's height so its findings list, not the app, scrolls. */
+.shell-body:has(> .editor-screen) {
+  min-height: 0;
 }
 
 /* --- Editor --- */
@@ -570,8 +578,19 @@ button {
 }
 
 @media (min-width: 1081px) {
+  /* The single row is pinned to the room left on screen, so a long findings list scrolls inside
+     its panel instead of growing the row and scrolling the whole app. */
+  .editor-screen .editor {
+    grid-template-columns: minmax(0, 2.6fr) minmax(320px, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .editor-screen .editor-main {
+    container-type: size;
+  }
+  /* 100cqh is the video column's height; the offset is the panel's padding and heading. */
   .editor-screen .video-frame {
-    max-height: calc(100vh - var(--titlebar-h) - 320px);
+    max-height: calc(100cqh - 96px);
+    margin: 0 auto;
     object-fit: contain;
   }
   .findings-panel {
@@ -959,7 +978,7 @@ button {
 
 .finding-row {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 12px;
   align-items: start;
   padding: 14px;
@@ -981,8 +1000,9 @@ button {
 }
 
 .finding-actions {
+  grid-column: 2;
   display: flex;
-  flex-direction: column;
+  justify-content: flex-end;
   gap: 6px;
 }
 
