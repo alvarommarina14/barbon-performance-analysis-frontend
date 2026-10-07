@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import { AuthProvider } from './auth/AuthContext';
 import './index.css';
-import { installFieldTabbing } from './lib/fieldTabbing';
+import { disableTabKey } from './lib/tabKey';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,7 +15,7 @@ const queryClient = new QueryClient({
   },
 });
 
-installFieldTabbing(document);
+disableTabKey(document);
 
 const container = document.getElementById('root');
 if (!container) {
