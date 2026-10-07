@@ -16,6 +16,9 @@ import { UploadProgress } from '../components/UploadProgress';
 type AnalysisDetail = components['schemas']['AnalysisDetail'];
 type FeedbackState = 'loading' | 'none' | 'processing' | 'errored' | 'ready' | 'published';
 
+// The coach presses "Mark here" just after the shot; the finding should open on it, not past it.
+const MARK_LEAD_SECONDS = 1;
+
 interface FindingRow {
   key: string;
   timestampSeconds: number;
@@ -243,7 +246,7 @@ export default function AnalysisEditorScreen({ analysisId }: { analysisId: strin
   });
 
   function markHere() {
-    const seconds = Math.floor(videoRef.current?.currentTime ?? 0);
+    const seconds = Math.max(0, Math.floor((videoRef.current?.currentTime ?? 0) - MARK_LEAD_SECONDS));
     const key = uid();
     setFindings((rows) => [...rows, { key, timestampSeconds: seconds, title: '', detail: '' }]);
     setFindingsDirty(true);
