@@ -1,5 +1,5 @@
 import { colors, fonts, radii, spacing } from '@barbon-performance-analysis/core';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import {
@@ -62,6 +62,18 @@ export default function StrengthScreen() {
       return data;
     },
     enabled: Boolean(user),
+  });
+
+  // The home's own link expires two hours after it was fetched, and the home stays cached, so
+  // opening asks for a fresh one; the home's link only says whether there is a program at all.
+  const openProgramPdf = useMutation({
+    mutationFn: async () => {
+      const { data } = await api.GET('/api/v1/strength/program-pdf-link');
+      if (!data) {
+        throw new Error('Could not open your program');
+      }
+      await Linking.openURL(data.url);
+    },
   });
 
   const cyclePhases = useQuery({
@@ -266,7 +278,7 @@ export default function StrengthScreen() {
                       <Text style={[theme.muted, { marginTop: spacing.sm }]}>
                         {[
                           day.durationMinutes ? `${day.durationMinutes} min` : null,
-                          `${day.exerciseCount ?? 0} exercises`,
+                          day.kind === 'CARDIO' ? null : `${day.exerciseCount ?? 0} exercises`,
                         ]
                           .filter(Boolean)
                           .join(' · ')}
@@ -279,13 +291,22 @@ export default function StrengthScreen() {
 
             <View style={{ gap: spacing.md }}>
               {home.data?.programPdfUrl ? (
-                <Pressable style={theme.card} onPress={() => Linking.openURL(home.data.programPdfUrl as string)}>
+                <Pressable
+                  style={theme.card}
+                  disabled={openProgramPdf.isPending}
+                  onPress={() => openProgramPdf.mutate()}
+                >
                   <Text style={[theme.body, { color: colors.white, fontWeight: '700' }]}>
                     Program PDF
                   </Text>
                   <Text style={[theme.muted, { marginTop: spacing.xs, color: colors.accent }]}>
-                    Open →
+                    {openProgramPdf.isPending ? 'Opening…' : 'Open →'}
                   </Text>
+                  {openProgramPdf.isError ? (
+                    <Text style={[theme.error, { marginTop: spacing.xs }]}>
+                      {openProgramPdf.error.message}
+                    </Text>
+                  ) : null}
                 </Pressable>
               ) : null}
               {rpeGuide.data?.pdfUrl ? (
