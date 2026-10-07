@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import { AuthProvider } from './auth/AuthContext';
 import './index.css';
-import { disableTabKey } from './lib/tabKey';
+import { restrictKeyboard } from './lib/keyboard';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,7 +15,7 @@ const queryClient = new QueryClient({
   },
 });
 
-disableTabKey(document);
+restrictKeyboard(document);
 
 const container = document.getElementById('root');
 if (!container) {
