@@ -148,7 +148,9 @@ function DrillPlayer({ drill, onClose }: { drill: DrillAssignment; onClose: () =
     },
   });
 
-  const player = useVideoPlayer(playback.data?.hlsUrl ?? null);
+  const player = useVideoPlayer(playback.data?.hlsUrl ?? null, (p) => {
+    p.allowsExternalPlayback = false;
+  });
 
   // The player is created before the signed URL resolves, so play() in the setup callback fires
   // too early to do anything — wait for the source to actually be ready instead.
