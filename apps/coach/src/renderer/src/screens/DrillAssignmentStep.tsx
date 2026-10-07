@@ -181,7 +181,7 @@ export default function DrillAssignmentStep({
           {rows.length > 0 ? (
             <div className="findings-list">
               {rows.map((row) => (
-                <div className="finding-row" key={row.libraryItemId}>
+                <div className="finding-row assigned-row" key={row.libraryItemId}>
                   <span className="assigned-thumb">
                     <DrillThumb
                       libraryItemId={row.libraryItemId}
@@ -189,24 +189,13 @@ export default function DrillAssignmentStep({
                       ready={videoOf(row.libraryItemId)?.videoStatus === 'READY'}
                     />
                   </span>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <span className="tier" style={{ alignSelf: 'flex-start' }}>{label(row.category)}</span>
+                  <div className="assigned-info">
+                    <span className="tier">{label(row.category)}</span>
                     <strong>{row.title}</strong>
-                    {editable ? (
-                      <label className="field">
-                        <span>Note for the player (optional)</span>
-                        <textarea
-                          className="textarea"
-                          value={row.coachNote}
-                          onChange={(e) => update(row.libraryItemId, { coachNote: e.target.value })}
-                        />
-                      </label>
-                    ) : row.coachNote ? (
-                      <p className="lede">{row.coachNote}</p>
-                    ) : null}
+                    {!editable && row.coachNote ? <p className="lede">{row.coachNote}</p> : null}
                   </div>
                   {editable ? (
-                    <div className="finding-actions">
+                    <div className="finding-actions assigned-actions">
                       <button type="button" className="ghost" aria-label={`Move ${row.title} up`} onClick={() => move(row.libraryItemId, -1)}>
                         ↑
                       </button>
@@ -217,6 +206,16 @@ export default function DrillAssignmentStep({
                         Remove
                       </button>
                     </div>
+                  ) : null}
+                  {editable ? (
+                    <label className="field assigned-note">
+                      <span>Note for the player (optional)</span>
+                      <textarea
+                        className="textarea"
+                        value={row.coachNote}
+                        onChange={(e) => update(row.libraryItemId, { coachNote: e.target.value })}
+                      />
+                    </label>
                   ) : null}
                 </div>
               ))}
