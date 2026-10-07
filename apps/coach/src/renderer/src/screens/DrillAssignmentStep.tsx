@@ -148,8 +148,15 @@ export default function DrillAssignmentStep({
     setDirty(true);
   }
 
-  const pickable = (library.data ?? []).filter(
+  // The library only loads while editing; a published analysis still has its assignments' videos.
+  const videoOf = (libraryItemId: string) =>
+    library.data?.find((item) => item.id === libraryItemId) ??
+    assigned.data?.find((a) => a.libraryItemId === libraryItemId);
+  const inCategory = (library.data ?? []).filter(
     (item) => pickerCategory === 'ALL' || item.category === pickerCategory,
+  );
+  const pickable = inCategory.filter(
+    (item) => !rows.some((r) => r.libraryItemId === item.id),
   );
 
   if (assigned.isError) {
@@ -175,8 +182,15 @@ export default function DrillAssignmentStep({
             <div className="findings-list">
               {rows.map((row) => (
                 <div className="finding-row" key={row.libraryItemId}>
-                  <span className="tier">{label(row.category)}</span>
+                  <span className="assigned-thumb">
+                    <DrillThumb
+                      libraryItemId={row.libraryItemId}
+                      thumbnailUrl={videoOf(row.libraryItemId)?.thumbnailUrl}
+                      ready={videoOf(row.libraryItemId)?.videoStatus === 'READY'}
+                    />
+                  </span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <span className="tier" style={{ alignSelf: 'flex-start' }}>{label(row.category)}</span>
                     <strong>{row.title}</strong>
                     {editable ? (
                       <label className="field">
@@ -256,36 +270,34 @@ export default function DrillAssignmentStep({
               <LoadError message={library.error.message} onRetry={() => library.refetch()} />
             ) : library.isPending ? (
               <p className="lede">Loading…</p>
-            ) : pickable.length === 0 ? (
+            ) : inCategory.length === 0 ? (
               <p className="lede">Nothing here — add drills from the Library tab.</p>
+            ) : pickable.length === 0 ? (
+              <p className="lede">Every drill here is already assigned.</p>
             ) : (
               <div className="findings-list">
-                {pickable.map((item) => {
-                  const added = rows.some((r) => r.libraryItemId === item.id);
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      className={cx('drill-pick', added && 'is-added')}
-                      disabled={added}
-                      onClick={() => add(item)}
-                    >
-                      <span className="drill-pick-thumb">
-                        <DrillThumb
-                          libraryItemId={item.id}
-                          thumbnailUrl={item.thumbnailUrl}
-                          ready={item.videoStatus === 'READY'}
-                        />
-                      </span>
-                      <span className="drill-pick-body">
-                        <span className="tier">{label(item.category)}</span>
-                        <strong>{item.title}</strong>
-                        {item.cue ? <span className="drill-cue">{item.cue}</span> : null}
-                        <span className="drill-pick-add">{added ? 'Added' : '+ Add'}</span>
-                      </span>
-                    </button>
-                  );
-                })}
+                {pickable.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="drill-pick"
+                    onClick={() => add(item)}
+                  >
+                    <span className="drill-pick-thumb">
+                      <DrillThumb
+                        libraryItemId={item.id}
+                        thumbnailUrl={item.thumbnailUrl}
+                        ready={item.videoStatus === 'READY'}
+                      />
+                    </span>
+                    <span className="drill-pick-body">
+                      <span className="tier">{label(item.category)}</span>
+                      <strong>{item.title}</strong>
+                      {item.cue ? <span className="drill-cue">{item.cue}</span> : null}
+                      <span className="drill-pick-add">+ Add</span>
+                    </span>
+                  </button>
+                ))}
               </div>
             )}
           </div>

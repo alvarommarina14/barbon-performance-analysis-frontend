@@ -1295,6 +1295,15 @@ button {
   background: #000;
 }
 
+.assigned-thumb {
+  display: block;
+  width: 160px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: 6px;
+  background: #000;
+}
+
 .drill-pick-body {
   display: flex;
   flex-direction: column;
@@ -1306,11 +1315,6 @@ button {
 .drill-pick strong {
   color: var(--white);
   font-size: 14px;
-}
-
-.drill-pick.is-added {
-  opacity: 0.55;
-  cursor: default;
 }
 
 .drill-pick-add {
