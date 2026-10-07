@@ -655,6 +655,11 @@ button {
   border-radius: 12px;
 }
 
+/* Seeking with the arrow keys focuses the video, and its focus ring drew a white frame over it. */
+.video-frame:focus {
+  outline: none;
+}
+
 /* Panels align their children to the start, which would shrink this wrapper to the video's
    intrinsic width — a portrait phone clip then plays at ~480px inside an 800px panel. */
 .video-frame-wrap {
