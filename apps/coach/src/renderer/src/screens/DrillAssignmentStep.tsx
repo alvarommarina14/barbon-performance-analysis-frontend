@@ -190,8 +190,10 @@ export default function DrillAssignmentStep({
                     />
                   </span>
                   <div className="assigned-info">
-                    <span className="tier">{label(row.category)}</span>
-                    <strong>{row.title}</strong>
+                    <div className="assigned-heading">
+                      <strong>{row.title}</strong>
+                      <span className="tier">{label(row.category)}</span>
+                    </div>
                     {!editable && row.coachNote ? <p className="lede">{row.coachNote}</p> : null}
                   </div>
                   {editable ? (

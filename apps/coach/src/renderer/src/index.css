@@ -1309,6 +1309,13 @@ button {
   min-width: 0;
 }
 
+.assigned-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
 .assigned-info strong {
   color: var(--white);
   font-size: 15px;
