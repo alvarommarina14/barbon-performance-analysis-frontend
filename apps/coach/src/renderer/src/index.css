@@ -16,6 +16,29 @@
   color-scheme: dark;
 }
 
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 100px;
+  background: #3a3a3a padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--gray);
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+}
 
 .titlebar {
   flex: 0 0 auto;
