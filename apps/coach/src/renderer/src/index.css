@@ -16,6 +16,30 @@
   color-scheme: dark;
 }
 
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 100px;
+  background: #3a3a3a padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--gray);
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+}
+
 .titlebar {
   flex: 0 0 auto;
   display: flex;
@@ -474,6 +498,13 @@ button {
 
 .shell-body {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Lets the editor take exactly the window's height so its findings list, not the app, scrolls. */
+.shell-body:has(> .editor-screen) {
+  min-height: 0;
 }
 
 /* --- Editor --- */
@@ -570,8 +601,19 @@ button {
 }
 
 @media (min-width: 1081px) {
+  /* The single row is pinned to the room left on screen, so a long findings list scrolls inside
+     its panel instead of growing the row and scrolling the whole app. */
+  .editor-screen .editor {
+    grid-template-columns: minmax(0, 2.6fr) minmax(320px, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .editor-screen .editor-main {
+    container-type: size;
+  }
+  /* 100cqh is the video column's height; the offset is the panel's padding and heading. */
   .editor-screen .video-frame {
-    max-height: calc(100vh - var(--titlebar-h) - 320px);
+    max-height: calc(100cqh - 96px);
+    margin: 0 auto;
     object-fit: contain;
   }
   .findings-panel {
@@ -613,8 +655,16 @@ button {
   border-radius: 12px;
 }
 
+/* Seeking with the arrow keys focuses the video, and its focus ring drew a white frame over it. */
+.video-frame:focus {
+  outline: none;
+}
+
+/* Panels align their children to the start, which would shrink this wrapper to the video's
+   intrinsic width — a portrait phone clip then plays at ~480px inside an 800px panel. */
 .video-frame-wrap {
   position: relative;
+  align-self: stretch;
 }
 
 .video-loader {
@@ -956,7 +1006,7 @@ button {
 
 .finding-row {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 12px;
   align-items: start;
   padding: 14px;
@@ -978,8 +1028,9 @@ button {
 }
 
 .finding-actions {
+  grid-column: 2;
   display: flex;
-  flex-direction: column;
+  justify-content: flex-end;
   gap: 6px;
 }
 
@@ -1171,7 +1222,8 @@ button {
   background: #000;
 }
 
-.drill-thumb img {
+.video-thumb {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1219,10 +1271,10 @@ button {
 }
 
 .drill-pick {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
   padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -1236,14 +1288,71 @@ button {
   border-color: var(--accent);
 }
 
+.drill-pick-thumb {
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: 6px;
+  background: #000;
+}
+
+/* Thumbnail, name and actions share one line; the note spans the full card underneath. */
+.assigned-row {
+  grid-template-columns: 144px minmax(0, 1fr) auto;
+  gap: 12px 16px;
+}
+
+.assigned-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.assigned-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.assigned-info strong {
+  color: var(--white);
+  font-size: 15px;
+}
+
+.assigned-actions {
+  grid-column: auto;
+}
+
+.assigned-note {
+  grid-column: 1 / -1;
+}
+
+.assigned-note .textarea {
+  min-height: 64px;
+}
+
+.assigned-thumb {
+  display: block;
+  width: 144px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: 6px;
+  background: #000;
+}
+
+.drill-pick-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
 .drill-pick strong {
   color: var(--white);
   font-size: 14px;
-}
-
-.drill-pick.is-added {
-  opacity: 0.55;
-  cursor: default;
 }
 
 .drill-pick-add {

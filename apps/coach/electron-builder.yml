@@ -6,6 +6,10 @@ directories:
 files:
   - out/**
   - package.json
+  # The window icon is read at runtime; build resources are otherwise left out of the app.
+  - resources/icon.png
+asarUnpack:
+  - resources/icon.png
 win:
   target: nsis
 mac:

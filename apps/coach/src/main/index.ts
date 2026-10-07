@@ -4,6 +4,7 @@ import * as https from 'node:https';
 import { basename, join } from 'node:path';
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import * as tus from 'tus-js-client';
+import icon from '../../resources/icon.png?asset';
 import { tokenVault } from './tokenVault';
 
 const isDev = !app.isPackaged;
@@ -17,6 +18,7 @@ function createWindow(): BrowserWindow {
     show: false,
     // Matches the mockup's background so the window does not flash white while loading.
     backgroundColor: '#0a0a0a',
+    icon,
     autoHideMenuBar: true,
     // No native title bar: the renderer draws its own to match the app's dark theme.
     frame: false,

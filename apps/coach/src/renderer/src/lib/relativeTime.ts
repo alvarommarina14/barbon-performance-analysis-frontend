@@ -17,8 +17,12 @@ export function relativeDate(iso: string): string {
   }
   for (const [unit, ms] of UNITS) {
     if (Math.abs(diff) >= ms) {
-      return rtf.format(Math.round(diff / ms), unit);
+      return capitalize(rtf.format(Math.round(diff / ms), unit));
     }
   }
-  return 'just now';
+  return 'Just now';
+}
+
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }

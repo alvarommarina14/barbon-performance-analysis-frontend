@@ -220,7 +220,7 @@ export default function SubmitScreen() {
 
               <TextInput
                 style={[theme.input, { minHeight: 88, textAlignVertical: 'top' }]}
-                placeholder="Anything your coach should know? (optional)"
+                placeholder="Write any notes if needed"
                 placeholderTextColor={colors.gray}
                 value={note}
                 onChangeText={setNote}

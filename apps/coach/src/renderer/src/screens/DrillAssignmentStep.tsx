@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
 import { LoadError } from '../components/LoadError';
+import { DrillThumb } from '../components/DrillThumb';
 import { cx } from '../lib/cx';
 import { problemDetail } from '../lib/problem';
 
@@ -147,8 +148,15 @@ export default function DrillAssignmentStep({
     setDirty(true);
   }
 
-  const pickable = (library.data ?? []).filter(
+  // The library only loads while editing; a published analysis still has its assignments' videos.
+  const videoOf = (libraryItemId: string) =>
+    library.data?.find((item) => item.id === libraryItemId) ??
+    assigned.data?.find((a) => a.libraryItemId === libraryItemId);
+  const inCategory = (library.data ?? []).filter(
     (item) => pickerCategory === 'ALL' || item.category === pickerCategory,
+  );
+  const pickable = inCategory.filter(
+    (item) => !rows.some((r) => r.libraryItemId === item.id),
   );
 
   if (assigned.isError) {
@@ -173,25 +181,23 @@ export default function DrillAssignmentStep({
           {rows.length > 0 ? (
             <div className="findings-list">
               {rows.map((row) => (
-                <div className="finding-row" key={row.libraryItemId}>
-                  <span className="tier">{label(row.category)}</span>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <strong>{row.title}</strong>
-                    {editable ? (
-                      <label className="field">
-                        <span>Note for the player (optional)</span>
-                        <textarea
-                          className="textarea"
-                          value={row.coachNote}
-                          onChange={(e) => update(row.libraryItemId, { coachNote: e.target.value })}
-                        />
-                      </label>
-                    ) : row.coachNote ? (
-                      <p className="lede">{row.coachNote}</p>
-                    ) : null}
+                <div className="finding-row assigned-row" key={row.libraryItemId}>
+                  <span className="assigned-thumb">
+                    <DrillThumb
+                      libraryItemId={row.libraryItemId}
+                      thumbnailUrl={videoOf(row.libraryItemId)?.thumbnailUrl}
+                      ready={videoOf(row.libraryItemId)?.videoStatus === 'READY'}
+                    />
+                  </span>
+                  <div className="assigned-info">
+                    <div className="assigned-heading">
+                      <strong>{row.title}</strong>
+                      <span className="tier">{label(row.category)}</span>
+                    </div>
+                    {!editable && row.coachNote ? <p className="lede">{row.coachNote}</p> : null}
                   </div>
                   {editable ? (
-                    <div className="finding-actions">
+                    <div className="finding-actions assigned-actions">
                       <button type="button" className="ghost" aria-label={`Move ${row.title} up`} onClick={() => move(row.libraryItemId, -1)}>
                         ↑
                       </button>
@@ -202,6 +208,16 @@ export default function DrillAssignmentStep({
                         Remove
                       </button>
                     </div>
+                  ) : null}
+                  {editable ? (
+                    <label className="field assigned-note">
+                      <span>Note for the player (optional)</span>
+                      <textarea
+                        className="textarea"
+                        value={row.coachNote}
+                        onChange={(e) => update(row.libraryItemId, { coachNote: e.target.value })}
+                      />
+                    </label>
                   ) : null}
                 </div>
               ))}
@@ -255,27 +271,34 @@ export default function DrillAssignmentStep({
               <LoadError message={library.error.message} onRetry={() => library.refetch()} />
             ) : library.isPending ? (
               <p className="lede">Loading…</p>
-            ) : pickable.length === 0 ? (
+            ) : inCategory.length === 0 ? (
               <p className="lede">Nothing here — add drills from the Library tab.</p>
+            ) : pickable.length === 0 ? (
+              <p className="lede">Every drill here is already assigned.</p>
             ) : (
               <div className="findings-list">
-                {pickable.map((item) => {
-                  const added = rows.some((r) => r.libraryItemId === item.id);
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      className={cx('drill-pick', added && 'is-added')}
-                      disabled={added}
-                      onClick={() => add(item)}
-                    >
+                {pickable.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="drill-pick"
+                    onClick={() => add(item)}
+                  >
+                    <span className="drill-pick-thumb">
+                      <DrillThumb
+                        libraryItemId={item.id}
+                        thumbnailUrl={item.thumbnailUrl}
+                        ready={item.videoStatus === 'READY'}
+                      />
+                    </span>
+                    <span className="drill-pick-body">
                       <span className="tier">{label(item.category)}</span>
                       <strong>{item.title}</strong>
                       {item.cue ? <span className="drill-cue">{item.cue}</span> : null}
-                      <span className="drill-pick-add">{added ? 'Added' : '+ Add'}</span>
-                    </button>
-                  );
-                })}
+                      <span className="drill-pick-add">+ Add</span>
+                    </span>
+                  </button>
+                ))}
               </div>
             )}
           </div>

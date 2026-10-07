@@ -7,6 +7,7 @@ import { Modal } from '../components/Modal';
 import { useToast } from '../components/Toast';
 import { problemDetail, problemSlug } from '../lib/problem';
 import { UploadProgress } from '../components/UploadProgress';
+import { DrillThumb } from '../components/DrillThumb';
 
 type LibraryItem = components['schemas']['LibraryItemView'];
 type DrillCategory = components['schemas']['LibraryItemView']['category'];
@@ -169,7 +170,16 @@ export default function DrillLibraryScreen() {
         <div className="drill-grid">
           {library.data.map((item) =>
             editing?.id === item.id ? (
-              <div className="panel" key={item.id}>
+              <form
+                className="panel"
+                key={item.id}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!saveEdit.isPending && editing.title.trim()) {
+                    saveEdit.mutate(editing);
+                  }
+                }}
+              >
                 <label className="field">
                   <span>Title</span>
                   <input
@@ -201,10 +211,9 @@ export default function DrillLibraryScreen() {
                 </label>
                 <div className="button-row">
                   <button
-                    type="button"
+                    type="submit"
                     className="primary"
                     disabled={saveEdit.isPending || !editing.title.trim()}
-                    onClick={() => saveEdit.mutate(editing)}
                   >
                     Save
                   </button>
@@ -212,11 +221,15 @@ export default function DrillLibraryScreen() {
                     Cancel
                   </button>
                 </div>
-              </div>
+              </form>
             ) : (
               <div className="drill-card" key={item.id}>
                 <div className="drill-thumb">
-                  {item.thumbnailUrl ? <img src={item.thumbnailUrl} alt="" /> : null}
+                  <DrillThumb
+                    libraryItemId={item.id}
+                    thumbnailUrl={item.thumbnailUrl}
+                    ready={item.videoStatus === 'READY'}
+                  />
                   {item.videoStatus !== 'READY' ? (
                     <span className="drill-status">Processing…</span>
                   ) : item.durationSeconds ? (

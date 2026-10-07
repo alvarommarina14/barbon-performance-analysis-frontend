@@ -36,6 +36,7 @@ export default function RecordingTipsScreen() {
 
   const player = useVideoPlayer(playback.data?.hlsUrl ?? null, (p) => {
     p.timeUpdateEventInterval = 0.5;
+    p.allowsExternalPlayback = false;
   });
 
   const [status, setStatus] = useState<VideoPlayerStatus>('loading');

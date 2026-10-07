@@ -9,6 +9,8 @@ interface HlsVideoProps {
 
 type LoadPhase = 'loading' | 'stalled' | 'ready';
 
+const SEEK_STEP_SECONDS = 5;
+
 // Chromium (and therefore Electron) has no native HLS, so hls.js transmuxes to MSE. The worker
 // is disabled: the renderer CSP has no `blob:` in script scope, and coach-review clips are short.
 export const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(function HlsVideo(
@@ -20,6 +22,38 @@ export const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(function Hls
 
   const [phase, setPhase] = useState<LoadPhase>('loading');
   const [fraction, setFraction] = useState<number | null>(null);
+
+  // Chromium's own controls jump a share of the clip per arrow press (~30s on a long match);
+  // the capture listener runs first and replaces that with a fixed step, video focused or not.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const video = videoRef.current;
+      const target = event.target as HTMLElement | null;
+      if (!video || target?.closest('input, textarea, select')) {
+        return;
+      }
+      if (event.key === ' ') {
+        event.preventDefault();
+        event.stopPropagation();
+        if (video.paused) {
+          void video.play();
+        } else {
+          video.pause();
+        }
+        return;
+      }
+      const direction = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+      if (direction === 0) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      const end = Number.isFinite(video.duration) ? video.duration : Infinity;
+      video.currentTime = Math.min(end, Math.max(0, video.currentTime + direction * SEEK_STEP_SECONDS));
+    };
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => window.removeEventListener('keydown', onKeyDown, true);
+  }, []);
 
   useEffect(() => {
     const video = videoRef.current;

@@ -383,7 +383,9 @@ function ExercisePlayer({
     },
   });
 
-  const player = useVideoPlayer(playback.data?.hlsUrl ?? null);
+  const player = useVideoPlayer(playback.data?.hlsUrl ?? null, (p) => {
+    p.allowsExternalPlayback = false;
+  });
 
   useEffect(() => {
     const sub = player.addListener('statusChange', (payload) => {
