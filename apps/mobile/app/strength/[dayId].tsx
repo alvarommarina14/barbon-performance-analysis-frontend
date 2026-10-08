@@ -1,4 +1,4 @@
-import { colors, spacing } from '@barbon-performance-analysis/core';
+import { colors, setsRepsForCycleWeek, spacing } from '@barbon-performance-analysis/core';
 import type { components } from '@barbon-performance-analysis/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
@@ -27,12 +27,6 @@ type ExerciseLogView = components['schemas']['ExerciseLogView'];
 interface SetRow {
   reps: string;
   weight: string;
-}
-
-function repsForWeek(exercise: DayExerciseView, cycleWeek: number): string | undefined {
-  return [exercise.setsRepsWk1, exercise.setsRepsWk2, exercise.setsRepsWk3, exercise.setsRepsWk4][
-    cycleWeek - 1
-  ];
 }
 
 // "3×8", "3x8" or "3 x 8-10" → three rows pre-filled with 8 reps; anything else → one empty row.
@@ -219,7 +213,7 @@ export default function TrainingDayScreen() {
                     exercise={exercise}
                     dayId={dayId}
                     planWeek={planWeek}
-                    prescription={repsForWeek(exercise, cycleWeek)}
+                    prescription={setsRepsForCycleWeek(exercise, cycleWeek)}
                     log={logs.data?.find((l) => l.dayExerciseId === exercise.id)}
                     previous={previousLogs.data?.find((l) => l.dayExerciseId === exercise.id)}
                     unit={unit}

@@ -1,4 +1,5 @@
 import type { components } from '@barbon-performance-analysis/api-client';
+import { setsRepsForCycleWeek } from '@barbon-performance-analysis/core';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '../api/client';
@@ -12,9 +13,7 @@ const PLAN_WEEKS = 12;
 
 function prescribed(exercise: DayExerciseView, planWeek: number): string | undefined {
   const cycleWeek = ((planWeek - 1) % 4) + 1;
-  return [exercise.setsRepsWk1, exercise.setsRepsWk2, exercise.setsRepsWk3, exercise.setsRepsWk4][
-    cycleWeek - 1
-  ];
+  return setsRepsForCycleWeek(exercise, cycleWeek);
 }
 
 function describeSets(log: ExerciseLogView): string {

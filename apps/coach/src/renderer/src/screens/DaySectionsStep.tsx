@@ -1,4 +1,5 @@
 import type { components } from '@barbon-performance-analysis/api-client';
+import { setsRepsByWeek } from '@barbon-performance-analysis/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type DragEvent, useEffect, useState } from 'react';
 import { api } from '../api/client';
@@ -479,7 +480,7 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
                               key={field}
                               className="week-input"
                               aria-label={`${row.title}, week ${i + 1}`}
-                              placeholder="3×10"
+                              placeholder={(i > 0 && setsRepsByWeek(row)[i - 1]) || '3×10'}
                               value={row[field]}
                               onChange={(e) => updateExercise(row.key, { [field]: e.target.value })}
                             />
