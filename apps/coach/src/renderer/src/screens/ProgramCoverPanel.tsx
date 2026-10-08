@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { boldOnCtrlB } from '../lib/bold';
+import { InfoTip } from '../components/InfoTip';
+import { RichTextField } from '../components/RichTextField';
 import { useUnsavedChanges } from '../nav';
 
 export interface ProgramCover {
@@ -41,11 +42,13 @@ export default function ProgramCoverPanel({ cover, variant, save }: ProgramCover
 
   return (
     <div className="panel program-cover">
-      <h2 className="section-title">Cover</h2>
-      <p className="lede">
-        The first page of the program PDF. Select words and press Ctrl+B — or type **like this** — to
-        print them in bold.
-      </p>
+      <div className="section-head">
+        <h2 className="section-title">Cover</h2>
+        <InfoTip label="Bold text">
+          Select words and press Ctrl+B, or the B button in the field, to print them in bold.
+        </InfoTip>
+      </div>
+      <p className="lede">The first page of the program PDF.</p>
       {variant === 'template' ? (
         <label className="field">
           <span>Template name</span>
@@ -61,40 +64,37 @@ export default function ProgramCoverPanel({ cover, variant, save }: ProgramCover
           />
         </label>
       )}
-      <label className="field">
+      <div className="field">
         <span>About your program</span>
-        <textarea
-          className="textarea"
+        <RichTextField
+          label="About your program"
           placeholder="What this program is for and how it builds over the weeks"
           value={draft.about}
-          onChange={(e) => setDraft({ ...draft, about: e.target.value })}
-          onKeyDown={boldOnCtrlB}
+          onChange={(about) => setDraft((prev) => ({ ...prev, about }))}
         />
-      </label>
-      <label className="field">
+      </div>
+      <div className="field">
         <span>How to schedule</span>
-        <textarea
-          className="textarea"
+        <RichTextField
+          label="How to schedule"
           placeholder="e.g. Days 1 and 3 on court days, Day 2 on a rest day"
           value={draft.schedule}
-          onChange={(e) => setDraft({ ...draft, schedule: e.target.value })}
-          onKeyDown={boldOnCtrlB}
+          onChange={(schedule) => setDraft((prev) => ({ ...prev, schedule }))}
         />
-      </label>
-      <label className="field">
+      </div>
+      <div className="field">
         <span>4-week cycle</span>
-        <textarea
-          className="textarea"
+        <RichTextField
+          label="4-week cycle"
           placeholder="e.g. Deload weeks are non-negotiable — they let the body adapt to the previous 3 weeks of work."
           value={draft.cycleNote}
-          onChange={(e) => setDraft({ ...draft, cycleNote: e.target.value })}
-          onKeyDown={boldOnCtrlB}
+          onChange={(cycleNote) => setDraft((prev) => ({ ...prev, cycleNote }))}
         />
         <small className="field-hint">
           Follows “Repeat the 4-week cycle continuously: Week 1 (Base) → …”, which the PDF builds from the
           cycle weeks.
         </small>
-      </label>
+      </div>
       <button
         type="button"
         className="primary"

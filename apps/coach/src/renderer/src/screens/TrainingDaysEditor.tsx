@@ -1,6 +1,7 @@
 import type { components } from '@barbon-performance-analysis/api-client';
 import { useMutation } from '@tanstack/react-query';
 import { useEffect, useState, type ReactNode } from 'react';
+import { RichTextField } from '../components/RichTextField';
 import { useUnsavedChanges } from '../nav';
 
 type TrainingDayView = components['schemas']['TrainingDayView'];
@@ -179,12 +180,12 @@ export default function TrainingDaysEditor({ days, save, onEditDay, emptyMessage
                   )}
                 </div>
                 {row.kind === 'CARDIO' ? (
-                  <textarea
-                    className="textarea day-protocol"
-                    aria-label={`Protocol for Day ${index + 1}`}
+                  <RichTextField
+                    className="day-protocol"
+                    label={`Protocol for Day ${index + 1}`}
                     placeholder="Protocol — e.g. 5 min easy, then 8 × 30 s hard / 90 s easy, 5 min cool-down"
                     value={row.protocol}
-                    onChange={(e) => update(index, { protocol: e.target.value })}
+                    onChange={(protocol) => update(index, { protocol })}
                   />
                 ) : null}
               </div>

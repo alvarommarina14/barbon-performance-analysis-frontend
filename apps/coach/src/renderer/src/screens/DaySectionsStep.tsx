@@ -7,6 +7,7 @@ import { useConfirm } from '../components/Confirm';
 import { DrillThumb } from '../components/DrillThumb';
 import { LoadError } from '../components/LoadError';
 import { Modal } from '../components/Modal';
+import { RichTextField } from '../components/RichTextField';
 import { cx } from '../lib/cx';
 import { problemDetail } from '../lib/problem';
 import { uid } from '../lib/uid';
@@ -660,15 +661,15 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
               onChange={(e) => setDetails({ ...details, cueOverride: e.target.value })}
             />
           </label>
-          <label className="field">
+          <div className="field">
             <span>Notes (optional)</span>
-            <textarea
-              className="textarea"
+            <RichTextField
+              label="Notes"
               placeholder="e.g. Use a light band, pause 2 s at the top"
               value={details.notes}
-              onChange={(e) => setDetails({ ...details, notes: e.target.value })}
+              onChange={(notes) => setDetails((prev) => prev && { ...prev, notes })}
             />
-          </label>
+          </div>
           <div className="findings-foot">
             <div className="button-row">
               <button type="button" className="primary" onClick={() => applyDetails(details)}>

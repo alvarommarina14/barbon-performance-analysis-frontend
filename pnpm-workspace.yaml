@@ -5,6 +5,10 @@ allowBuilds:
   electron: true
   electron-winstaller: true
   esbuild: true
+# @tiptap/react pulls these optionally with a caret; keep them on the same release as the rest.
+overrides:
+  '@tiptap/extension-bubble-menu': 3.31.3
+  '@tiptap/extension-floating-menu': 3.31.3
 minimumReleaseAgeExclude:
   - '@expo/cli@57.0.19'
   - '@expo/inline-modules@0.1.7'

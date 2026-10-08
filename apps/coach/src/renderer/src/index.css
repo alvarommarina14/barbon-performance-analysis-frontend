@@ -728,6 +728,72 @@ button {
   outline: none;
 }
 
+.rich-text {
+  position: relative;
+}
+
+.rich-text .ProseMirror {
+  box-sizing: border-box;
+  min-height: 90px;
+  padding: 12px 44px 12px 14px;
+  border: 1px solid var(--field-line);
+  border-radius: 8px;
+  background: var(--dark);
+  color: var(--white);
+  font-size: 15px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  cursor: text;
+}
+
+.rich-text .ProseMirror:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.rich-text .ProseMirror p {
+  margin: 0;
+}
+
+.rich-text .ProseMirror strong {
+  color: var(--white);
+  font-weight: 700;
+}
+
+.rich-text .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: var(--gray);
+  pointer-events: none;
+}
+
+.rich-text-bold {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--gray);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.rich-text-bold:hover {
+  color: var(--white);
+}
+
+.rich-text-bold.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .panel input {
   padding: 12px 14px;
   border: 1px solid var(--field-line);
@@ -1066,6 +1132,61 @@ button {
   text-transform: uppercase;
 }
 
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-tip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--field-line);
+  border-radius: 50%;
+  color: var(--gray);
+  font-size: 11px;
+  font-style: italic;
+  cursor: help;
+}
+
+.info-tip:hover,
+.info-tip:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  outline: none;
+}
+
+.info-tip-text {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: -8px;
+  z-index: 20;
+  width: max-content;
+  max-width: 280px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--dark);
+  color: var(--text);
+  font-size: 13px;
+  font-style: normal;
+  line-height: 1.45;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+
+.info-tip:hover .info-tip-text,
+.info-tip:focus-visible .info-tip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
 .back-link {
   align-self: flex-start;
   padding: 0;
@@ -1365,6 +1486,9 @@ button {
 
 .day-protocol {
   grid-column: 2 / -1;
+}
+
+.day-protocol .ProseMirror {
   min-height: 84px;
 }
 
@@ -1569,7 +1693,8 @@ button {
   align-self: flex-start;
 }
 
-.program-cover .textarea {
+.program-cover .textarea,
+.program-cover .rich-text .ProseMirror {
   min-height: 64px;
 }
 
