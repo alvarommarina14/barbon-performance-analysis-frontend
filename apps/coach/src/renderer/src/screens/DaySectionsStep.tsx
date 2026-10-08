@@ -1,6 +1,6 @@
 import type { components } from '@barbon-performance-analysis/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { type DragEvent, useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { DrillThumb } from '../components/DrillThumb';
 import { LoadError } from '../components/LoadError';
@@ -13,6 +13,7 @@ type LibraryItem = components['schemas']['LibraryItemView'];
 type DaySectionView = components['schemas']['DaySectionView'];
 
 const WEEK_FIELDS = ['setsRepsWk1', 'setsRepsWk2', 'setsRepsWk3', 'setsRepsWk4'] as const;
+const LIBRARY_ITEM_TYPE = 'application/x-barbon-library-item';
 
 interface ExerciseRow {
   key: string;
@@ -55,6 +56,12 @@ const toBlocks = (sections: DaySectionView[]): BlockRow[] =>
     })),
   }));
 
+// A null blockKey is the empty day: dropping there opens its first block.
+interface DropTarget {
+  blockKey: string | null;
+  index: number;
+}
+
 const blankBlock = (title = ''): BlockRow => ({ key: uid(), id: null, title, note: '', exercises: [] });
 
 export default function DaySectionsStep({ trainingDayId }: { trainingDayId: string }) {
@@ -88,6 +95,7 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
   const [blocks, setBlocks] = useState<BlockRow[]>([]);
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
 
   useEffect(() => {
     if (sections.data && !dirty) {
@@ -167,7 +175,7 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
     edit((prev) => prev.filter((b) => b.key !== key));
   }
 
-  function addExercise(item: LibraryItem) {
+  function addExercise(item: LibraryItem, target?: DropTarget) {
     const row: ExerciseRow = {
       key: uid(),
       id: null,
@@ -180,15 +188,52 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
       setsRepsWk3: '',
       setsRepsWk4: '',
     };
-    if (!activeBlock) {
+    const blockKey = target ? target.blockKey : (activeBlock?.key ?? null);
+    if (blockKey === null) {
       const block = { ...blankBlock('Exercises'), exercises: [row] };
       edit(() => [block]);
       setActiveKey(block.key);
       return;
     }
+    const index = target?.index ?? Infinity;
     edit((prev) =>
-      prev.map((b) => (b.key === activeBlock.key ? { ...b, exercises: [...b.exercises, row] } : b)),
+      prev.map((b) => (b.key === blockKey ? { ...b, exercises: b.exercises.toSpliced(index, 0, row) } : b)),
     );
+    setActiveKey(blockKey);
+  }
+
+  function dragOver(event: DragEvent<HTMLElement>, target: DropTarget) {
+    if (!event.dataTransfer.types.includes(LIBRARY_ITEM_TYPE)) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = 'copy';
+    setDropTarget((prev) =>
+      prev?.blockKey === target.blockKey && prev.index === target.index ? prev : target,
+    );
+  }
+
+  function dragOverExercise(event: DragEvent<HTMLElement>, blockKey: string, exerciseIndex: number) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const below = event.clientY > rect.top + rect.height / 2;
+    dragOver(event, { blockKey, index: exerciseIndex + (below ? 1 : 0) });
+  }
+
+  function drop(event: DragEvent<HTMLElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    const item = pickable.find((i) => i.id === event.dataTransfer.getData(LIBRARY_ITEM_TYPE));
+    if (item && dropTarget) {
+      addExercise(item, dropTarget);
+    }
+    setDropTarget(null);
+  }
+
+  function dragLeave(event: DragEvent<HTMLElement>) {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setDropTarget(null);
+    }
   }
 
   function updateExercise(key: string, patch: Partial<ExerciseRow>) {
@@ -247,7 +292,14 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
   return (
     <div className="editor">
       <div className="editor-main">
-        <div className="panel findings-panel">
+        <div
+          className={cx('panel findings-panel', dropTarget?.blockKey === null && 'is-drop-target')}
+          onDragOver={(e) =>
+            blocks.length === 0 ? dragOver(e, { blockKey: null, index: 0 }) : setDropTarget(null)
+          }
+          onDragLeave={dragLeave}
+          onDrop={drop}
+        >
           <div className="workspace-header">
             <h2 className="section-title">Blocks</h2>
             <button type="button" className="ghost" disabled={sections.isPending} onClick={addBlock}>
@@ -259,16 +311,26 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
           ) : blocks.length === 0 ? (
             <p className="lede">
               Split the day into blocks — “Injury prevention”, “Main work”, “Finisher” — and pick
-              each block’s exercises from the library on the right.
+              each block’s exercises from the library on the right, or drag them in.
             </p>
           ) : (
             <div className="findings-list">
               {blocks.map((block, blockIndex) => (
                 <section
                   key={block.key}
-                  className={cx('day-block', block.key === activeBlock?.key && 'is-active')}
+                  className={cx(
+                    'day-block',
+                    block.key === activeBlock?.key && 'is-active',
+                    dropTarget?.blockKey === block.key && 'is-drop-target',
+                    dropTarget?.blockKey === block.key &&
+                      block.exercises.length > 0 &&
+                      dropTarget.index === block.exercises.length &&
+                      'drop-at-end',
+                  )}
                   onClick={() => setActiveKey(block.key)}
                   onFocus={() => setActiveKey(block.key)}
+                  onDragOver={(e) => dragOver(e, { blockKey: block.key, index: block.exercises.length })}
+                  onDrop={drop}
                 >
                   <div className="day-block-head">
                     <input
@@ -300,11 +362,18 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
                     <p className="lede">
                       {block.key === activeBlock?.key
                         ? 'Exercises you pick from the library land here.'
-                        : 'No exercises yet — click this block, then pick from the library.'}
+                        : 'No exercises yet — drag one here, or click this block and pick from the library.'}
                     </p>
                   ) : (
                     block.exercises.map((row, exerciseIndex) => (
-                      <div className="block-exercise" key={row.key}>
+                      <div
+                        className={cx(
+                          'block-exercise',
+                          dropTarget?.blockKey === block.key && dropTarget.index === exerciseIndex && 'drop-before',
+                        )}
+                        key={row.key}
+                        onDragOver={(e) => dragOverExercise(e, block.key, exerciseIndex)}
+                      >
                         <div className="block-exercise-head">
                           <strong>{row.title}</strong>
                           <div className="day-actions">
@@ -398,7 +467,13 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
                   type="button"
                   className="drill-pick"
                   disabled={sections.isPending}
+                  draggable
                   onClick={() => addExercise(item)}
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData(LIBRARY_ITEM_TYPE, item.id);
+                    e.dataTransfer.effectAllowed = 'copy';
+                  }}
+                  onDragEnd={() => setDropTarget(null)}
                 >
                   <span className="drill-pick-thumb">
                     <DrillThumb

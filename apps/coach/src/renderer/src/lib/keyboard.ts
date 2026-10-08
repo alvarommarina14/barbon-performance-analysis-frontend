@@ -14,10 +14,18 @@ export function restrictKeyboard(root: Document): void {
   root.addEventListener(
     'mousedown',
     (event) => {
-      if ((event.target as Element | null)?.closest('button, a[href], [role="button"]')) {
-        event.preventDefault();
-        (root.activeElement as HTMLElement | null)?.blur();
+      const pressable = (event.target as Element | null)?.closest<HTMLElement>('button, a[href], [role="button"]');
+      if (!pressable) {
+        return;
       }
+      // Cancelling mousedown would also cancel the drag, so a draggable control lets go of focus
+      // once the click lands instead.
+      if (pressable.draggable) {
+        pressable.addEventListener('click', () => pressable.blur(), { once: true });
+        return;
+      }
+      event.preventDefault();
+      (root.activeElement as HTMLElement | null)?.blur();
     },
     true,
   );
