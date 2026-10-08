@@ -142,9 +142,9 @@ export default function TrainingDaysEditor({ days, save, onEditDay, emptyMessage
                 <input
                   aria-label="Duration in minutes"
                   placeholder="Min"
-                  type="number"
+                  inputMode="numeric"
                   value={row.durationMinutes}
-                  onChange={(e) => update(index, { durationMinutes: e.target.value })}
+                  onChange={(e) => update(index, { durationMinutes: e.target.value.replace(/\D/g, '') })}
                 />
                 <select
                   aria-label="Kind"
