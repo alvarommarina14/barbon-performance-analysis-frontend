@@ -10,8 +10,8 @@ interface WeekRow {
   weekNumber: number;
   phaseName: string;
   goal: string;
-  setsReps: string;
   rpeRange: string;
+  example: string;
 }
 
 const toRows = (phases: CyclePhaseView[]): WeekRow[] =>
@@ -21,8 +21,8 @@ const toRows = (phases: CyclePhaseView[]): WeekRow[] =>
       weekNumber,
       phaseName: found?.phaseName ?? '',
       goal: found?.goal ?? '',
-      setsReps: found?.setsReps ?? '',
       rpeRange: found?.rpeRange ?? '',
+      example: found?.example ?? '',
     };
   });
 
@@ -50,8 +50,8 @@ export default function CycleWeeksEditor({ phases, save }: CycleWeeksEditorProps
           weekNumber: w.weekNumber,
           phaseName: w.phaseName.trim(),
           goal: w.goal.trim(),
-          setsReps: w.setsReps.trim() || undefined,
           rpeRange: w.rpeRange.trim() || undefined,
+          example: w.example.trim() || undefined,
         })),
       ),
     onSuccess: () => setDirty(false),
@@ -86,19 +86,20 @@ export default function CycleWeeksEditor({ phases, save }: CycleWeeksEditorProps
               />
             </label>
             <label className="field">
-              <span>Sets &amp; reps</span>
-              <input
-                placeholder="e.g. 3 × 10–12"
-                value={week.setsReps}
-                onChange={(e) => updateWeek(week.weekNumber, { setsReps: e.target.value })}
-              />
-            </label>
-            <label className="field">
               <span>RPE range</span>
               <input
                 placeholder="e.g. RPE 6–7"
                 value={week.rpeRange}
                 onChange={(e) => updateWeek(week.weekNumber, { rpeRange: e.target.value })}
+              />
+            </label>
+            <label className="field">
+              <span>Example (optional)</span>
+              <textarea
+                className="textarea"
+                placeholder="e.g. If the program says 2×10 and you do 10 reps, you should feel like you could have done 13–14."
+                value={week.example}
+                onChange={(e) => updateWeek(week.weekNumber, { example: e.target.value })}
               />
             </label>
           </div>

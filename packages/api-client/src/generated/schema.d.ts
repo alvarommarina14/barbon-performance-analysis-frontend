@@ -1277,8 +1277,8 @@ export interface components {
             weekNumber?: number;
             phaseName: string;
             goal: string;
-            setsReps?: string;
             rpeRange?: string;
+            example?: string;
         };
         ProgramTemplateView: {
             /** Format: uuid */
@@ -1324,8 +1324,8 @@ export interface components {
             weekNumber?: number;
             phaseName: string;
             goal: string;
-            setsReps?: string;
             rpeRange?: string;
+            example?: string;
         };
         ReplaceCyclePhasesRequest: {
             phases: components["schemas"]["CyclePhaseInput"][];
@@ -1796,7 +1796,6 @@ export interface components {
             weekNumber?: number;
             phaseName: string;
             goal: string;
-            setsReps?: string;
             rpeRange?: string;
         };
         PlayerHomeResponse: {

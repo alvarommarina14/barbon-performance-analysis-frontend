@@ -123,11 +123,9 @@ export default function HomeScreen() {
                   <Text style={[theme.muted, { marginTop: spacing.xs }]}>
                     {home.data.currentPhase.goal}
                   </Text>
-                  {home.data.currentPhase.setsReps || home.data.currentPhase.rpeRange ? (
+                  {home.data.currentPhase.rpeRange ? (
                     <Text style={[theme.body, { marginTop: spacing.xs }]}>
-                      {[home.data.currentPhase.setsReps, home.data.currentPhase.rpeRange]
-                        .filter(Boolean)
-                        .join(' · ')}
+                      {home.data.currentPhase.rpeRange}
                     </Text>
                   ) : null}
                 </View>

@@ -232,10 +232,8 @@ export default function StrengthScreen() {
                   {selectedPhase.phaseName}
                 </Text>
                 <Text style={[theme.muted, { marginTop: spacing.xs }]}>{selectedPhase.goal}</Text>
-                {selectedPhase.setsReps || selectedPhase.rpeRange ? (
-                  <Text style={[theme.body, { marginTop: spacing.xs }]}>
-                    {[selectedPhase.setsReps, selectedPhase.rpeRange].filter(Boolean).join(' · ')}
-                  </Text>
+                {selectedPhase.rpeRange ? (
+                  <Text style={[theme.body, { marginTop: spacing.xs }]}>{selectedPhase.rpeRange}</Text>
                 ) : null}
               </View>
             ) : (

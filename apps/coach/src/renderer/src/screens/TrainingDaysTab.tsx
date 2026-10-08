@@ -96,7 +96,7 @@ export default function TrainingDaysTab({
           <span className="chip">
             <span className="chip-label">Phase</span>
             <span className="chip-accent">{currentPhase.phaseName}</span>
-            {[currentPhase.setsReps, currentPhase.rpeRange].filter(Boolean).join(' · ')}
+            {currentPhase.rpeRange}
           </span>
         ) : null}
         <button type="button" className="back-link chip-link" onClick={onOpenCyclePlan}>
