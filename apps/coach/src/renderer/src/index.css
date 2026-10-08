@@ -742,14 +742,10 @@ button {
   outline: none;
 }
 
-.rich-text {
-  position: relative;
-}
-
 .rich-text .ProseMirror {
   box-sizing: border-box;
   min-height: 90px;
-  padding: 12px 44px 12px 14px;
+  padding: 12px 14px;
   border: 1px solid var(--field-line);
   border-radius: 8px;
   background: var(--dark);
@@ -781,31 +777,6 @@ button {
   height: 0;
   color: var(--gray);
   pointer-events: none;
-}
-
-.rich-text-bold {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--gray);
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.rich-text-bold:hover {
-  color: var(--white);
-}
-
-.rich-text-bold.active {
-  border-color: var(--accent);
-  color: var(--accent);
 }
 
 .panel input {

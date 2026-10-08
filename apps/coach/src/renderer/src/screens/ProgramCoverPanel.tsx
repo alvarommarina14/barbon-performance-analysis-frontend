@@ -45,7 +45,7 @@ export default function ProgramCoverPanel({ cover, variant, save }: ProgramCover
       <div className="section-head">
         <h2 className="section-title">Cover</h2>
         <InfoTip label="Bold text">
-          Select words and press Ctrl+B, or the B button in the field, to print them in bold.
+          Select words and press Ctrl+B to print them in bold.
         </InfoTip>
       </div>
       <p className="lede">The first page of the program PDF.</p>
