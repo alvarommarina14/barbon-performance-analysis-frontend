@@ -367,6 +367,24 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
   const fitness = (library.data ?? []).filter((item) => item.category === 'FITNESS');
   const pickable = fitness.filter((item) => !addedIds.has(item.id));
   const anyBlockUntitled = blocks.some((b) => !b.title.trim());
+  const canSave = dirty && !anyBlockUntitled && !save.isPending;
+  const { mutate: saveDay } = save;
+
+  // The Details modal edits a draft that only Done writes to the day, so saving under it would
+  // leave the draft behind.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 's') {
+        return;
+      }
+      event.preventDefault();
+      if (canSave && !details) {
+        saveDay();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [canSave, details, saveDay]);
 
   if (sections.isError) {
     return <LoadError message={sections.error.message} onRetry={() => sections.refetch()} />;
@@ -560,8 +578,9 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
             <button
               type="button"
               className="primary"
-              disabled={save.isPending || !dirty || anyBlockUntitled}
-              onClick={() => save.mutate()}
+              disabled={!canSave}
+              title="Ctrl+S"
+              onClick={() => saveDay()}
             >
               {save.isPending ? 'Saving…' : 'Save day'}
             </button>
