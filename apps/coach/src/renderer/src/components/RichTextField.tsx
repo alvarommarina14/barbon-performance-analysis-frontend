@@ -5,7 +5,7 @@ import Document from '@tiptap/extension-document';
 import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
 import { Placeholder, UndoRedo } from '@tiptap/extensions';
-import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
+import { EditorContent, useEditor } from '@tiptap/react';
 import { useEffect, useRef } from 'react';
 import { cx } from '../lib/cx';
 
@@ -17,7 +17,7 @@ interface RichTextFieldProps {
   className?: string;
 }
 
-// The coach sees real bold; what is stored stays plain text with **word** marks, one paragraph per
+// The coach sees real bold and toggles it with Ctrl+B; what is stored stays plain text with **word** marks, one paragraph per
 // line, so the PDF, the mobile app and everything already saved read it unchanged.
 const toDoc = (value: string): JSONContent => ({
   type: 'doc',
@@ -60,21 +60,5 @@ export function RichTextField({ value, onChange, label, placeholder, className }
     }
   }, [editor, value]);
 
-  const bold = useEditorState({ editor, selector: ({ editor: current }) => current.isActive('bold') });
-
-  return (
-    <div className={cx('rich-text', className)}>
-      <EditorContent editor={editor} />
-      <button
-        type="button"
-        className={cx('rich-text-bold', bold && 'active')}
-        aria-label="Bold (Ctrl+B)"
-        aria-pressed={bold}
-        title="Bold (Ctrl+B)"
-        onClick={() => editor.chain().focus().toggleBold().run()}
-      >
-        B
-      </button>
-    </div>
-  );
+  return <EditorContent editor={editor} className={cx('rich-text', className)} />;
 }

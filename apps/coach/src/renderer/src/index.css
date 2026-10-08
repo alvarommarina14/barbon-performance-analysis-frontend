@@ -507,6 +507,88 @@ button {
   min-height: 0;
 }
 
+/* --- Program PDF preview: fixed to the window's right edge, so the screens keep their own layout
+   and only give up that width --- */
+
+:root {
+  --pdf-pane-w: clamp(360px, 38vw, 680px);
+}
+
+.workspace.with-pdf-pane {
+  padding-right: calc(var(--pdf-pane-w) + 24px);
+}
+
+.pdf-pane {
+  position: fixed;
+  top: var(--titlebar-h);
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  width: var(--pdf-pane-w);
+  border-left: 1px solid var(--line);
+  background: var(--card);
+}
+
+.pdf-pane-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.pdf-pane-status {
+  color: var(--gray);
+  font-size: 12px;
+}
+
+.pdf-pane-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.pdf-pane-actions .ghost {
+  padding: 6px 10px;
+}
+
+.pdf-pane-pages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: #525659;
+}
+
+.pdf-pages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+}
+
+.pdf-pages canvas {
+  display: block;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.pdf-pane-empty {
+  padding: 16px;
+}
+
+@media (max-width: 1100px) {
+  .pdf-pane {
+    display: none;
+  }
+
+  .workspace.with-pdf-pane {
+    padding-right: 40px;
+  }
+}
+
 /* --- Editor --- */
 
 .editor {
@@ -557,6 +639,20 @@ button {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
+}
+
+.cycle-weeks .field {
+  align-self: stretch;
+}
+
+.cycle-weeks .field input,
+.cycle-weeks .textarea {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.cycle-weeks .textarea {
+  min-height: 120px;
 }
 
 .findings-foot {
@@ -728,14 +824,10 @@ button {
   outline: none;
 }
 
-.rich-text {
-  position: relative;
-}
-
 .rich-text .ProseMirror {
   box-sizing: border-box;
   min-height: 90px;
-  padding: 12px 44px 12px 14px;
+  padding: 12px 14px;
   border: 1px solid var(--field-line);
   border-radius: 8px;
   background: var(--dark);
@@ -767,31 +859,6 @@ button {
   height: 0;
   color: var(--gray);
   pointer-events: none;
-}
-
-.rich-text-bold {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--gray);
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.rich-text-bold:hover {
-  color: var(--white);
-}
-
-.rich-text-bold.active {
-  border-color: var(--accent);
-  color: var(--accent);
 }
 
 .panel input {
@@ -827,6 +894,12 @@ button {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
+}
+
+/* The row's panels share a height; their closing button sits at the bottom, level across the row
+   whatever the text above it wraps to. */
+.panel-row > .panel > .primary:last-child {
+  margin-top: auto;
 }
 
 /* --- Client training, Days tab: the day list is the only part that scrolls --- */
@@ -868,7 +941,8 @@ button {
   color: var(--accent);
 }
 
-.chip-link {
+/* Doubled up to beat .back-link's align-self, which comes later in this file. */
+.back-link.chip-link {
   align-self: center;
   margin-left: 4px;
 }
@@ -931,10 +1005,15 @@ button {
 
 .day-actions {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
   gap: 6px;
   white-space: nowrap;
+}
+
+/* Arrows and Remove keep their place on every row; the exercises link, which cardio days don't
+   have, takes the far end. */
+.day-actions .day-exercises {
+  margin-left: auto;
 }
 
 .day-unsaved {

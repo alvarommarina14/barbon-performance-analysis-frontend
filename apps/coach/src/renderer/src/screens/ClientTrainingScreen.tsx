@@ -1,9 +1,6 @@
-import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
-import { api } from '../api/client';
-import { useToast } from '../components/Toast';
+import { ProgramPdfPane, usePdfPaneOpen } from '../components/ProgramPdfPane';
 import { cx } from '../lib/cx';
-import { problemDetail } from '../lib/problem';
 import { useNav } from '../nav';
 import ClientLogsTab from './ClientLogsTab';
 import ClientRedFlagsTab from './ClientRedFlagsTab';
@@ -24,35 +21,6 @@ const CLIENT_TABS: { key: ClientTab; label: string }[] = [
   { key: 'logs', label: 'Logs' },
 ];
 
-function PreviewPdfButton({ playerProfileId }: { playerProfileId: string }) {
-  const toast = useToast();
-
-  // The PDF is generated from what is saved, so unsaved edits on screen are not in it yet.
-  const preview = useMutation({
-    mutationFn: async () => {
-      const { data, error } = await api.GET('/api/v1/strength/program-pdf-link', {
-        params: { query: { playerProfileId } },
-      });
-      if (!data) {
-        throw new Error(problemDetail(error) ?? 'Could not open the program PDF');
-      }
-      window.open(data.url);
-    },
-    onError: (err) => toast.show(err.message),
-  });
-
-  return (
-    <button
-      type="button"
-      className="ghost"
-      disabled={preview.isPending}
-      onClick={() => preview.mutate()}
-    >
-      {preview.isPending ? 'Opening…' : 'Preview PDF'}
-    </button>
-  );
-}
-
 export default function ClientTrainingScreen({
   playerProfileId,
   playerName,
@@ -63,30 +31,41 @@ export default function ClientTrainingScreen({
   const { back, leaveThen } = useNav();
   const [tab, setTab] = useState<ClientTab>('days');
   const [selectedDay, setSelectedDay] = useState<{ id: string; title: string } | null>(null);
+  const [pdfOpen, setPdfOpen] = usePdfPaneOpen();
+
+  const pdfToggle = pdfOpen ? null : (
+    <button type="button" className="ghost" onClick={() => setPdfOpen(true)}>
+      Show PDF
+    </button>
+  );
+  const pdfPane = pdfOpen ? (
+    <ProgramPdfPane playerProfileId={playerProfileId} onClose={() => setPdfOpen(false)} />
+  ) : null;
 
   if (selectedDay) {
     return (
-      <main className="workspace editor-screen">
+      <main className={cx('workspace editor-screen', pdfOpen && 'with-pdf-pane')}>
         <button type="button" className="back-link" onClick={() => leaveThen(() => setSelectedDay(null))}>
           ← {playerName}'s training days
         </button>
         <div className="workspace-header">
           <h1>{selectedDay.title}</h1>
-          <PreviewPdfButton playerProfileId={playerProfileId} />
+          {pdfToggle}
         </div>
         <DaySectionsStep trainingDayId={selectedDay.id} />
+        {pdfPane}
       </main>
     );
   }
 
   return (
-    <main className={cx('workspace', tab === 'days' && 'fit-screen')}>
+    <main className={cx('workspace', tab === 'days' && 'fit-screen', pdfOpen && 'with-pdf-pane')}>
       <button type="button" className="back-link" onClick={back}>
         ← Clients
       </button>
       <div className="workspace-header">
         <h1>{playerName}'s training</h1>
-        <PreviewPdfButton playerProfileId={playerProfileId} />
+        {pdfToggle}
       </div>
       <div className="tabs">
         {CLIENT_TABS.map(({ key, label }) => (
@@ -114,6 +93,7 @@ export default function ClientTrainingScreen({
       {tab === 'weekly-notes' ? <WeeklyNotesTab playerProfileId={playerProfileId} /> : null}
       {tab === 'red-flags' ? <ClientRedFlagsTab playerProfileId={playerProfileId} /> : null}
       {tab === 'logs' ? <ClientLogsTab playerProfileId={playerProfileId} /> : null}
+      {pdfPane}
     </main>
   );
 }
