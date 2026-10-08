@@ -98,7 +98,7 @@ export default function Shell() {
 
   return (
     <ToastProvider>
-      <div className="shell">
+      <div className="shell" data-mode={mode}>
         <div className="shell-header">
           <header className="shell-bar">
             <div className="shell-brand">
