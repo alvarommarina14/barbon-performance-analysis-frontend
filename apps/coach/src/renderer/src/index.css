@@ -875,12 +875,6 @@ button {
   font-size: 13px;
 }
 
-.week-fields {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-}
-
 .load-error {
   display: flex;
   flex-direction: column;
@@ -1454,30 +1448,79 @@ button {
   font-size: 14px;
 }
 
+/* One grid for the whole list; each row is a subgrid of it, so the labels row (which has no
+   buttons) still gets the same columns as the exercise rows. */
+.block-exercises {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(4, 68px) auto;
+  column-gap: 8px;
+}
+
+.block-exercise-labels,
 .block-exercise {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+
+.block-exercise-labels {
+  padding: 0 4px 6px;
+  color: var(--gray);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.block-exercise-labels span:not(:first-child) {
+  text-align: center;
+}
+
+.block-exercise {
+  padding: 10px 4px;
+  border-top: 1px solid var(--line);
+}
+
+.block-exercise-name {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 14px;
-  border-radius: 8px;
-  background: var(--card);
+  gap: 4px;
+  min-width: 0;
 }
 
-.block-exercise-head {
+/* Beats `.panel input`, whose padding and type size leave no room for "3×10". */
+.block-exercise .week-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 4px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.block-exercise .ghost {
+  padding: 6px 10px;
+}
+
+.exercise-marks {
   display: flex;
-  justify-content: space-between;
+  gap: 6px;
+}
+
+.exercise-mark {
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 5px;
+  color: var(--gray);
+  font-size: 11px;
 }
 
-.block-exercise-texts {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.block-exercise-texts .textarea {
-  min-height: 60px;
+.exercise-mark::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
 }
 
 .program-layout {

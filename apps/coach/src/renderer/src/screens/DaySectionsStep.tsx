@@ -4,6 +4,7 @@ import { type DragEvent, useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { DrillThumb } from '../components/DrillThumb';
 import { LoadError } from '../components/LoadError';
+import { Modal } from '../components/Modal';
 import { cx } from '../lib/cx';
 import { problemDetail } from '../lib/problem';
 import { uid } from '../lib/uid';
@@ -63,6 +64,15 @@ interface DropTarget {
   index: number;
 }
 
+// A draft of one exercise's texts: the modal edits this copy, and only Done writes it to the day.
+interface ExerciseDetails {
+  key: string;
+  title: string;
+  libraryCue: string | null;
+  cueOverride: string;
+  notes: string;
+}
+
 const blankBlock = (title = ''): BlockRow => ({ key: uid(), id: null, title, note: '', exercises: [] });
 
 export default function DaySectionsStep({ trainingDayId }: { trainingDayId: string }) {
@@ -99,6 +109,7 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
   const [draggingBlockKey, setDraggingBlockKey] = useState<string | null>(null);
   const [blockDropIndex, setBlockDropIndex] = useState<number | null>(null);
+  const [details, setDetails] = useState<ExerciseDetails | null>(null);
 
   useEffect(() => {
     if (sections.data && !dirty) {
@@ -301,6 +312,24 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
     });
   }
 
+  function openDetails(row: ExerciseRow) {
+    setDetails({
+      key: row.key,
+      title: row.title,
+      libraryCue: library.data?.find((item) => item.id === row.libraryItemId)?.cue ?? null,
+      cueOverride: row.cueOverride,
+      notes: row.notes,
+    });
+  }
+
+  function applyDetails(draft: ExerciseDetails) {
+    const row = blocks.flatMap((b) => b.exercises).find((e) => e.key === draft.key);
+    if (row && (row.cueOverride !== draft.cueOverride || row.notes !== draft.notes)) {
+      updateExercise(draft.key, { cueOverride: draft.cueOverride, notes: draft.notes });
+    }
+    setDetails(null);
+  }
+
   function removeExercise(key: string) {
     edit((prev) => prev.map((b) => ({ ...b, exercises: b.exercises.filter((e) => e.key !== key) })));
   }
@@ -420,18 +449,45 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
                         : 'No exercises yet — drag one here, or click this block and pick from the library.'}
                     </p>
                   ) : (
-                    block.exercises.map((row, exerciseIndex) => (
-                      <div
-                        className={cx(
-                          'block-exercise',
-                          dropTarget?.blockKey === block.key && dropTarget.index === exerciseIndex && 'drop-before',
-                        )}
-                        key={row.key}
-                        onDragOver={(e) => dragOverExercise(e, block.key, exerciseIndex)}
-                      >
-                        <div className="block-exercise-head">
-                          <strong>{row.title}</strong>
+                    <div className="block-exercises">
+                      <div className="block-exercise-labels" aria-hidden="true">
+                        <span>Exercise</span>
+                        {WEEK_FIELDS.map((field, i) => (
+                          <span key={field}>Wk {i + 1}</span>
+                        ))}
+                      </div>
+                      {block.exercises.map((row, exerciseIndex) => (
+                        <div
+                          className={cx(
+                            'block-exercise',
+                            dropTarget?.blockKey === block.key && dropTarget.index === exerciseIndex && 'drop-before',
+                          )}
+                          key={row.key}
+                          onDragOver={(e) => dragOverExercise(e, block.key, exerciseIndex)}
+                        >
+                          <div className="block-exercise-name">
+                            <strong>{row.title}</strong>
+                            {row.cueOverride.trim() || row.notes.trim() ? (
+                              <div className="exercise-marks">
+                                {row.cueOverride.trim() ? <span className="exercise-mark">Cue</span> : null}
+                                {row.notes.trim() ? <span className="exercise-mark">Note</span> : null}
+                              </div>
+                            ) : null}
+                          </div>
+                          {WEEK_FIELDS.map((field, i) => (
+                            <input
+                              key={field}
+                              className="week-input"
+                              aria-label={`${row.title}, week ${i + 1}`}
+                              placeholder="3×10"
+                              value={row[field]}
+                              onChange={(e) => updateExercise(row.key, { [field]: e.target.value })}
+                            />
+                          ))}
                           <div className="day-actions">
+                            <button type="button" className="ghost" aria-label={`${row.title} cue and notes`} onClick={() => openDetails(row)}>
+                              Details
+                            </button>
                             <button type="button" className="ghost" aria-label={`Move ${row.title} up`} onClick={() => moveExercise(blockIndex, exerciseIndex, -1)}>
                               ↑
                             </button>
@@ -439,43 +495,12 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
                               ↓
                             </button>
                             <button type="button" className="ghost" aria-label={`Remove ${row.title}`} onClick={() => removeExercise(row.key)}>
-                              Remove
+                              ✕
                             </button>
                           </div>
                         </div>
-                        <div className="block-exercise-texts">
-                          <label className="field">
-                            <span>Cue override (optional)</span>
-                            <textarea
-                              className="textarea"
-                              value={row.cueOverride}
-                              onChange={(e) => updateExercise(row.key, { cueOverride: e.target.value })}
-                            />
-                          </label>
-                          <label className="field">
-                            <span>Notes (optional)</span>
-                            <textarea
-                              className="textarea"
-                              placeholder="e.g. Use a light band, pause 2 s at the top"
-                              value={row.notes}
-                              onChange={(e) => updateExercise(row.key, { notes: e.target.value })}
-                            />
-                          </label>
-                        </div>
-                        <div className="week-fields">
-                          {WEEK_FIELDS.map((field, i) => (
-                            <label className="field" key={field}>
-                              <span>Week {i + 1}</span>
-                              <input
-                                placeholder="3 × 10"
-                                value={row[field]}
-                                onChange={(e) => updateExercise(row.key, { [field]: e.target.value })}
-                              />
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    ))
+                      ))}
+                    </div>
                   )}
                 </section>
               ))}
@@ -548,6 +573,46 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
           )}
         </div>
       </div>
+
+      {details ? (
+        <Modal title={details.title} onClose={() => setDetails(null)}>
+          {details.libraryCue ? (
+            <div className="field">
+              <span>Cue from the library</span>
+              <p className="drill-cue">{details.libraryCue}</p>
+            </div>
+          ) : null}
+          <label className="field">
+            <span>Cue override (optional)</span>
+            <textarea
+              data-autofocus
+              className="textarea"
+              placeholder={details.libraryCue ? 'Leave empty to use the library cue' : 'e.g. Chest up, push the knees out'}
+              value={details.cueOverride}
+              onChange={(e) => setDetails({ ...details, cueOverride: e.target.value })}
+            />
+          </label>
+          <label className="field">
+            <span>Notes (optional)</span>
+            <textarea
+              className="textarea"
+              placeholder="e.g. Use a light band, pause 2 s at the top"
+              value={details.notes}
+              onChange={(e) => setDetails({ ...details, notes: e.target.value })}
+            />
+          </label>
+          <div className="findings-foot">
+            <div className="button-row">
+              <button type="button" className="primary" onClick={() => applyDetails(details)}>
+                Done
+              </button>
+              <button type="button" className="ghost" onClick={() => setDetails(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </Modal>
+      ) : null}
     </div>
   );
 }
