@@ -74,6 +74,7 @@ export default function ProgramTemplateScreen({ templateId }: { templateId: stri
         name: next.name.trim(),
         about: next.about.trim() || undefined,
         schedule: next.schedule.trim() || undefined,
+        cycleNote: next.cycleNote.trim() || undefined,
       },
     });
     if (!data) {
@@ -90,6 +91,7 @@ export default function ProgramTemplateScreen({ templateId }: { templateId: stri
             athleteLevel: '',
             about: template.data.about ?? '',
             schedule: template.data.schedule ?? '',
+            cycleNote: template.data.cycleNote ?? '',
           }
         : null,
     [template.data],

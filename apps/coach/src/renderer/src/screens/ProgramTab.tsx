@@ -40,6 +40,7 @@ export default function ProgramTab({ playerProfileId, playerName }: ProgramTabPr
             athleteLevel: program.data.athleteLevel ?? '',
             about: program.data.about ?? '',
             schedule: program.data.schedule ?? '',
+            cycleNote: program.data.cycleNote ?? '',
           }
         : null,
     [program.data],
@@ -52,6 +53,7 @@ export default function ProgramTab({ playerProfileId, playerName }: ProgramTabPr
         athleteLevel: next.athleteLevel.trim() || undefined,
         about: next.about.trim() || undefined,
         schedule: next.schedule.trim() || undefined,
+        cycleNote: next.cycleNote.trim() || undefined,
       },
     });
     if (!data) {

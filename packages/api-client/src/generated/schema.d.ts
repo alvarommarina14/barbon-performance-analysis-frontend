@@ -1269,6 +1269,7 @@ export interface components {
             name: string;
             about?: string;
             schedule?: string;
+            cycleNote?: string;
         };
         CyclePhaseView: {
             /** Format: uuid */
@@ -1286,6 +1287,7 @@ export interface components {
             name: string;
             about?: string;
             schedule?: string;
+            cycleNote?: string;
             weeks: components["schemas"]["CyclePhaseView"][];
             days: components["schemas"]["TrainingDayView"][];
         };
@@ -1346,11 +1348,13 @@ export interface components {
             athleteLevel?: string;
             about?: string;
             schedule?: string;
+            cycleNote?: string;
         };
         TrainingProgramView: {
             athleteLevel?: string;
             about?: string;
             schedule?: string;
+            cycleNote?: string;
         };
         SetPlanStartRequest: {
             /** Format: date */
