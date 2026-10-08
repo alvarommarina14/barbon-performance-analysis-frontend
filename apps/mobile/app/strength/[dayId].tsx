@@ -19,6 +19,7 @@ import { api } from '@/api/client';
 import { problemDetail } from '@/api/problem';
 import { useAuth } from '@/auth/AuthContext';
 import { readWeightUnit, writeWeightUnit, type WeightUnit } from '@/prefs/weightUnit';
+import { BoldText } from '@/ui/BoldText';
 import { theme } from '@/ui/theme';
 
 type DayExerciseView = components['schemas']['DayExerciseView'];
@@ -190,9 +191,10 @@ export default function TrainingDayScreen() {
         {day?.kind === 'CARDIO' ? (
           <View style={theme.card}>
             <Text style={theme.eyebrow}>Protocol</Text>
-            <Text style={[theme.body, { marginTop: spacing.sm }]}>
-              {day.protocol ?? 'Your coach will share this protocol.'}
-            </Text>
+            <BoldText
+              style={[theme.body, { marginTop: spacing.sm }]}
+              text={day.protocol ?? 'Your coach will share this protocol.'}
+            />
           </View>
         ) : sections.data.every((section) => section.exercises.length === 0) ? (
           <Text style={theme.muted}>No exercises here yet.</Text>
@@ -320,7 +322,7 @@ function ExerciseCard({
       </View>
       {cue ? <Text style={[theme.muted, { marginTop: spacing.xs }]}>{cue}</Text> : null}
       {exercise.notes ? (
-        <Text style={[theme.body, { marginTop: spacing.xs }]}>{exercise.notes}</Text>
+        <BoldText style={[theme.body, { marginTop: spacing.xs }]} text={exercise.notes} />
       ) : null}
       <Text style={[theme.body, { marginTop: spacing.sm }]}>
         {prescription ?? `No reps set for week ${planWeek}`}
