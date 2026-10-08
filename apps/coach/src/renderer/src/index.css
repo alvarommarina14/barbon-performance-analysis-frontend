@@ -1440,12 +1440,29 @@ button {
 
 .day-block-head {
   display: grid;
-  grid-template-columns: auto minmax(0, 1.4fr) minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1.4fr) minmax(0, 1fr) auto auto;
   gap: 10px;
   align-items: center;
 }
 
-.day-block-head input {
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--gray);
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.check input {
+  margin: 0;
+  padding: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.day-block-head input:not([type='checkbox']) {
   box-sizing: border-box;
   width: 100%;
   padding: 9px 12px;
@@ -1458,6 +1475,10 @@ button {
   display: grid;
   grid-template-columns: minmax(0, 1fr) repeat(4, 68px) auto;
   column-gap: 8px;
+}
+
+.block-exercises.same-every-week {
+  grid-template-columns: minmax(0, 1fr) 120px auto;
 }
 
 .block-exercise-labels,

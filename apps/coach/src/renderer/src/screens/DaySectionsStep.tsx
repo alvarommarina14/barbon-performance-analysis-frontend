@@ -36,6 +36,7 @@ interface BlockRow {
   id: string | null;
   title: string;
   note: string;
+  variesByWeek: boolean;
   exercises: ExerciseRow[];
 }
 
@@ -45,6 +46,7 @@ const toBlocks = (sections: DaySectionView[]): BlockRow[] =>
     id: section.id,
     title: section.title,
     note: section.note ?? '',
+    variesByWeek: section.variesByWeek ?? true,
     exercises: section.exercises.map((e) => ({
       key: e.id,
       id: e.id,
@@ -74,7 +76,14 @@ interface ExerciseDetails {
   notes: string;
 }
 
-const blankBlock = (title = ''): BlockRow => ({ key: uid(), id: null, title, note: '', exercises: [] });
+const blankBlock = (title = ''): BlockRow => ({
+  key: uid(),
+  id: null,
+  title,
+  note: '',
+  variesByWeek: true,
+  exercises: [],
+});
 
 export default function DaySectionsStep({ trainingDayId }: { trainingDayId: string }) {
   const queryClient = useQueryClient();
@@ -129,15 +138,16 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
             id: b.id ?? undefined,
             title: b.title.trim(),
             note: b.note.trim() || undefined,
+            variesByWeek: b.variesByWeek,
             exercises: b.exercises.map((e) => ({
               id: e.id ?? undefined,
               libraryItemId: e.libraryItemId,
               cueOverride: e.cueOverride.trim() || undefined,
               notes: e.notes.trim() || undefined,
               setsRepsWk1: e.setsRepsWk1.trim() || undefined,
-              setsRepsWk2: e.setsRepsWk2.trim() || undefined,
-              setsRepsWk3: e.setsRepsWk3.trim() || undefined,
-              setsRepsWk4: e.setsRepsWk4.trim() || undefined,
+              setsRepsWk2: (b.variesByWeek && e.setsRepsWk2.trim()) || undefined,
+              setsRepsWk3: (b.variesByWeek && e.setsRepsWk3.trim()) || undefined,
+              setsRepsWk4: (b.variesByWeek && e.setsRepsWk4.trim()) || undefined,
             })),
           })),
         },
@@ -438,6 +448,14 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
                       value={block.note}
                       onChange={(e) => updateBlock(block.key, { note: e.target.value })}
                     />
+                    <label className="check">
+                      <input
+                        type="checkbox"
+                        checked={block.variesByWeek}
+                        onChange={(e) => updateBlock(block.key, { variesByWeek: e.target.checked })}
+                      />
+                      Varies by week
+                    </label>
                     <button type="button" className="ghost" aria-label={`Remove block ${blockIndex + 1}`} onClick={() => removeBlock(block.key)}>
                       Remove block
                     </button>
@@ -450,12 +468,14 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
                         : 'No exercises yet — drag one here, or click this block and pick from the library.'}
                     </p>
                   ) : (
-                    <div className="block-exercises">
+                    <div className={cx('block-exercises', !block.variesByWeek && 'same-every-week')}>
                       <div className="block-exercise-labels" aria-hidden="true">
                         <span>Exercise</span>
-                        {WEEK_FIELDS.map((field, i) => (
-                          <span key={field}>Wk {i + 1}</span>
-                        ))}
+                        {block.variesByWeek ? (
+                          WEEK_FIELDS.map((field, i) => <span key={field}>Wk {i + 1}</span>)
+                        ) : (
+                          <span>Sets × reps</span>
+                        )}
                       </div>
                       {block.exercises.map((row, exerciseIndex) => (
                         <div
@@ -475,16 +495,26 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
                               </div>
                             ) : null}
                           </div>
-                          {WEEK_FIELDS.map((field, i) => (
+                          {block.variesByWeek ? (
+                            WEEK_FIELDS.map((field, i) => (
+                              <input
+                                key={field}
+                                className="week-input"
+                                aria-label={`${row.title}, week ${i + 1}`}
+                                placeholder={(i > 0 && setsRepsByWeek(row)[i - 1]) || '3×10'}
+                                value={row[field]}
+                                onChange={(e) => updateExercise(row.key, { [field]: e.target.value })}
+                              />
+                            ))
+                          ) : (
                             <input
-                              key={field}
                               className="week-input"
-                              aria-label={`${row.title}, week ${i + 1}`}
-                              placeholder={(i > 0 && setsRepsByWeek(row)[i - 1]) || '3×10'}
-                              value={row[field]}
-                              onChange={(e) => updateExercise(row.key, { [field]: e.target.value })}
+                              aria-label={`${row.title}, sets and reps`}
+                              placeholder="2×10"
+                              value={row.setsRepsWk1}
+                              onChange={(e) => updateExercise(row.key, { setsRepsWk1: e.target.value })}
                             />
-                          ))}
+                          )}
                           <div className="day-actions">
                             <button type="button" className="ghost" aria-label={`${row.title} cue and notes`} onClick={() => openDetails(row)}>
                               Details

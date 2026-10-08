@@ -1211,6 +1211,7 @@ export interface components {
             id?: string;
             title: string;
             note?: string;
+            variesByWeek: boolean;
             exercises: components["schemas"]["DayExerciseInput"][];
         };
         ReplaceDaySectionsRequest: {
@@ -1246,6 +1247,7 @@ export interface components {
             id: string;
             title: string;
             note?: string;
+            variesByWeek?: boolean;
             /** Format: int32 */
             sortOrder?: number;
             exercises: components["schemas"]["DayExerciseView"][];
