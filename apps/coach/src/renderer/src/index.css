@@ -814,6 +814,12 @@ button {
   gap: 16px;
 }
 
+/* The row's panels share a height; their closing button sits at the bottom, level across the row
+   whatever the text above it wraps to. */
+.panel-row > .panel > .primary:last-child {
+  margin-top: auto;
+}
+
 /* --- Client training, Days tab: the day list is the only part that scrolls --- */
 
 .workspace.fit-screen {
@@ -853,7 +859,8 @@ button {
   color: var(--accent);
 }
 
-.chip-link {
+/* Doubled up to beat .back-link's align-self, which comes later in this file. */
+.back-link.chip-link {
   align-self: center;
   margin-left: 4px;
 }
@@ -916,10 +923,15 @@ button {
 
 .day-actions {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
   gap: 6px;
   white-space: nowrap;
+}
+
+/* Arrows and Remove keep their place on every row; the exercises link, which cardio days don't
+   have, takes the far end. */
+.day-actions .day-exercises {
+  margin-left: auto;
 }
 
 .day-unsaved {

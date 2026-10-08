@@ -169,14 +169,14 @@ export default function TrainingDaysEditor({ days, save, onEditDay, emptyMessage
                   {row.kind === 'CARDIO' ? null : row.id ? (
                     <button
                       type="button"
-                      className="ghost"
+                      className="ghost day-exercises"
                       aria-label={`Exercises for Day ${index + 1} (${row.exerciseCount})`}
                       onClick={() => onEditDay({ id: row.id as string, title: row.title })}
                     >
                       Exercises ({row.exerciseCount}) →
                     </button>
                   ) : (
-                    <span className="lede day-unsaved">Save to add exercises</span>
+                    <span className="lede day-unsaved day-exercises">Save to add exercises</span>
                   )}
                 </div>
                 {row.kind === 'CARDIO' ? (
