@@ -3,6 +3,7 @@ import { setsRepsByWeek } from '@barbon-performance-analysis/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type DragEvent, useEffect, useState } from 'react';
 import { api } from '../api/client';
+import { useConfirm } from '../components/Confirm';
 import { DrillThumb } from '../components/DrillThumb';
 import { LoadError } from '../components/LoadError';
 import { Modal } from '../components/Modal';
@@ -87,6 +88,7 @@ const blankBlock = (title = ''): BlockRow => ({
 
 export default function DaySectionsStep({ trainingDayId }: { trainingDayId: string }) {
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
   const sectionsKey = ['strength', 'training-day', trainingDayId, 'sections'];
 
   const sections = useQuery({
@@ -212,8 +214,24 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
     setBlockDropIndex(null);
   }
 
-  function removeBlock(key: string) {
-    edit((prev) => prev.filter((b) => b.key !== key));
+  async function removeBlock(block: BlockRow) {
+    const blank = !block.title.trim() && block.exercises.length === 0;
+    if (!blank) {
+      const count = block.exercises.length;
+      const sure = await confirm({
+        title: `Remove “${block.title.trim() || 'Untitled block'}”?`,
+        message:
+          (count > 0
+            ? `Its ${count} ${count === 1 ? 'exercise goes' : 'exercises go'} with it, along with any sets the client logged against them. `
+            : '') + 'Nothing changes until you save the day.',
+        confirmLabel: 'Remove block',
+        danger: true,
+      });
+      if (!sure) {
+        return;
+      }
+    }
+    edit((prev) => prev.filter((b) => b.key !== block.key));
   }
 
   function addExercise(item: LibraryItem, target?: DropTarget) {
@@ -456,7 +474,7 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
                       />
                       Varies by week
                     </label>
-                    <button type="button" className="ghost" aria-label={`Remove block ${blockIndex + 1}`} onClick={() => removeBlock(block.key)}>
+                    <button type="button" className="ghost" aria-label={`Remove block ${blockIndex + 1}`} onClick={() => void removeBlock(block)}>
                       Remove block
                     </button>
                   </div>
