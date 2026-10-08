@@ -1121,6 +1121,10 @@ button {
   max-width: 640px;
 }
 
+.modal > .field {
+  align-self: stretch;
+}
+
 .primary.danger:not(:disabled) {
   background: var(--danger);
   color: var(--black);
