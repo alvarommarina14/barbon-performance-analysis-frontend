@@ -1,4 +1,4 @@
-import { colors, spacing } from '@barbon-performance-analysis/core';
+import { colors, setsRepsForCycleWeek, spacing } from '@barbon-performance-analysis/core';
 import type { components } from '@barbon-performance-analysis/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
@@ -19,6 +19,7 @@ import { api } from '@/api/client';
 import { problemDetail } from '@/api/problem';
 import { useAuth } from '@/auth/AuthContext';
 import { readWeightUnit, writeWeightUnit, type WeightUnit } from '@/prefs/weightUnit';
+import { BoldText } from '@/ui/BoldText';
 import { theme } from '@/ui/theme';
 
 type DayExerciseView = components['schemas']['DayExerciseView'];
@@ -27,12 +28,6 @@ type ExerciseLogView = components['schemas']['ExerciseLogView'];
 interface SetRow {
   reps: string;
   weight: string;
-}
-
-function repsForWeek(exercise: DayExerciseView, cycleWeek: number): string | undefined {
-  return [exercise.setsRepsWk1, exercise.setsRepsWk2, exercise.setsRepsWk3, exercise.setsRepsWk4][
-    cycleWeek - 1
-  ];
 }
 
 // "3×8", "3x8" or "3 x 8-10" → three rows pre-filled with 8 reps; anything else → one empty row.
@@ -98,10 +93,10 @@ export default function TrainingDayScreen() {
     enabled: Boolean(user),
   });
 
-  const exercises = useQuery({
-    queryKey: ['strength', 'training-days', dayId, 'exercises'],
+  const sections = useQuery({
+    queryKey: ['strength', 'training-days', dayId, 'sections'],
     queryFn: async () => {
-      const { data, error } = await api.GET('/api/v1/strength/training-days/{trainingDayId}/exercises', {
+      const { data, error } = await api.GET('/api/v1/strength/training-days/{trainingDayId}/sections', {
         params: { path: { trainingDayId: dayId } },
       });
       if (error || !data) {
@@ -136,7 +131,7 @@ export default function TrainingDayScreen() {
 
   const day = trainingDays.data?.find((d) => d.id === dayId);
 
-  if (exercises.isPending || logs.isPending) {
+  if (sections.isPending || logs.isPending) {
     return (
       <View style={[theme.screen, { alignItems: 'center', justifyContent: 'center' }]}>
         <ActivityIndicator color={colors.accent} />
@@ -144,12 +139,12 @@ export default function TrainingDayScreen() {
     );
   }
 
-  if (exercises.isError || !exercises.data) {
+  if (sections.isError || !sections.data) {
     return (
       <SafeAreaView style={theme.screen} edges={['bottom']}>
         <View style={{ padding: spacing.xl }}>
           <Text style={theme.error}>We could not load this training day.</Text>
-          <Pressable onPress={() => exercises.refetch()} style={{ marginTop: spacing.md }}>
+          <Pressable onPress={() => sections.refetch()} style={{ marginTop: spacing.md }}>
             <Text style={[theme.muted, { color: colors.accent }]}>Try again</Text>
           </Pressable>
         </View>
@@ -172,40 +167,64 @@ export default function TrainingDayScreen() {
           {day?.focus ? <Text style={[theme.body, { marginTop: spacing.sm }]}>{day.focus}</Text> : null}
         </View>
 
-        <View style={{ flexDirection: 'row', gap: spacing.sm, alignItems: 'center' }}>
-          <Text style={theme.muted}>Weights in</Text>
-          {(['LB', 'KG'] as const).map((option) => (
-            <Pressable
-              key={option}
-              style={[theme.pill, unit === option && theme.pillActive]}
-              onPress={() => chooseUnit(option)}
-            >
-              <Text style={[theme.pillLabel, unit === option && theme.pillLabelActive]}>
-                {option.toLowerCase()}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        {day?.kind === 'CARDIO' ? null : (
+          <>
+            <View style={{ flexDirection: 'row', gap: spacing.sm, alignItems: 'center' }}>
+              <Text style={theme.muted}>Weights in</Text>
+              {(['LB', 'KG'] as const).map((option) => (
+                <Pressable
+                  key={option}
+                  style={[theme.pill, unit === option && theme.pillActive]}
+                  onPress={() => chooseUnit(option)}
+                >
+                  <Text style={[theme.pillLabel, unit === option && theme.pillLabelActive]}>
+                    {option.toLowerCase()}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
 
-        {!canLog ? <Text style={theme.muted}>You can log this week once it starts.</Text> : null}
+            {!canLog ? <Text style={theme.muted}>You can log this week once it starts.</Text> : null}
+          </>
+        )}
 
-        {exercises.data.length === 0 ? (
+        {day?.kind === 'CARDIO' ? (
+          <View style={theme.card}>
+            <Text style={theme.eyebrow}>Protocol</Text>
+            <BoldText
+              style={[theme.body, { marginTop: spacing.sm }]}
+              text={day.protocol ?? 'Your coach will share this protocol.'}
+            />
+          </View>
+        ) : sections.data.every((section) => section.exercises.length === 0) ? (
           <Text style={theme.muted}>No exercises here yet.</Text>
         ) : (
-          exercises.data.map((exercise) => (
-            <ExerciseCard
-              key={`${exercise.id}-${planWeek}`}
-              exercise={exercise}
-              dayId={dayId}
-              planWeek={planWeek}
-              prescription={repsForWeek(exercise, cycleWeek)}
-              log={logs.data?.find((l) => l.dayExerciseId === exercise.id)}
-              previous={previousLogs.data?.find((l) => l.dayExerciseId === exercise.id)}
-              unit={unit}
-              canLog={canLog}
-              onWatch={() => setPlaying(exercise)}
-            />
-          ))
+          sections.data
+            .filter((section) => section.exercises.length > 0)
+            .map((section) => (
+              <View key={section.id} style={{ gap: spacing.md }}>
+                <View>
+                  <Text style={[theme.eyebrow, { color: colors.accent }]}>{section.title}</Text>
+                  {section.note ? (
+                    <Text style={[theme.muted, { marginTop: spacing.xs }]}>{section.note}</Text>
+                  ) : null}
+                </View>
+                {section.exercises.map((exercise) => (
+                  <ExerciseCard
+                    key={`${exercise.id}-${planWeek}`}
+                    exercise={exercise}
+                    dayId={dayId}
+                    planWeek={planWeek}
+                    prescription={setsRepsForCycleWeek(exercise, cycleWeek)}
+                    log={logs.data?.find((l) => l.dayExerciseId === exercise.id)}
+                    previous={previousLogs.data?.find((l) => l.dayExerciseId === exercise.id)}
+                    unit={unit}
+                    canLog={canLog}
+                    onWatch={() => setPlaying(exercise)}
+                  />
+                ))}
+              </View>
+            ))
         )}
       </ScrollView>
 
@@ -302,6 +321,9 @@ function ExerciseCard({
         </Pressable>
       </View>
       {cue ? <Text style={[theme.muted, { marginTop: spacing.xs }]}>{cue}</Text> : null}
+      {exercise.notes ? (
+        <BoldText style={[theme.body, { marginTop: spacing.xs }]} text={exercise.notes} />
+      ) : null}
       <Text style={[theme.body, { marginTop: spacing.sm }]}>
         {prescription ?? `No reps set for week ${planWeek}`}
       </Text>

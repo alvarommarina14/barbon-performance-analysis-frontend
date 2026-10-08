@@ -10,7 +10,8 @@ import { problemDetail } from '../lib/problem';
 type LibraryItem = components['schemas']['LibraryItemView'];
 type DrillCategory = LibraryItem['category'];
 
-const CATEGORIES: DrillCategory[] = ['FOREHAND', 'BACKHAND', 'SERVE', 'MOVEMENT', 'FITNESS'];
+// Fitness drills belong to the strength program's days, not to a tennis analysis.
+const CATEGORIES: DrillCategory[] = ['FOREHAND', 'BACKHAND', 'SERVE', 'MOVEMENT'];
 const label = (c: DrillCategory) => c.charAt(0) + c.slice(1).toLowerCase();
 
 interface Row {
@@ -153,7 +154,7 @@ export default function DrillAssignmentStep({
     library.data?.find((item) => item.id === libraryItemId) ??
     assigned.data?.find((a) => a.libraryItemId === libraryItemId);
   const inCategory = (library.data ?? []).filter(
-    (item) => pickerCategory === 'ALL' || item.category === pickerCategory,
+    (item) => (pickerCategory === 'ALL' ? CATEGORIES.includes(item.category) : item.category === pickerCategory),
   );
   const pickable = inCategory.filter(
     (item) => !rows.some((r) => r.libraryItemId === item.id),

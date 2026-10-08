@@ -6,17 +6,17 @@
  */
 
 export interface paths {
-    "/api/v1/strength/training-days/{trainingDayId}/exercises": {
+    "/api/v1/strength/training-days/{trainingDayId}/sections": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** The exercises assigned to one training day */
-        get: operations["dayExercises"];
-        /** Replace the whole exercise list for one training day */
-        put: operations["replaceDayExercises"];
+        /** One training day's blocks, each with its exercises */
+        get: operations["daySections"];
+        /** Replace one training day's blocks and their exercises */
+        put: operations["replaceDaySections"];
         post?: never;
         delete?: never;
         options?: never;
@@ -35,6 +35,59 @@ export interface paths {
         get: operations["library"];
         /** Replace the red flag library */
         put: operations["replaceLibrary"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/strength/program-templates/{templateId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One program template with its cycle weeks and days */
+        get: operations["programTemplate"];
+        /** Rename a program template and write its cover texts */
+        put: operations["updateProgramTemplate"];
+        post?: never;
+        /** Delete a program template; clients it was applied to keep their copy */
+        delete: operations["deleteProgramTemplate"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/strength/program-templates/{templateId}/training-days": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace a program template's training days */
+        put: operations["replaceTemplateDays"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/strength/program-templates/{templateId}/cycle-phases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace a program template's four cycle weeks */
+        put: operations["replaceTemplateWeeks"];
         post?: never;
         delete?: never;
         options?: never;
@@ -93,6 +146,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/strength/players/{playerProfileId}/program": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Write a client's athlete level, "about your program" and schedule texts */
+        put: operations["writeProgram"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/strength/players/{playerProfileId}/plan": {
         parameters: {
             query?: never;
@@ -139,24 +209,6 @@ export interface paths {
         put: operations["logExercise"];
         post?: never;
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/strength/cycle-phase-templates/{name}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Create or replace a named cycle phase template */
-        put: operations["replaceCyclePhaseTemplate"];
-        post?: never;
-        /** Delete a cycle phase template */
-        delete: operations["deleteCyclePhaseTemplate"];
         options?: never;
         head?: never;
         patch?: never;
@@ -319,24 +371,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/strength/players/{playerProfileId}/cycle-phases/apply-template": {
+    "/api/v1/strength/program-templates": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** The organisation's program templates */
+        get: operations["programTemplates"];
         put?: never;
-        /** Copy a template's weeks into one player's cycle phases */
-        post: operations["applyCyclePhaseTemplate"];
+        /** Create a program template, empty or as a copy of a client's program */
+        post: operations["createProgramTemplate"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/players/{playerProfileId}/program-pdf/upload-intent": {
+    "/api/v1/strength/players/{playerProfileId}/program/apply-template": {
         parameters: {
             query?: never;
             header?: never;
@@ -345,25 +398,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Reserve a one-time upload URL for a player's program PDF */
-        post: operations["programPdfUploadIntent"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/players/{playerProfileId}/program-pdf/confirm": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Confirm a player's program PDF once it has finished uploading */
-        post: operations["confirmProgramPdf"];
+        /** Replace a client's days and cycle weeks with a copy of a program template */
+        post: operations["applyTemplate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -848,6 +884,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/strength/program": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A program's cover texts: a player's own, or a coach's client's */
+        get: operations["program"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/strength/program-pdf-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A short-lived link that opens the program PDF in any browser, generated on open */
+        get: operations["programPdfLink"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/strength/plan": {
         parameters: {
             query?: never;
@@ -882,15 +952,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/strength/cycle-phase-templates": {
+    "/api/v1/public/program-pdf/{token}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** The organisation's reusable cycle phase templates */
-        get: operations["cyclePhaseTemplates"];
+        /** The program PDF behind a signed link, generated from the current program */
+        get: operations["programPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/exercise-videos/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Redirect a program PDF's video link to a fresh playback URL */
+        get: operations["exerciseVideo"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1117,9 +1204,18 @@ export interface components {
             setsRepsWk3?: string;
             setsRepsWk4?: string;
             cueOverride?: string;
+            notes?: string;
         };
-        ReplaceDayExercisesRequest: {
+        DaySectionInput: {
+            /** Format: uuid */
+            id?: string;
+            title: string;
+            note?: string;
+            variesByWeek: boolean;
             exercises: components["schemas"]["DayExerciseInput"][];
+        };
+        ReplaceDaySectionsRequest: {
+            sections: components["schemas"]["DaySectionInput"][];
         };
         DayExerciseView: {
             /** Format: uuid */
@@ -1138,12 +1234,23 @@ export interface components {
             durationSeconds?: number;
             thumbnailUrl?: string;
             cueOverride?: string;
+            notes?: string;
             setsRepsWk1?: string;
             setsRepsWk2?: string;
             setsRepsWk3?: string;
             setsRepsWk4?: string;
             /** Format: int32 */
             sortOrder?: number;
+        };
+        DaySectionView: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            note?: string;
+            variesByWeek?: boolean;
+            /** Format: int32 */
+            sortOrder?: number;
+            exercises: components["schemas"]["DayExerciseView"][];
         };
         RedFlagInput: {
             title: string;
@@ -1158,17 +1265,47 @@ export interface components {
             title: string;
             body?: string;
         };
-        WriteWeeklyNoteRequest: {
-            body?: string;
+        UpdateProgramTemplateRequest: {
+            name: string;
+            about?: string;
+            schedule?: string;
+            cycleNote?: string;
         };
-        WeeklyNoteView: {
+        CyclePhaseView: {
+            /** Format: uuid */
+            id: string;
             /** Format: int32 */
-            planWeek?: number;
-            body: string;
-            /** Format: date */
-            weekStartsOn?: string;
-            /** Format: date-time */
-            updatedAt: string;
+            weekNumber?: number;
+            phaseName: string;
+            goal: string;
+            rpeRange?: string;
+            example?: string;
+        };
+        ProgramTemplateView: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            about?: string;
+            schedule?: string;
+            cycleNote?: string;
+            weeks: components["schemas"]["CyclePhaseView"][];
+            days: components["schemas"]["TrainingDayView"][];
+        };
+        TrainingDayView: {
+            /** Format: uuid */
+            id: string;
+            dayLabel: string;
+            title: string;
+            focus?: string;
+            /** Format: int32 */
+            durationMinutes?: number;
+            /** @enum {string} */
+            kind: "REHAB" | "STRENGTH" | "CARDIO";
+            protocol?: string;
+            /** Format: int32 */
+            sortOrder?: number;
+            /** Format: int32 */
+            exerciseCount?: number;
         };
         ReplaceTrainingDaysRequest: {
             days: components["schemas"]["TrainingDayInput"][];
@@ -1181,22 +1318,43 @@ export interface components {
             /** Format: int32 */
             durationMinutes?: number;
             /** @enum {string} */
-            kind: "REHAB" | "STRENGTH";
+            kind: "REHAB" | "STRENGTH" | "CARDIO";
+            protocol?: string;
         };
-        TrainingDayView: {
-            /** Format: uuid */
-            id: string;
-            dayLabel: string;
-            title: string;
-            focus?: string;
+        CyclePhaseInput: {
             /** Format: int32 */
-            durationMinutes?: number;
-            /** @enum {string} */
-            kind: "REHAB" | "STRENGTH";
+            weekNumber?: number;
+            phaseName: string;
+            goal: string;
+            rpeRange?: string;
+            example?: string;
+        };
+        ReplaceCyclePhasesRequest: {
+            phases: components["schemas"]["CyclePhaseInput"][];
+        };
+        WriteWeeklyNoteRequest: {
+            body?: string;
+        };
+        WeeklyNoteView: {
             /** Format: int32 */
-            sortOrder?: number;
-            /** Format: int32 */
-            exerciseCount?: number;
+            planWeek?: number;
+            body: string;
+            /** Format: date */
+            weekStartsOn?: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        WriteTrainingProgramRequest: {
+            athleteLevel?: string;
+            about?: string;
+            schedule?: string;
+            cycleNote?: string;
+        };
+        TrainingProgramView: {
+            athleteLevel?: string;
+            about?: string;
+            schedule?: string;
+            cycleNote?: string;
         };
         SetPlanStartRequest: {
             /** Format: date */
@@ -1213,27 +1371,6 @@ export interface components {
             cycleWeek?: number;
             /** Format: int32 */
             unlockedWeeks?: number;
-        };
-        CyclePhaseInput: {
-            /** Format: int32 */
-            weekNumber?: number;
-            phaseName: string;
-            goal: string;
-            setsReps?: string;
-            rpeRange?: string;
-        };
-        ReplaceCyclePhasesRequest: {
-            phases: components["schemas"]["CyclePhaseInput"][];
-        };
-        CyclePhaseView: {
-            /** Format: uuid */
-            id: string;
-            /** Format: int32 */
-            weekNumber?: number;
-            phaseName: string;
-            goal: string;
-            setsReps?: string;
-            rpeRange?: string;
         };
         LogExerciseRequest: {
             /** @enum {string} */
@@ -1262,13 +1399,6 @@ export interface components {
             /** Format: int32 */
             reps?: number;
             weight?: number;
-        };
-        ReplaceCyclePhaseTemplateRequest: {
-            weeks: components["schemas"]["CyclePhaseInput"][];
-        };
-        CyclePhaseTemplateView: {
-            name: string;
-            weeks: components["schemas"]["CyclePhaseView"][];
         };
         UpdateLibraryItemRequest: {
             title: string;
@@ -1421,19 +1551,14 @@ export interface components {
             /** Format: int32 */
             maxDurationSeconds?: number;
         };
-        ApplyCyclePhaseTemplateRequest: {
-            templateName: string;
+        CreateProgramTemplateRequest: {
+            name: string;
+            /** Format: uuid */
+            fromPlayerProfileId?: string;
         };
-        ProgramPdfUploadIntentRequest: {
-            /** Format: int64 */
-            sizeBytes?: number;
-        };
-        ProgramPdfUploadIntentResponse: {
-            uploadUrl: string;
-            objectKey: string;
-        };
-        ConfirmProgramPdfRequest: {
-            objectKey: string;
+        ApplyProgramTemplateRequest: {
+            /** Format: uuid */
+            templateId: string;
         };
         CreateLibraryItemRequest: {
             /** Format: uuid */
@@ -1651,6 +1776,18 @@ export interface components {
             url: string;
             ready?: boolean;
         };
+        ProgramTemplateSummary: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: int32 */
+            dayCount?: number;
+        };
+        ProgramPdfLinkView: {
+            url: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
         CoachCard: {
             /** Format: uuid */
             profileId: string;
@@ -1663,7 +1800,6 @@ export interface components {
             weekNumber?: number;
             phaseName: string;
             goal: string;
-            setsReps?: string;
             rpeRange?: string;
         };
         PlayerHomeResponse: {
@@ -1769,7 +1905,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    dayExercises: {
+    daySections: {
         parameters: {
             query?: never;
             header?: never;
@@ -1786,12 +1922,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["DayExerciseView"][];
+                    "*/*": components["schemas"]["DaySectionView"][];
                 };
             };
         };
     };
-    replaceDayExercises: {
+    replaceDaySections: {
         parameters: {
             query?: never;
             header?: never;
@@ -1802,7 +1938,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ReplaceDayExercisesRequest"];
+                "application/json": components["schemas"]["ReplaceDaySectionsRequest"];
             };
         };
         responses: {
@@ -1812,7 +1948,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["DayExerciseView"][];
+                    "*/*": components["schemas"]["DaySectionView"][];
                 };
             };
         };
@@ -1857,6 +1993,126 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["RedFlagView"][];
+                };
+            };
+        };
+    };
+    programTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProgramTemplateView"];
+                };
+            };
+        };
+    };
+    updateProgramTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProgramTemplateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProgramTemplateView"];
+                };
+            };
+        };
+    };
+    deleteProgramTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    replaceTemplateDays: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplaceTrainingDaysRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProgramTemplateView"];
+                };
+            };
+        };
+    };
+    replaceTemplateWeeks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplaceCyclePhasesRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProgramTemplateView"];
                 };
             };
         };
@@ -1940,6 +2196,32 @@ export interface operations {
             };
         };
     };
+    writeProgram: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                playerProfileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WriteTrainingProgramRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TrainingProgramView"];
+                };
+            };
+        };
+    };
     setPlanStart: {
         parameters: {
             query?: never;
@@ -2016,52 +2298,6 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["ExerciseLogView"];
                 };
-            };
-        };
-    };
-    replaceCyclePhaseTemplate: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                name: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReplaceCyclePhaseTemplateRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CyclePhaseTemplateView"];
-                };
-            };
-        };
-    };
-    deleteCyclePhaseTemplate: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                name: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -2373,20 +2609,14 @@ export interface operations {
             };
         };
     };
-    applyCyclePhaseTemplate: {
+    programTemplates: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                playerProfileId: string;
-            };
+            path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ApplyCyclePhaseTemplateRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
@@ -2394,38 +2624,36 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["CyclePhaseView"][];
+                    "*/*": components["schemas"]["ProgramTemplateSummary"][];
                 };
             };
         };
     };
-    programPdfUploadIntent: {
+    createProgramTemplate: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                playerProfileId: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ProgramPdfUploadIntentRequest"];
+                "application/json": components["schemas"]["CreateProgramTemplateRequest"];
             };
         };
         responses: {
-            /** @description OK */
-            200: {
+            /** @description Created */
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ProgramPdfUploadIntentResponse"];
+                    "*/*": components["schemas"]["ProgramTemplateView"];
                 };
             };
         };
     };
-    confirmProgramPdf: {
+    applyTemplate: {
         parameters: {
             query?: never;
             header?: never;
@@ -2436,7 +2664,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ConfirmProgramPdfRequest"];
+                "application/json": components["schemas"]["ApplyProgramTemplateRequest"];
             };
         };
         responses: {
@@ -3143,6 +3371,50 @@ export interface operations {
             };
         };
     };
+    program: {
+        parameters: {
+            query?: {
+                playerProfileId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TrainingProgramView"];
+                };
+            };
+        };
+    };
+    programPdfLink: {
+        parameters: {
+            query?: {
+                playerProfileId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProgramPdfLinkView"];
+                };
+            };
+        };
+    };
     plan: {
         parameters: {
             query?: {
@@ -3187,11 +3459,13 @@ export interface operations {
             };
         };
     };
-    cyclePhaseTemplates: {
+    programPdf: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                token: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -3202,8 +3476,28 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["CyclePhaseTemplateView"][];
+                    "application/pdf": string;
                 };
+            };
+        };
+    };
+    exerciseVideo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

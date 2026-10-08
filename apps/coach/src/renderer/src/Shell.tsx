@@ -7,8 +7,9 @@ import AnalysisEditorScreen from './screens/AnalysisEditorScreen';
 import CallsScreen from './screens/CallsScreen';
 import ClientListScreen from './screens/ClientListScreen';
 import ClientTrainingScreen from './screens/ClientTrainingScreen';
-import CyclePhasesScreen from './screens/CyclePhasesScreen';
 import DrillLibraryScreen from './screens/DrillLibraryScreen';
+import ProgramTemplateScreen from './screens/ProgramTemplateScreen';
+import ProgramTemplatesScreen from './screens/ProgramTemplatesScreen';
 import QueueScreen from './screens/QueueScreen';
 import RecordingTipsScreen from './screens/RecordingTipsScreen';
 import RedFlagsScreen from './screens/RedFlagsScreen';
@@ -23,7 +24,8 @@ type Mode = 'coaching' | 'setup';
 const SETUP_SCREENS = new Set<Screen['name']>([
   'library',
   'recording-tips',
-  'cycle-phases',
+  'program-templates',
+  'program-template',
   'rpe-guide',
   'red-flags',
   'warmup-recovery',
@@ -39,7 +41,7 @@ type TabScreen =
   | 'clients'
   | 'library'
   | 'recording-tips'
-  | 'cycle-phases'
+  | 'program-templates'
   | 'rpe-guide'
   | 'red-flags'
   | 'warmup-recovery'
@@ -53,7 +55,7 @@ const COACHING_TABS: { name: TabScreen; label: string }[] = [
 const SETUP_TABS: { name: TabScreen; label: string }[] = [
   { name: 'library', label: 'Library' },
   { name: 'recording-tips', label: 'Recording tips' },
-  { name: 'cycle-phases', label: 'Cycle phases' },
+  { name: 'program-templates', label: 'Program templates' },
   { name: 'rpe-guide', label: 'RPE guide' },
   { name: 'red-flags', label: 'Red flags' },
   { name: 'warmup-recovery', label: 'Warm-up & recovery' },
@@ -67,6 +69,9 @@ function sectionOf(screen: Screen): Screen['name'] {
   }
   if (screen.name === 'review' || screen.name === 'editor') {
     return 'queue';
+  }
+  if (screen.name === 'program-template') {
+    return 'program-templates';
   }
   return screen.name;
 }
@@ -93,7 +98,7 @@ export default function Shell() {
 
   return (
     <ToastProvider>
-      <div className="shell">
+      <div className="shell" data-mode={mode}>
         <div className="shell-header">
           <header className="shell-bar">
             <div className="shell-brand">
@@ -146,7 +151,10 @@ export default function Shell() {
           {screen.name === 'clients' && <ClientListScreen />}
           {screen.name === 'library' && <DrillLibraryScreen />}
           {screen.name === 'recording-tips' && <RecordingTipsScreen />}
-          {screen.name === 'cycle-phases' && <CyclePhasesScreen />}
+          {screen.name === 'program-templates' && <ProgramTemplatesScreen />}
+          {screen.name === 'program-template' && (
+            <ProgramTemplateScreen key={screen.templateId} templateId={screen.templateId} />
+          )}
           {screen.name === 'rpe-guide' && <RpeGuideScreen />}
           {screen.name === 'red-flags' && <RedFlagsScreen />}
           {screen.name === 'warmup-recovery' && <WarmupRecoveryScreen />}

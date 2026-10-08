@@ -19,7 +19,8 @@ export type Screen =
   | { name: 'clients' }
   | { name: 'library' }
   | { name: 'recording-tips' }
-  | { name: 'cycle-phases' }
+  | { name: 'program-templates' }
+  | { name: 'program-template'; templateId: string }
   | { name: 'rpe-guide' }
   | { name: 'red-flags' }
   | { name: 'warmup-recovery' }

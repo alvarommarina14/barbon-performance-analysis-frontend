@@ -1,0 +1,687 @@
+import type { components } from '@barbon-performance-analysis/api-client';
+import { setsRepsByWeek } from '@barbon-performance-analysis/core';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { type DragEvent, useEffect, useState } from 'react';
+import { api } from '../api/client';
+import { useConfirm } from '../components/Confirm';
+import { DrillThumb } from '../components/DrillThumb';
+import { LoadError } from '../components/LoadError';
+import { Modal } from '../components/Modal';
+import { RichTextField } from '../components/RichTextField';
+import { cx } from '../lib/cx';
+import { problemDetail } from '../lib/problem';
+import { uid } from '../lib/uid';
+import { useUnsavedChanges } from '../nav';
+
+type LibraryItem = components['schemas']['LibraryItemView'];
+type DaySectionView = components['schemas']['DaySectionView'];
+
+const WEEK_FIELDS = ['setsRepsWk1', 'setsRepsWk2', 'setsRepsWk3', 'setsRepsWk4'] as const;
+const LIBRARY_ITEM_TYPE = 'application/x-barbon-library-item';
+const BLOCK_TYPE = 'application/x-barbon-day-block';
+
+interface ExerciseRow {
+  key: string;
+  id: string | null;
+  libraryItemId: string;
+  title: string;
+  cueOverride: string;
+  notes: string;
+  setsRepsWk1: string;
+  setsRepsWk2: string;
+  setsRepsWk3: string;
+  setsRepsWk4: string;
+}
+
+interface BlockRow {
+  key: string;
+  id: string | null;
+  title: string;
+  note: string;
+  variesByWeek: boolean;
+  exercises: ExerciseRow[];
+}
+
+const toBlocks = (sections: DaySectionView[]): BlockRow[] =>
+  sections.map((section) => ({
+    key: section.id,
+    id: section.id,
+    title: section.title,
+    note: section.note ?? '',
+    variesByWeek: section.variesByWeek ?? true,
+    exercises: section.exercises.map((e) => ({
+      key: e.id,
+      id: e.id,
+      libraryItemId: e.libraryItemId,
+      title: e.title,
+      cueOverride: e.cueOverride ?? '',
+      notes: e.notes ?? '',
+      setsRepsWk1: e.setsRepsWk1 ?? '',
+      setsRepsWk2: e.setsRepsWk2 ?? '',
+      setsRepsWk3: e.setsRepsWk3 ?? '',
+      setsRepsWk4: e.setsRepsWk4 ?? '',
+    })),
+  }));
+
+// A null blockKey is the empty day: dropping there opens its first block.
+interface DropTarget {
+  blockKey: string | null;
+  index: number;
+}
+
+// A draft of one exercise's texts: the modal edits this copy, and only Done writes it to the day.
+interface ExerciseDetails {
+  key: string;
+  title: string;
+  libraryCue: string | null;
+  cueOverride: string;
+  notes: string;
+}
+
+const blankBlock = (title = ''): BlockRow => ({
+  key: uid(),
+  id: null,
+  title,
+  note: '',
+  variesByWeek: true,
+  exercises: [],
+});
+
+export default function DaySectionsStep({ trainingDayId }: { trainingDayId: string }) {
+  const queryClient = useQueryClient();
+  const confirm = useConfirm();
+  const sectionsKey = ['strength', 'training-day', trainingDayId, 'sections'];
+
+  const sections = useQuery({
+    queryKey: sectionsKey,
+    queryFn: async () => {
+      const { data, error } = await api.GET('/api/v1/strength/training-days/{trainingDayId}/sections', {
+        params: { path: { trainingDayId } },
+      });
+      if (!data) {
+        throw new Error(problemDetail(error) ?? 'Could not load the blocks');
+      }
+      return data;
+    },
+  });
+
+  const library = useQuery({
+    queryKey: ['drills', 'library'],
+    queryFn: async () => {
+      const { data, error } = await api.GET('/api/v1/drills/library');
+      if (!data) {
+        throw new Error(problemDetail(error) ?? 'Could not load the drill library');
+      }
+      return data;
+    },
+  });
+
+  const [blocks, setBlocks] = useState<BlockRow[]>([]);
+  const [activeKey, setActiveKey] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(false);
+  const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
+  const [draggingBlockKey, setDraggingBlockKey] = useState<string | null>(null);
+  const [blockDropIndex, setBlockDropIndex] = useState<number | null>(null);
+  const [details, setDetails] = useState<ExerciseDetails | null>(null);
+
+  useEffect(() => {
+    if (sections.data && !dirty) {
+      setBlocks(toBlocks(sections.data));
+    }
+  }, [sections.data, dirty]);
+
+  useUnsavedChanges(dirty);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await api.PUT('/api/v1/strength/training-days/{trainingDayId}/sections', {
+        params: { path: { trainingDayId } },
+        body: {
+          sections: blocks.map((b) => ({
+            id: b.id ?? undefined,
+            title: b.title.trim(),
+            note: b.note.trim() || undefined,
+            variesByWeek: b.variesByWeek,
+            exercises: b.exercises.map((e) => ({
+              id: e.id ?? undefined,
+              libraryItemId: e.libraryItemId,
+              cueOverride: e.cueOverride.trim() || undefined,
+              notes: e.notes.trim() || undefined,
+              setsRepsWk1: e.setsRepsWk1.trim() || undefined,
+              setsRepsWk2: (b.variesByWeek && e.setsRepsWk2.trim()) || undefined,
+              setsRepsWk3: (b.variesByWeek && e.setsRepsWk3.trim()) || undefined,
+              setsRepsWk4: (b.variesByWeek && e.setsRepsWk4.trim()) || undefined,
+            })),
+          })),
+        },
+      });
+      if (!data) {
+        throw new Error(problemDetail(error) ?? 'Could not save the blocks');
+      }
+      return data;
+    },
+    onSuccess: (data) => {
+      setDirty(false);
+      setActiveKey(null);
+      queryClient.setQueryData(sectionsKey, data);
+      void queryClient.invalidateQueries({ queryKey: ['strength', 'training-days'] });
+      void queryClient.invalidateQueries({ queryKey: ['strength', 'program-template'] });
+    },
+  });
+
+  function edit(change: (prev: BlockRow[]) => BlockRow[]) {
+    setBlocks(change);
+    setDirty(true);
+  }
+
+  const activeBlock = blocks.find((b) => b.key === activeKey) ?? blocks[blocks.length - 1];
+
+  function addBlock() {
+    const block = blankBlock();
+    edit((prev) => [...prev, block]);
+    setActiveKey(block.key);
+  }
+
+  function updateBlock(key: string, patch: Partial<Omit<BlockRow, 'exercises'>>) {
+    edit((prev) => prev.map((b) => (b.key === key ? { ...b, ...patch } : b)));
+  }
+
+  // `index` is a gap between blocks (0 = before the first), counted before the block leaves.
+  function moveBlockTo(key: string, index: number) {
+    const from = blocks.findIndex((b) => b.key === key);
+    if (from < 0 || index === from || index === from + 1) {
+      return;
+    }
+    edit((prev) => {
+      const block = prev[from] as BlockRow;
+      const rest = prev.toSpliced(from, 1);
+      return rest.toSpliced(index > from ? index - 1 : index, 0, block);
+    });
+  }
+
+  function dragOverBlock(event: DragEvent<HTMLElement>, blockIndex: number) {
+    if (!event.dataTransfer.types.includes(BLOCK_TYPE)) {
+      return;
+    }
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    const rect = event.currentTarget.getBoundingClientRect();
+    const below = event.clientY > rect.top + rect.height / 2;
+    setBlockDropIndex(blockIndex + (below ? 1 : 0));
+  }
+
+  function endBlockDrag() {
+    setDraggingBlockKey(null);
+    setBlockDropIndex(null);
+  }
+
+  async function removeBlock(block: BlockRow) {
+    const blank = !block.title.trim() && block.exercises.length === 0;
+    if (!blank) {
+      const count = block.exercises.length;
+      const sure = await confirm({
+        title: `Remove “${block.title.trim() || 'Untitled block'}”?`,
+        message:
+          (count > 0
+            ? `Its ${count} ${count === 1 ? 'exercise goes' : 'exercises go'} with it, along with any sets the client logged against them. `
+            : '') + 'Nothing changes until you save the day.',
+        confirmLabel: 'Remove block',
+        danger: true,
+      });
+      if (!sure) {
+        return;
+      }
+    }
+    edit((prev) => prev.filter((b) => b.key !== block.key));
+  }
+
+  function addExercise(item: LibraryItem, target?: DropTarget) {
+    const row: ExerciseRow = {
+      key: uid(),
+      id: null,
+      libraryItemId: item.id,
+      title: item.title,
+      cueOverride: '',
+      notes: '',
+      setsRepsWk1: '',
+      setsRepsWk2: '',
+      setsRepsWk3: '',
+      setsRepsWk4: '',
+    };
+    const blockKey = target ? target.blockKey : (activeBlock?.key ?? null);
+    if (blockKey === null) {
+      const block = { ...blankBlock('Exercises'), exercises: [row] };
+      edit(() => [block]);
+      setActiveKey(block.key);
+      return;
+    }
+    const index = target?.index ?? Infinity;
+    edit((prev) =>
+      prev.map((b) => (b.key === blockKey ? { ...b, exercises: b.exercises.toSpliced(index, 0, row) } : b)),
+    );
+    setActiveKey(blockKey);
+  }
+
+  function dragOver(event: DragEvent<HTMLElement>, target: DropTarget) {
+    if (!event.dataTransfer.types.includes(LIBRARY_ITEM_TYPE)) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = 'copy';
+    setDropTarget((prev) =>
+      prev?.blockKey === target.blockKey && prev.index === target.index ? prev : target,
+    );
+  }
+
+  function dragOverExercise(event: DragEvent<HTMLElement>, blockKey: string, exerciseIndex: number) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const below = event.clientY > rect.top + rect.height / 2;
+    dragOver(event, { blockKey, index: exerciseIndex + (below ? 1 : 0) });
+  }
+
+  function drop(event: DragEvent<HTMLElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    const blockKey = event.dataTransfer.getData(BLOCK_TYPE);
+    if (blockKey && blockDropIndex !== null) {
+      moveBlockTo(blockKey, blockDropIndex);
+    }
+    const item = pickable.find((i) => i.id === event.dataTransfer.getData(LIBRARY_ITEM_TYPE));
+    if (item && dropTarget) {
+      addExercise(item, dropTarget);
+    }
+    setDropTarget(null);
+    endBlockDrag();
+  }
+
+  function dragLeave(event: DragEvent<HTMLElement>) {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setDropTarget(null);
+      setBlockDropIndex(null);
+    }
+  }
+
+  function updateExercise(key: string, patch: Partial<ExerciseRow>) {
+    edit((prev) =>
+      prev.map((b) => ({
+        ...b,
+        exercises: b.exercises.map((e) => (e.key === key ? { ...e, ...patch } : e)),
+      })),
+    );
+  }
+
+  // Past the first or last exercise of a block, an exercise moves into the neighbouring block, so
+  // the arrows alone are enough to regroup a day without drag and drop.
+  function moveExercise(blockIndex: number, exerciseIndex: number, delta: number) {
+    edit((prev) => {
+      const copy = prev.map((b) => ({ ...b, exercises: [...b.exercises] }));
+      const block = copy[blockIndex];
+      if (!block) {
+        return prev;
+      }
+      const [row] = block.exercises.splice(exerciseIndex, 1);
+      if (!row) {
+        return prev;
+      }
+      const target = exerciseIndex + delta;
+      if (target >= 0 && target <= block.exercises.length) {
+        block.exercises.splice(target, 0, row);
+        return copy;
+      }
+      const neighbour = copy[blockIndex + delta];
+      if (!neighbour) {
+        return prev;
+      }
+      if (delta < 0) {
+        neighbour.exercises.push(row);
+      } else {
+        neighbour.exercises.unshift(row);
+      }
+      return copy;
+    });
+  }
+
+  function openDetails(row: ExerciseRow) {
+    setDetails({
+      key: row.key,
+      title: row.title,
+      libraryCue: library.data?.find((item) => item.id === row.libraryItemId)?.cue ?? null,
+      cueOverride: row.cueOverride,
+      notes: row.notes,
+    });
+  }
+
+  function applyDetails(draft: ExerciseDetails) {
+    const row = blocks.flatMap((b) => b.exercises).find((e) => e.key === draft.key);
+    if (row && (row.cueOverride !== draft.cueOverride || row.notes !== draft.notes)) {
+      updateExercise(draft.key, { cueOverride: draft.cueOverride, notes: draft.notes });
+    }
+    setDetails(null);
+  }
+
+  function removeExercise(key: string) {
+    edit((prev) => prev.map((b) => ({ ...b, exercises: b.exercises.filter((e) => e.key !== key) })));
+  }
+
+  const addedIds = new Set(blocks.flatMap((b) => b.exercises.map((e) => e.libraryItemId)));
+  const fitness = (library.data ?? []).filter((item) => item.category === 'FITNESS');
+  const pickable = fitness.filter((item) => !addedIds.has(item.id));
+  const anyBlockUntitled = blocks.some((b) => !b.title.trim());
+  const canSave = dirty && !anyBlockUntitled && !save.isPending;
+  const { mutate: saveDay } = save;
+
+  // The Details modal edits a draft that only Done writes to the day, so saving under it would
+  // leave the draft behind.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 's') {
+        return;
+      }
+      event.preventDefault();
+      if (canSave && !details) {
+        saveDay();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [canSave, details, saveDay]);
+
+  if (sections.isError) {
+    return <LoadError message={sections.error.message} onRetry={() => sections.refetch()} />;
+  }
+
+  return (
+    <div className="editor">
+      <div className="editor-main">
+        <div
+          className={cx('panel findings-panel', dropTarget?.blockKey === null && 'is-drop-target')}
+          onDragOver={(e) => {
+            // Over the gap between two blocks, a dragged block keeps the line it last showed.
+            if (e.dataTransfer.types.includes(BLOCK_TYPE)) {
+              e.preventDefault();
+            } else if (blocks.length === 0) {
+              dragOver(e, { blockKey: null, index: 0 });
+            } else {
+              setDropTarget(null);
+            }
+          }}
+          onDragLeave={dragLeave}
+          onDrop={drop}
+        >
+          <div className="workspace-header">
+            <h2 className="section-title">Blocks</h2>
+            <button type="button" className="ghost" disabled={sections.isPending} onClick={addBlock}>
+              + Add a block
+            </button>
+          </div>
+          {sections.isPending ? (
+            <p className="lede">Loading…</p>
+          ) : blocks.length === 0 ? (
+            <p className="lede">
+              Split the day into blocks — “Injury prevention”, “Main work”, “Finisher” — and pick
+              each block’s exercises from the library on the right, or drag them in.
+            </p>
+          ) : (
+            <div className="findings-list">
+              {blocks.map((block, blockIndex) => (
+                <section
+                  key={block.key}
+                  className={cx(
+                    'day-block',
+                    block.key === activeBlock?.key && 'is-active',
+                    block.key === draggingBlockKey && 'is-dragging',
+                    blockDropIndex === blockIndex && 'block-drop-before',
+                    blockDropIndex === blocks.length && blockIndex === blocks.length - 1 && 'block-drop-after',
+                    dropTarget?.blockKey === block.key && 'is-drop-target',
+                    dropTarget?.blockKey === block.key &&
+                      block.exercises.length > 0 &&
+                      dropTarget.index === block.exercises.length &&
+                      'drop-at-end',
+                  )}
+                  onClick={() => setActiveKey(block.key)}
+                  onFocus={() => setActiveKey(block.key)}
+                  onDragOver={(e) => {
+                    dragOverBlock(e, blockIndex);
+                    dragOver(e, { blockKey: block.key, index: block.exercises.length });
+                  }}
+                  onDrop={drop}
+                >
+                  <div className="day-block-head">
+                    <span
+                      className="block-handle"
+                      draggable
+                      title="Drag to reorder"
+                      aria-hidden="true"
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData(BLOCK_TYPE, block.key);
+                        e.dataTransfer.effectAllowed = 'move';
+                        const section = e.currentTarget.closest('section');
+                        if (section) {
+                          e.dataTransfer.setDragImage(section, 24, 24);
+                        }
+                        setDraggingBlockKey(block.key);
+                      }}
+                      onDragEnd={endBlockDrag}
+                    >
+                      <svg width="12" height="18" viewBox="0 0 12 18" fill="currentColor">
+                        <circle cx="3" cy="3" r="1.6" />
+                        <circle cx="9" cy="3" r="1.6" />
+                        <circle cx="3" cy="9" r="1.6" />
+                        <circle cx="9" cy="9" r="1.6" />
+                        <circle cx="3" cy="15" r="1.6" />
+                        <circle cx="9" cy="15" r="1.6" />
+                      </svg>
+                    </span>
+                    <input
+                      aria-label={`Block ${blockIndex + 1} title`}
+                      placeholder="Block title — e.g. Injury prevention"
+                      value={block.title}
+                      onChange={(e) => updateBlock(block.key, { title: e.target.value })}
+                    />
+                    <input
+                      aria-label={`Block ${blockIndex + 1} note`}
+                      placeholder="Note — e.g. 10–12 min"
+                      value={block.note}
+                      onChange={(e) => updateBlock(block.key, { note: e.target.value })}
+                    />
+                    <label className="check">
+                      <input
+                        type="checkbox"
+                        checked={block.variesByWeek}
+                        onChange={(e) => updateBlock(block.key, { variesByWeek: e.target.checked })}
+                      />
+                      Varies by week
+                    </label>
+                    <button type="button" className="ghost" aria-label={`Remove block ${blockIndex + 1}`} onClick={() => void removeBlock(block)}>
+                      Remove block
+                    </button>
+                  </div>
+
+                  {block.exercises.length === 0 ? (
+                    <p className="lede">
+                      {block.key === activeBlock?.key
+                        ? 'Exercises you pick from the library land here.'
+                        : 'No exercises yet — drag one here, or click this block and pick from the library.'}
+                    </p>
+                  ) : (
+                    <div className={cx('block-exercises', !block.variesByWeek && 'same-every-week')}>
+                      <div className="block-exercise-labels" aria-hidden="true">
+                        <span>Exercise</span>
+                        {block.variesByWeek ? (
+                          WEEK_FIELDS.map((field, i) => <span key={field}>Wk {i + 1}</span>)
+                        ) : (
+                          <span>Sets × reps</span>
+                        )}
+                      </div>
+                      {block.exercises.map((row, exerciseIndex) => (
+                        <div
+                          className={cx(
+                            'block-exercise',
+                            dropTarget?.blockKey === block.key && dropTarget.index === exerciseIndex && 'drop-before',
+                          )}
+                          key={row.key}
+                          onDragOver={(e) => dragOverExercise(e, block.key, exerciseIndex)}
+                        >
+                          <div className="block-exercise-name">
+                            <strong>{row.title}</strong>
+                            {row.cueOverride.trim() || row.notes.trim() ? (
+                              <div className="exercise-marks">
+                                {row.cueOverride.trim() ? <span className="exercise-mark">Cue</span> : null}
+                                {row.notes.trim() ? <span className="exercise-mark">Note</span> : null}
+                              </div>
+                            ) : null}
+                          </div>
+                          {block.variesByWeek ? (
+                            WEEK_FIELDS.map((field, i) => (
+                              <input
+                                key={field}
+                                className="week-input"
+                                aria-label={`${row.title}, week ${i + 1}`}
+                                placeholder={(i > 0 && setsRepsByWeek(row)[i - 1]) || '3×10'}
+                                value={row[field]}
+                                onChange={(e) => updateExercise(row.key, { [field]: e.target.value })}
+                              />
+                            ))
+                          ) : (
+                            <input
+                              className="week-input"
+                              aria-label={`${row.title}, sets and reps`}
+                              placeholder="2×10"
+                              value={row.setsRepsWk1}
+                              onChange={(e) => updateExercise(row.key, { setsRepsWk1: e.target.value })}
+                            />
+                          )}
+                          <div className="day-actions">
+                            <button type="button" className="ghost" aria-label={`${row.title} cue and notes`} onClick={() => openDetails(row)}>
+                              Details
+                            </button>
+                            <button type="button" className="ghost" aria-label={`Move ${row.title} up`} onClick={() => moveExercise(blockIndex, exerciseIndex, -1)}>
+                              ↑
+                            </button>
+                            <button type="button" className="ghost" aria-label={`Move ${row.title} down`} onClick={() => moveExercise(blockIndex, exerciseIndex, 1)}>
+                              ↓
+                            </button>
+                            <button type="button" className="ghost" aria-label={`Remove ${row.title}`} onClick={() => removeExercise(row.key)}>
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              ))}
+            </div>
+          )}
+          <div className="findings-foot">
+            {anyBlockUntitled ? <p className="lede">Every block needs a title before it can be saved.</p> : null}
+            <button
+              type="button"
+              className="primary"
+              disabled={!canSave}
+              title="Ctrl+S"
+              onClick={() => saveDay()}
+            >
+              {save.isPending ? 'Saving…' : 'Save day'}
+            </button>
+            {save.isError ? <p className="error" role="alert">{save.error.message}</p> : null}
+          </div>
+        </div>
+      </div>
+
+      <div className="editor-side">
+        <div className="panel findings-panel">
+          <h2 className="section-title">Fitness library</h2>
+          {activeBlock ? (
+            <p className="lede">
+              Adding to <strong>{activeBlock.title.trim() || `Block ${blocks.indexOf(activeBlock) + 1}`}</strong>
+            </p>
+          ) : null}
+          {library.isError ? (
+            <LoadError message={library.error.message} onRetry={() => library.refetch()} />
+          ) : library.isPending ? (
+            <p className="lede">Loading…</p>
+          ) : fitness.length === 0 ? (
+            <p className="lede">
+              No fitness drills yet — add some from the Library tab (category Fitness).
+            </p>
+          ) : pickable.length === 0 ? (
+            <p className="lede">Every fitness drill is already in this day.</p>
+          ) : (
+            <div className="findings-list">
+              {pickable.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="drill-pick"
+                  disabled={sections.isPending}
+                  draggable
+                  onClick={() => addExercise(item)}
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData(LIBRARY_ITEM_TYPE, item.id);
+                    e.dataTransfer.effectAllowed = 'copy';
+                  }}
+                  onDragEnd={() => setDropTarget(null)}
+                >
+                  <span className="drill-pick-thumb">
+                    <DrillThumb
+                      libraryItemId={item.id}
+                      thumbnailUrl={item.thumbnailUrl}
+                      ready={item.videoStatus === 'READY'}
+                    />
+                  </span>
+                  <span className="drill-pick-body">
+                    <strong>{item.title}</strong>
+                    {item.cue ? <span className="drill-cue">{item.cue}</span> : null}
+                    <span className="drill-pick-add">+ Add</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {details ? (
+        <Modal title={details.title} onClose={() => setDetails(null)}>
+          {details.libraryCue ? (
+            <div className="field">
+              <span>Cue from the library</span>
+              <p className="drill-cue">{details.libraryCue}</p>
+            </div>
+          ) : null}
+          <label className="field">
+            <span>Cue override (optional)</span>
+            <textarea
+              data-autofocus
+              className="textarea"
+              placeholder={details.libraryCue ? 'Leave empty to use the library cue' : 'e.g. Chest up, push the knees out'}
+              value={details.cueOverride}
+              onChange={(e) => setDetails({ ...details, cueOverride: e.target.value })}
+            />
+          </label>
+          <div className="field">
+            <span>Notes (optional)</span>
+            <RichTextField
+              label="Notes"
+              placeholder="e.g. Use a light band, pause 2 s at the top"
+              value={details.notes}
+              onChange={(notes) => setDetails((prev) => prev && { ...prev, notes })}
+            />
+          </div>
+          <div className="findings-foot">
+            <div className="button-row">
+              <button type="button" className="primary" onClick={() => applyDetails(details)}>
+                Done
+              </button>
+              <button type="button" className="ghost" onClick={() => setDetails(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </Modal>
+      ) : null}
+    </div>
+  );
+}

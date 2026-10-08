@@ -17,6 +17,7 @@ export const colors = {
 export const fonts = {
   display: 'BebasNeue',
   body: 'DMSans',
+  bodyBold: 'DMSansBold',
 } as const;
 
 export const fontWeights = {
