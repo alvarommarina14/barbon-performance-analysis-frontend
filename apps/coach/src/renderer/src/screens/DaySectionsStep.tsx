@@ -14,6 +14,7 @@ type DaySectionView = components['schemas']['DaySectionView'];
 
 const WEEK_FIELDS = ['setsRepsWk1', 'setsRepsWk2', 'setsRepsWk3', 'setsRepsWk4'] as const;
 const LIBRARY_ITEM_TYPE = 'application/x-barbon-library-item';
+const BLOCK_TYPE = 'application/x-barbon-day-block';
 
 interface ExerciseRow {
   key: string;
@@ -96,6 +97,8 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
+  const [draggingBlockKey, setDraggingBlockKey] = useState<string | null>(null);
+  const [blockDropIndex, setBlockDropIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (sections.data && !dirty) {
@@ -158,17 +161,33 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
     edit((prev) => prev.map((b) => (b.key === key ? { ...b, ...patch } : b)));
   }
 
-  function moveBlock(index: number, delta: number) {
+  // `index` is a gap between blocks (0 = before the first), counted before the block leaves.
+  function moveBlockTo(key: string, index: number) {
+    const from = blocks.findIndex((b) => b.key === key);
+    if (from < 0 || index === from || index === from + 1) {
+      return;
+    }
     edit((prev) => {
-      const j = index + delta;
-      if (j < 0 || j >= prev.length) {
-        return prev;
-      }
-      const copy = [...prev];
-      const [block] = copy.splice(index, 1);
-      copy.splice(j, 0, block as BlockRow);
-      return copy;
+      const block = prev[from] as BlockRow;
+      const rest = prev.toSpliced(from, 1);
+      return rest.toSpliced(index > from ? index - 1 : index, 0, block);
     });
+  }
+
+  function dragOverBlock(event: DragEvent<HTMLElement>, blockIndex: number) {
+    if (!event.dataTransfer.types.includes(BLOCK_TYPE)) {
+      return;
+    }
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    const rect = event.currentTarget.getBoundingClientRect();
+    const below = event.clientY > rect.top + rect.height / 2;
+    setBlockDropIndex(blockIndex + (below ? 1 : 0));
+  }
+
+  function endBlockDrag() {
+    setDraggingBlockKey(null);
+    setBlockDropIndex(null);
   }
 
   function removeBlock(key: string) {
@@ -223,16 +242,22 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
   function drop(event: DragEvent<HTMLElement>) {
     event.preventDefault();
     event.stopPropagation();
+    const blockKey = event.dataTransfer.getData(BLOCK_TYPE);
+    if (blockKey && blockDropIndex !== null) {
+      moveBlockTo(blockKey, blockDropIndex);
+    }
     const item = pickable.find((i) => i.id === event.dataTransfer.getData(LIBRARY_ITEM_TYPE));
     if (item && dropTarget) {
       addExercise(item, dropTarget);
     }
     setDropTarget(null);
+    endBlockDrag();
   }
 
   function dragLeave(event: DragEvent<HTMLElement>) {
     if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
       setDropTarget(null);
+      setBlockDropIndex(null);
     }
   }
 
@@ -294,9 +319,16 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
       <div className="editor-main">
         <div
           className={cx('panel findings-panel', dropTarget?.blockKey === null && 'is-drop-target')}
-          onDragOver={(e) =>
-            blocks.length === 0 ? dragOver(e, { blockKey: null, index: 0 }) : setDropTarget(null)
-          }
+          onDragOver={(e) => {
+            // Over the gap between two blocks, a dragged block keeps the line it last showed.
+            if (e.dataTransfer.types.includes(BLOCK_TYPE)) {
+              e.preventDefault();
+            } else if (blocks.length === 0) {
+              dragOver(e, { blockKey: null, index: 0 });
+            } else {
+              setDropTarget(null);
+            }
+          }}
           onDragLeave={dragLeave}
           onDrop={drop}
         >
@@ -321,6 +353,9 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
                   className={cx(
                     'day-block',
                     block.key === activeBlock?.key && 'is-active',
+                    block.key === draggingBlockKey && 'is-dragging',
+                    blockDropIndex === blockIndex && 'block-drop-before',
+                    blockDropIndex === blocks.length && blockIndex === blocks.length - 1 && 'block-drop-after',
                     dropTarget?.blockKey === block.key && 'is-drop-target',
                     dropTarget?.blockKey === block.key &&
                       block.exercises.length > 0 &&
@@ -329,10 +364,38 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
                   )}
                   onClick={() => setActiveKey(block.key)}
                   onFocus={() => setActiveKey(block.key)}
-                  onDragOver={(e) => dragOver(e, { blockKey: block.key, index: block.exercises.length })}
+                  onDragOver={(e) => {
+                    dragOverBlock(e, blockIndex);
+                    dragOver(e, { blockKey: block.key, index: block.exercises.length });
+                  }}
                   onDrop={drop}
                 >
                   <div className="day-block-head">
+                    <span
+                      className="block-handle"
+                      draggable
+                      title="Drag to reorder"
+                      aria-hidden="true"
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData(BLOCK_TYPE, block.key);
+                        e.dataTransfer.effectAllowed = 'move';
+                        const section = e.currentTarget.closest('section');
+                        if (section) {
+                          e.dataTransfer.setDragImage(section, 24, 24);
+                        }
+                        setDraggingBlockKey(block.key);
+                      }}
+                      onDragEnd={endBlockDrag}
+                    >
+                      <svg width="12" height="18" viewBox="0 0 12 18" fill="currentColor">
+                        <circle cx="3" cy="3" r="1.6" />
+                        <circle cx="9" cy="3" r="1.6" />
+                        <circle cx="3" cy="9" r="1.6" />
+                        <circle cx="9" cy="9" r="1.6" />
+                        <circle cx="3" cy="15" r="1.6" />
+                        <circle cx="9" cy="15" r="1.6" />
+                      </svg>
+                    </span>
                     <input
                       aria-label={`Block ${blockIndex + 1} title`}
                       placeholder="Block title — e.g. Injury prevention"
@@ -345,17 +408,9 @@ export default function DaySectionsStep({ trainingDayId }: { trainingDayId: stri
                       value={block.note}
                       onChange={(e) => updateBlock(block.key, { note: e.target.value })}
                     />
-                    <div className="day-actions">
-                      <button type="button" className="ghost" aria-label={`Move block ${blockIndex + 1} up`} onClick={() => moveBlock(blockIndex, -1)}>
-                        ↑
-                      </button>
-                      <button type="button" className="ghost" aria-label={`Move block ${blockIndex + 1} down`} onClick={() => moveBlock(blockIndex, 1)}>
-                        ↓
-                      </button>
-                      <button type="button" className="ghost" aria-label={`Remove block ${blockIndex + 1}`} onClick={() => removeBlock(block.key)}>
-                        Remove block
-                      </button>
-                    </div>
+                    <button type="button" className="ghost" aria-label={`Remove block ${blockIndex + 1}`} onClick={() => removeBlock(block.key)}>
+                      Remove block
+                    </button>
                   </div>
 
                   {block.exercises.length === 0 ? (

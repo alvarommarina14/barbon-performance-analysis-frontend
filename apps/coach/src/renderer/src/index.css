@@ -1405,6 +1405,30 @@ button {
   box-shadow: inset 0 -3px 0 var(--accent);
 }
 
+.block-handle {
+  display: flex;
+  padding: 6px 2px;
+  color: var(--gray);
+  cursor: grab;
+}
+
+.block-handle:hover {
+  color: var(--accent);
+}
+
+.day-block.is-dragging {
+  opacity: 0.4;
+}
+
+/* A spread-reduced shadow draws a line in the gap above or below the block, not on its border. */
+.day-block.block-drop-before {
+  box-shadow: 0 -7px 0 -4px var(--accent);
+}
+
+.day-block.block-drop-after {
+  box-shadow: 0 7px 0 -4px var(--accent);
+}
+
 .drill-pick[draggable='true'] {
   cursor: grab;
 }
@@ -1418,7 +1442,7 @@ button {
 
 .day-block-head {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1.4fr) minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
 }
