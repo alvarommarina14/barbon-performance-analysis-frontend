@@ -507,6 +507,88 @@ button {
   min-height: 0;
 }
 
+/* --- Program PDF preview: fixed to the window's right edge, so the screens keep their own layout
+   and only give up that width --- */
+
+:root {
+  --pdf-pane-w: clamp(360px, 38vw, 680px);
+}
+
+.workspace.with-pdf-pane {
+  padding-right: calc(var(--pdf-pane-w) + 24px);
+}
+
+.pdf-pane {
+  position: fixed;
+  top: var(--titlebar-h);
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  width: var(--pdf-pane-w);
+  border-left: 1px solid var(--line);
+  background: var(--card);
+}
+
+.pdf-pane-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.pdf-pane-status {
+  color: var(--gray);
+  font-size: 12px;
+}
+
+.pdf-pane-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.pdf-pane-actions .ghost {
+  padding: 6px 10px;
+}
+
+.pdf-pane-pages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: #525659;
+}
+
+.pdf-pages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+}
+
+.pdf-pages canvas {
+  display: block;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.pdf-pane-empty {
+  padding: 16px;
+}
+
+@media (max-width: 1100px) {
+  .pdf-pane {
+    display: none;
+  }
+
+  .workspace.with-pdf-pane {
+    padding-right: 40px;
+  }
+}
+
 /* --- Editor --- */
 
 .editor {
