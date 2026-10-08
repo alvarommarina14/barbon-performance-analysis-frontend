@@ -10,7 +10,9 @@ interface WeekRow {
   weekNumber: number;
   phaseName: string;
   goal: string;
+  effort: string;
   rpeRange: string;
+  repsLeft: string;
   example: string;
 }
 
@@ -21,7 +23,9 @@ const toRows = (phases: CyclePhaseView[]): WeekRow[] =>
       weekNumber,
       phaseName: found?.phaseName ?? '',
       goal: found?.goal ?? '',
+      effort: found?.effort ?? '',
       rpeRange: found?.rpeRange ?? '',
+      repsLeft: found?.repsLeft ?? '',
       example: found?.example ?? '',
     };
   });
@@ -50,7 +54,9 @@ export default function CycleWeeksEditor({ phases, save }: CycleWeeksEditorProps
           weekNumber: w.weekNumber,
           phaseName: w.phaseName.trim(),
           goal: w.goal.trim(),
+          effort: w.effort.trim() || undefined,
           rpeRange: w.rpeRange.trim() || undefined,
+          repsLeft: w.repsLeft.trim() || undefined,
           example: w.example.trim() || undefined,
         })),
       ),
@@ -78,19 +84,36 @@ export default function CycleWeeksEditor({ phases, save }: CycleWeeksEditorProps
               />
             </label>
             <label className="field">
-              <span>Goal</span>
-              <textarea
-                className="textarea"
-                value={week.goal}
-                onChange={(e) => updateWeek(week.weekNumber, { goal: e.target.value })}
+              <span>Effort (optional)</span>
+              <input
+                placeholder="e.g. Light/Moderate"
+                value={week.effort}
+                onChange={(e) => updateWeek(week.weekNumber, { effort: e.target.value })}
               />
             </label>
             <label className="field">
               <span>RPE range</span>
               <input
-                placeholder="e.g. RPE 6–7"
+                placeholder="e.g. 5–6"
                 value={week.rpeRange}
                 onChange={(e) => updateWeek(week.weekNumber, { rpeRange: e.target.value })}
+              />
+            </label>
+            <label className="field">
+              <span>Reps left in the tank (optional)</span>
+              <input
+                placeholder="e.g. You could do 3 to 4 more reps"
+                value={week.repsLeft}
+                onChange={(e) => updateWeek(week.weekNumber, { repsLeft: e.target.value })}
+              />
+            </label>
+            <label className="field">
+              <span>Goal — what it means</span>
+              <textarea
+                className="textarea"
+                placeholder="e.g. Comfortable effort. You finish each set feeling like you could easily keep going."
+                value={week.goal}
+                onChange={(e) => updateWeek(week.weekNumber, { goal: e.target.value })}
               />
             </label>
             <label className="field">

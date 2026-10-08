@@ -1278,7 +1278,9 @@ export interface components {
             weekNumber?: number;
             phaseName: string;
             goal: string;
+            effort?: string;
             rpeRange?: string;
+            repsLeft?: string;
             example?: string;
         };
         ProgramTemplateView: {
@@ -1326,7 +1328,9 @@ export interface components {
             weekNumber?: number;
             phaseName: string;
             goal: string;
+            effort?: string;
             rpeRange?: string;
+            repsLeft?: string;
             example?: string;
         };
         ReplaceCyclePhasesRequest: {
